@@ -85,3 +85,18 @@ Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de toke
 - **Ojo con o3:** OpenAI le bajó el precio el 10/6/2025, de 10 / 40 a 2 / 8. La tabla usa el de julio.
 - **Ojo con los modelos que razonan** (thinking, o3, deepseek-r1, etc.): el precio por token es igual, pero gastan más tokens de salida. El costo real por pregunta no sale solo de esta tabla.
 - **qwen-max** es el único con precio de oct 2026, porque no estaba en la versión de 2025.
+
+## PRUEBA: costo por respuesta (`R/06_costo_por_respuesta.R` → `R/resultados/costo_por_modelo.csv`)
+
+**Es una prueba, no un resultado para el profesor todavía.** El profesor dejó tokens y precio fuera por ahora (26/10). Sirve para cuando el grupo agregue el costo.
+
+- Costo de cada respuesta = tokens de la pregunta × precio de entrada + tokens de la respuesta × precio de salida (tabla de precios de arriba).
+- Votos: 1er voto, 48 modelos, solo conversaciones de 1 turno: **91,111 votos**. 35 de 48 modelos tienen costo (los otros no tienen precio).
+- **Costo por 1,000 respuestas:** de 0.23 dólares (Mistral Small 3.1) a 41.78 (Claude Opus 4). Gemini 2.5 Pro, el que más gana (74.4% de los votos con ganador, conteo simple), cuesta 15.75.
+- Ejemplos para "el mejor por el dinero": gemini-2.5-flash gana 63.9% y cuesta 4.04. deepseek-r1-0528 gana 65.5% y cuesta 2.72.
+
+**Limitaciones:**
+- **Los tokens de razonamiento no están en los datos.** Los modelos que razonan salen más baratos de lo real. Se nota en Claude con thinking: su respuesta visible mediana es de 177 a 336 tokens, igual que sin thinking.
+- Los tokens los contó LMArena con 1 solo método, no con el de cada compañía.
+- Las respuestas largas ganan más (61.8%), así que costo y victorias no son independientes.
+- El % de victorias es el conteo simple (nivel 1 de `docs/04`), no ajusta por el rival.
