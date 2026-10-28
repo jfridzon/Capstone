@@ -34,3 +34,13 @@ Orden: la tarea 1 alimenta la 2 y la 3. Mientras tanto, 2 y 3 pueden arrancar co
 - [ ] Preparar el primer update formal individual (2 o 3 slides cada uno, sobre su tarea de arriba).
 - [ ] Pasar a R los análisis de `docs/05` que todavía no están en `R/`.
 - [ ] Calendario: limpieza 28/10 y 2/11, analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
+
+
+## Avance propuesto de Nessim (28/10, pendiente de integrar)
+
+La tarea 1 esta preparada en `R/01_preparar_datos.R`, con base larga nueva en
+`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`, auditoria y pruebas.
+El detalle esta en `docs/10-base-regresiones-nessim.md`.
+
+La politica de empates/both_bad y el control del rival siguen abiertos.
+La propuesta no cambia ninguna decision del grupo ni implica aprobacion.
