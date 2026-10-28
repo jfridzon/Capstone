@@ -74,3 +74,59 @@ Prácticamente igual. Pendiente: repetirla con Bradley-Terry con covariables (`d
 Cuidado: las versiones preview y grok-4 tienen pocos votos (a veces 30 a 100 en un tipo), así que su posición es inestable. Agrupar las versiones de un mismo modelo (por ejemplo todas las Gemini 2.5 Pro) es una decisión abierta.
 
 Estos números (chequeo aleatorio, cobertura, prueba de julio y top 3) se calcularon con un análisis aparte que todavía **no está en `R/`**. Pendiente: pasarlo a un script de R para que sea reproducible (`docs/07`).
+
+
+## Auditoría reproducible de limpieza (28/10/2026)
+
+Ejecutada con `R/auditar_limpieza.R` sobre el CSV del repositorio, sin modificarlo.
+Reportes: `R/resultados/auditoria_2026-10-28_final/`.
+
+| Etapa de diagnóstico | Votos |
+|---|---:|
+| CSV original | 135,634 |
+| `evaluation_order == 1` | 108,315 |
+| Ambos modelos elegibles con al menos 1,000 participaciones | 106,630 |
+| Solo votos decisivos (escenario histórico, no decisión final) | 77,863 |
+
+Calcular el umbral sobre el archivo completo o sobre los primeros votos produce
+los mismos conteos de retención en este CSV. Esto no determina qué universo
+debe usarse en train/test: se debe coordinar con Mark sin usar test para
+aprender la elegibilidad.
+
+Hallazgos observados, no corregidos automáticamente:
+
+- No se detectaron IDs repetidos ni filas completamente idénticas.
+- Se detectaron 10 votos con el mismo modelo a ambos lados, sobre el CSV original.
+- Entre las filas con `evaluation_order == 1`, hay 11 filas adicionales cuyo
+  identificador de sesión ya aparece en otra de esas filas. Esto no significa
+  necesariamente que sean votos duplicados: requiere revisión.
+- `if_score` tiene 2 valores faltantes; no hay NA ni campos vacíos en las demás
+  columnas. `language = und` aparece en 11,835 votos y se informa por separado.
+- El hash MD5 del CSV antes y después coincide; ver `integridad.csv`.
+
+Estos hallazgos no invalidan por sí solos el dataset ni autorizan eliminar filas.
+Los escenarios conservan los casos señalados y no exportan una base limpia
+definitiva. `won` se comprueba solo para votos decisivos; la política de empates
+y `both_bad` sigue abierta en `docs/07`.
+
+Código y documentación preparados con asistencia de ChatGPT/Codex.
+
+
+## Base larga de Nessim para las regresiones (28/10/2026)
+
+Generador: `R/01_preparar_datos.R`. Resultado:
+`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`.
+Reportes: `R/resultados/base_regresiones_2026-10-28_v2/`.
+
+- 106,630 votos tras filtrar primer voto y ambos modelos elegibles.
+- 213,260 filas en formato largo, para 48 modelos.
+- Se conservan 77,863 votos decisivos y los empates/both_bad sin decidir su politica.
+- 28 votos seleccionados tienen alguna bandera de revision: mismo modelo o
+  sesion con varios primeros votos. Se conservan; no son necesariamente duplicados.
+- `won` vale 1/0 en votos decisivos y NA en los demas. La columna de medio
+  punto es un escenario separado, no una decision aprobada.
+- Se verificaron dos filas por voto, inversion de lados, suma de victorias
+  igual a uno por voto decisivo y hash del original sin cambios.
+
+La propuesta y el contrato de columnas estan en `docs/10-base-regresiones-nessim.md`.
+No se entrenaron regresiones ni se hizo la particion train/test.

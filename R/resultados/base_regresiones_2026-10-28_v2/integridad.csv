@@ -1,0 +1,2 @@
+archivo,md5_antes,md5_despues,original_intacto,umbral_votos_diagnostico,escenarios_bloqueados
+lmarena_votes.csv,e3b177ac1693c99e939d1343b4a5f0c5,e3b177ac1693c99e939d1343b4a5f0c5,TRUE,1000,FALSE
