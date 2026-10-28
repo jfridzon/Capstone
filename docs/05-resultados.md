@@ -55,6 +55,31 @@ Train de abril a junio y test en julio, con los votos decisivos de modelos que e
 
 Prácticamente igual. Pendiente: repetirla con Bradley-Terry con covariables (`docs/04`).
 
+## Partición train/test y línea base: el ranking general (`R/03_evaluacion.R`)
+
+Este script pasa a R la línea base del ranking general (el 64.5% de arriba) y deja la partición guardada, para que las 48 regresiones y la regresión combinada se evalúen exactamente con los mismos votos.
+
+**Partición** (`R/resultados/split_train_test.csv`, 1 fila por voto con `id`, `split` y `decisive`). Filtros de `docs/03`: solo el 1er voto y los 48 modelos con 1,000 votos o más. Train = 17/4 al 30/6, test = julio. Ninguna sesión queda partida entre train y test (el script lo verifica).
+
+| | Train | Test |
+|---|---|---|
+| Votos decisivos | 52,214 | 25,649 |
+| Empate o both_bad | 19,240 | 9,527 |
+
+**Ranking general** (`R/resultados/ranking_general_train.csv`). Bradley-Terry sin características (1 voto decisivo = 1 fila, respuesta = ganó model_a, 1 columna por modelo con +1 / −1 / 0, sin intercepto), ajustado solo con train y 44 modelos (los otros 4, grok-3-mini-high, grok-4-0709, kimi-k2-0711-preview y mistral-small-2506, solo aparecen en julio). Referencia (fuerza 0): claude-opus-4-20250514, el modelo con más votos en train. Top 5:
+
+| Rank | Modelo | Fuerza | Votos en train |
+|---|---|---|---|
+| 1 | gemini-2.5-pro | 1.098 | 3,522 |
+| 2 | gemini-2.5-pro-preview-03-25 | 0.756 | 796 |
+| 3 | gemini-2.5-pro-preview-05-06 | 0.668 | 1,939 |
+| 4 | deepseek-r1-0528 | 0.636 | 2,912 |
+| 5 | o3-2025-04-16 | 0.610 | 3,058 |
+
+**Línea base en julio** (`R/resultados/test_baseline_ranking_general.csv`). En cada voto decisivo de julio se predice que gana el modelo de mayor fuerza. De 25,649 votos decisivos, 5,233 se quedan fuera porque incluyen un modelo que no está en train. Se evalúan 20,416 votos y se acierta en 13,164: **64.5%** (IC 95%: 63.8% a 65.1%). Coincide con el 64.5% sobre 20,416 votos de la prueba anterior.
+
+Empates y both_bad quedan **excluidos** del ajuste, que es lo usado hasta ahora. Es la decisión abierta #1 de `docs/07`: el script tiene el parámetro `tie_handling` para cambiarlo a medio punto cuando el grupo decida.
+
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
 | Tipo | 1º | 2º | 3º |
@@ -73,7 +98,63 @@ Prácticamente igual. Pendiente: repetirla con Bradley-Terry con covariables (`d
 
 Cuidado: las versiones preview y grok-4 tienen pocos votos (a veces 30 a 100 en un tipo), así que su posición es inestable. Agrupar las versiones de un mismo modelo (por ejemplo todas las Gemini 2.5 Pro) es una decisión abierta.
 
-Estos números (chequeo aleatorio, cobertura, prueba de julio y top 3) se calcularon con un análisis aparte que todavía **no está en `R/`**. Pendiente: pasarlo a un script de R para que sea reproducible (`docs/07`).
+Estos números (chequeo aleatorio, cobertura, prueba de julio y top 3) se calcularon con un análisis aparte que todavía **no está en `R/`**, salvo el 64.5% del ranking general en julio, que ya se reproduce en `R/03_evaluacion.R` (ver arriba). Pendiente: pasar el resto a un script de R para que sea reproducible (`docs/07`).
+
+
+## Auditoría reproducible de limpieza (28/10/2026)
+
+Ejecutada con `R/auditar_limpieza.R` sobre el CSV del repositorio, sin modificarlo.
+Reportes: `R/resultados/auditoria_2026-10-28_final/`.
+
+| Etapa de diagnóstico | Votos |
+|---|---:|
+| CSV original | 135,634 |
+| `evaluation_order == 1` | 108,315 |
+| Ambos modelos elegibles con al menos 1,000 participaciones | 106,630 |
+| Solo votos decisivos (escenario histórico, no decisión final) | 77,863 |
+
+Calcular el umbral sobre el archivo completo o sobre los primeros votos produce
+los mismos conteos de retención en este CSV. Esto no determina qué universo
+debe usarse en train/test: se debe coordinar con Mark sin usar test para
+aprender la elegibilidad.
+
+Hallazgos observados, no corregidos automáticamente:
+
+- No se detectaron IDs repetidos ni filas completamente idénticas.
+- Se detectaron 10 votos con el mismo modelo a ambos lados, sobre el CSV original.
+- Entre las filas con `evaluation_order == 1`, hay 11 filas adicionales cuyo
+  identificador de sesión ya aparece en otra de esas filas. Esto no significa
+  necesariamente que sean votos duplicados: requiere revisión.
+- `if_score` tiene 2 valores faltantes; no hay NA ni campos vacíos en las demás
+  columnas. `language = und` aparece en 11,835 votos y se informa por separado.
+- El hash MD5 del CSV antes y después coincide; ver `integridad.csv`.
+
+Estos hallazgos no invalidan por sí solos el dataset ni autorizan eliminar filas.
+Los escenarios conservan los casos señalados y no exportan una base limpia
+definitiva. `won` se comprueba solo para votos decisivos; la política de empates
+y `both_bad` sigue abierta en `docs/07`.
+
+Código y documentación preparados con asistencia de ChatGPT/Codex.
+
+
+## Base larga de Nessim para las regresiones (28/10/2026)
+
+Generador: `R/01_preparar_datos.R`. Resultado:
+`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`.
+Reportes: `R/resultados/base_regresiones_2026-10-28_v2/`.
+
+- 106,630 votos tras filtrar primer voto y ambos modelos elegibles.
+- 213,260 filas en formato largo, para 48 modelos.
+- Se conservan 77,863 votos decisivos y los empates/both_bad sin decidir su politica.
+- 28 votos seleccionados tienen alguna bandera de revision: mismo modelo o
+  sesion con varios primeros votos. Se conservan; no son necesariamente duplicados.
+- `won` vale 1/0 en votos decisivos y NA en los demas. La columna de medio
+  punto es un escenario separado, no una decision aprobada.
+- Se verificaron dos filas por voto, inversion de lados, suma de victorias
+  igual a uno por voto decisivo y hash del original sin cambios.
+
+La propuesta y el contrato de columnas estan en `docs/10-base-regresiones-nessim.md`.
+No se entrenaron regresiones ni se hizo la particion train/test.
 
 ## Tabla de precios (`R/05_precios_modelos.R` → `data/derivados/precios_modelos.csv`)
 
