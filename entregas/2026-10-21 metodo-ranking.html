@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LMArena Model Ranking Method</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow reading column, 8 numbered steps that follow the real order of the work */
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#18202e; --muted:#5a6578; --line:#dde2ea;
+  --accent:#1f3864; --accent-soft:#e6ecf6; --win:#23774a; --win-soft:#e3f2ea; --loss:#a8423a; --loss-soft:#f7e6e4;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --card:#1a202a; --ink:#e7ebf2; --muted:#9aa5b8; --line:#2c3442;
+  --accent:#8fb0e6; --accent-soft:#223149; --win:#6cc596; --win-soft:#17301f; --loss:#e48a80; --loss-soft:#3a1f1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --card:#1a202a; --ink:#e7ebf2; --muted:#9aa5b8; --line:#2c3442;
+  --accent:#8fb0e6; --accent-soft:#223149; --win:#6cc596; --win-soft:#17301f; --loss:#e48a80; --loss-soft:#3a1f1c; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6}
+.wrap{max-width:780px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+header{display:grid;gap:10px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.15;margin:0;text-wrap:balance;font-weight:700}
+.lead{color:var(--muted);margin:0;max-width:62ch}
+.answer{background:var(--accent);color:var(--bg);border-radius:10px;padding:18px 20px;font-weight:500}
+.answer b{font-weight:700}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 22px 24px;display:grid;gap:12px;min-width:0}
+.step{display:flex;gap:14px;align-items:baseline}
+.num{font-family:var(--mono);font-weight:500;color:var(--accent);font-size:15px;flex:none}
+h2{font-size:21px;margin:0;line-height:1.3;text-wrap:balance}
+p{margin:0;max-width:66ch}
+.muted{color:var(--muted);font-size:15px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--mono);font-size:12.5px;font-weight:500;letter-spacing:.03em;color:var(--muted);background:var(--accent-soft)}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.code{font-family:var(--mono);font-size:14px}
+.w{color:var(--win);font-weight:600}.l{color:var(--loss);font-weight:600}
+.pill{display:inline-block;font-family:var(--mono);font-size:13px;padding:1px 8px;border-radius:99px}
+.pill.w{background:var(--win-soft)}.pill.l{background:var(--loss-soft)}
+.arrow{font-family:var(--mono);color:var(--muted);text-align:center;font-size:14px}
+.formula{font-family:var(--mono);font-size:15px;background:var(--accent-soft);border-radius:8px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.example-tag{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.box{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:4px;min-width:0}
+.box b{font-size:15px}
+footer{color:var(--muted);font-size:14px}
+</style>
+
+</head><body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">IDS 3000 · Business Intelligence Capstone · LMArena project</div>
+  <h1>How we rank AI models for each type of task</h1>
+  <p class="lead">From 1 row of the LMArena data to a top 3 for each type of task, step by step.</p>
+</header>
+
+<div class="answer">The result: for each of 10 types of task (for example "Math, hard"), a ranking of the AI models from best to worst, plus the chance that any model beats any other on that type of task. <b>The order of model A and model B in the data doesn't matter</b>, step 3 shows why.</div>
+
+<section>
+  <div class="step"><span class="num">1</span><h2>What 1 row of the data is</h2></div>
+  <p>A person types a question on LMArena. LMArena picks 2 models at random, shows both answers side by side without the model names, and the person votes for the better answer. Each row is 1 vote. This is a real row from the data:</p>
+  <div class="tbl"><table>
+    <tr><th>model_a</th><th>model_b</th><th>winner</th><th>is_code</th><th>math</th><th>…</th></tr>
+    <tr class="code"><td>gpt-4.1</td><td>claude-opus-4</td><td>model_b</td><td>TRUE</td><td>TRUE</td><td>…</td></tr>
+  </table></div>
+  <p>So in this vote Claude Opus 4 beat GPT-4.1 on a coding question. The TRUE/FALSE labels describe the question and come with the data.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">2</span><h2>Which votes we use</h2></div>
+  <ul>
+    <li><b>Only the 1st vote of each conversation.</b> After a vote the conversation can continue with 2 new models that see the earlier answers, so later votes aren't clean.</li>
+    <li><b>Only the 48 models with 1,000+ votes</b> (out of 53). The other 5 have too few votes to rank.</li>
+    <li><b>Only votes with a winner.</b> "Tie" and "both bad" (27% of votes) don't say which model is better, so they're left out of the ranking.</li>
+  </ul>
+  <p>That leaves <b>106,630 votes</b>, and <b>77,863</b> of them have a winner.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">3</span><h2>Model A and model B are just the left and right side of the screen</h2></div>
+  <p>Which model shows up on the left (A) or the right (B) is random, so it means nothing. To get rid of it, we split every vote into 2 lines, 1 for each model, with a 1 if it won and a 0 if it lost:</p>
+  <div class="tbl"><table>
+    <tr><th>model</th><th>won</th><th>task type</th></tr>
+    <tr><td class="code">claude-opus-4</td><td><span class="pill w">1</span></td><td>Code (hard)</td></tr>
+    <tr><td class="code">gpt-4.1</td><td><span class="pill l">0</span></td><td>Code (hard)</td></tr>
+  </table></div>
+  <p>If the same 2 models had been shown in the opposite order, we would get the exact same 2 lines. From here on there is no A or B, only models that won or lost. R does this split for all votes with a few lines of code.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">4</span><h2>Each vote gets 1 of 10 task types</h2></div>
+  <p>We use the labels that come with the data. We go down this list and the vote takes the 1st type that is TRUE, so every vote ends up in exactly 1 type:</p>
+  <div class="tbl"><table>
+    <tr><th>order</th><th>task type</th><th>label in the data</th></tr>
+    <tr><td>1st</td><td>Code</td><td class="code">is_code</td></tr>
+    <tr><td>2nd</td><td>Math</td><td class="code">math</td></tr>
+    <tr><td>3rd</td><td>Creative writing</td><td class="code">creative_writing</td></tr>
+    <tr><td>4th</td><td>Following instructions</td><td class="code">if</td></tr>
+    <tr><td>5th</td><td>Everything else</td><td class="muted">none of the above</td></tr>
+  </table></div>
+  <p>Then each one is split into <b>easy</b> or <b>hard</b>. The data has 7 TRUE/FALSE labels about the question (complex, needs expert knowledge, problem solving, etc.), and a question is <b>hard</b> when 6 or more are TRUE. That's the same rule LMArena uses for its "Hard Prompts" category. 5 types × easy or hard = 10 types.</p>
+  <p>The row in step 1 is code, and 6 of its 7 labels are TRUE, so it's <b>Code (hard)</b>.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">5</span><h2>Win rate: how often each model wins in each task type</h2></div>
+  <p>Inside each task type we count, for every model, the votes it was in and the votes it won. Win rate = votes won ÷ votes it was in.</p>
+  <div class="example-tag">Example with simple made-up numbers · Math (hard)</div>
+  <div class="tbl"><table>
+    <tr><th>model</th><th class="r">votes it was in</th><th class="r">votes it won</th><th class="r">win rate</th></tr>
+    <tr><td>Gemini</td><td class="r">400</td><td class="r">260</td><td class="r">65%</td></tr>
+    <tr><td>Claude</td><td class="r">400</td><td class="r">220</td><td class="r">55%</td></tr>
+    <tr><td>ChatGPT</td><td class="r">400</td><td class="r">180</td><td class="r">45%</td></tr>
+  </table></div>
+  <p>This is already a ranking, and anyone can check it by hand. Its only weakness is that it doesn't look at <b>who each model played against</b>. A model that happened to face weaker models would look better than it is.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">6</span><h2>Logistic regression: the same ranking, adjusted for who each model played</h2></div>
+  <p>We fit 1 logistic regression for each task type. It gives every model a <b>strength score</b>, and the chance that one model beats another depends only on the difference between their scores.</p>
+  <div class="grid2">
+    <div class="box"><b>Response (y)</b><span>1 if the model on the left won, 0 if the model on the right won</span></div>
+    <div class="box"><b>Predictors (x)</b><span>1 column per model: +1 if it's on the left, −1 if it's on the right, 0 if it isn't in the vote</span></div>
+    <div class="box"><b>Coefficients</b><span>1 per model = its strength in that task type. 1 model is set to 0 as the reference</span></div>
+    <div class="box"><b>Same method LMArena uses</b><span>It's called Bradley-Terry, and it's the method behind LMArena's own leaderboard</span></div>
+  </div>
+  <p>The real row from step 1, and the same vote if the sides had been swapped:</p>
+  <div class="tbl"><table>
+    <tr><th>vote</th><th class="r">claude-opus-4</th><th class="r">gpt-4.1</th><th class="r">other 46 models</th><th class="r">y</th></tr>
+    <tr><td>GPT left, Claude right, Claude won</td><td class="r">−1</td><td class="r">+1</td><td class="r">0</td><td class="r">0</td></tr>
+    <tr><td>Claude left, GPT right, Claude won</td><td class="r">+1</td><td class="r">−1</td><td class="r">0</td><td class="r">1</td></tr>
+  </table></div>
+  <p>Flipping the sides flips every sign and the answer together, so both lines tell the regression the same thing, that Claude beat GPT. That's why the order of A and B can't change the result.</p>
+  <p>What the regression gives back:</p>
+  <div class="formula">chance left model wins = 1 / (1 + e<sup>−(strength left − strength right)</sup>)</div>
+  <div class="example-tag">Example with simple made-up numbers · Math (hard)</div>
+  <div class="tbl"><table>
+    <tr><th>model</th><th class="r">strength (coefficient)</th></tr>
+    <tr><td>Gemini</td><td class="r">0.4</td></tr>
+    <tr><td>Claude</td><td class="r">0.2</td></tr>
+    <tr><td>ChatGPT</td><td class="r">0 (reference)</td></tr>
+  </table></div>
+  <p>Gemini vs Claude in Math (hard): 0.4 − 0.2 = 0.2, and 1 / (1 + e<sup>−0.2</sup>) = <b>55%</b> chance Gemini wins. Gemini vs ChatGPT: 0.4 − 0 = 0.4, which gives <b>60%</b>.</p>
+</section>
+
+<section>
+  <div class="step"><span class="num">7</span><h2>What comes out</h2></div>
+  <p>10 regressions give 10 sets of strength scores, 1 for each task type. Sorting each set from highest to lowest gives the ranking for that type, and the top 3 is the recommendation:</p>
+  <div class="example-tag">Example of the final tool</div>
+  <div class="tbl"><table>
+    <tr><th>pick a task type</th><th>best model</th><th>2nd</th><th>3rd</th></tr>
+    <tr><td>Math (hard)</td><td>Gemini</td><td>Claude</td><td>ChatGPT</td></tr>
+    <tr><td>Creative writing (easy)</td><td>…</td><td>…</td><td>…</td></tr>
+    <tr><td>… 10 rows in total</td><td>…</td><td>…</td><td>…</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="step"><span class="num">8</span><h2>How we test that it works</h2></div>
+  <ul>
+    <li><b>Train</b> on the votes from April 17 to June 30, 2025.</li>
+    <li><b>Test</b> on the July votes, which the regression never saw. For each July vote we predict that the model with the higher strength in that task type wins, and count how often we're right.</li>
+    <li><b>Compare</b> with 1 overall ranking for all tasks, which is how LMArena's main leaderboard works. If the ranking by task type is right more often, the task types add something. If not, that's also a finding: one model is best at almost everything.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="step"><span class="num">·</span><h2>Why the comparison between models is fair</h2></div>
+  <p>The person writes the question before knowing which models will answer it, and the 2 models are picked at random. So every model gets close to the same mix of questions. We checked it: 29% of all questions involve code, and every model got between 26% and 35%. The task type in step 4 and the regression in step 6 take care of the difference that's left.</p>
+</section>
+
+<footer>Data: LMArena human preference dataset, 135,634 votes, April 17 to July 24, 2025 (huggingface.co/datasets/lmarena-ai/arena-human-preference-140k). Numbers marked as examples are made up to show the math.</footer>
+</div>
+
+</body></html>

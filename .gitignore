@@ -1,0 +1,14 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+# Sistema
+.DS_Store
+Thumbs.db
+# Datos originales pesados (se bajan de Hugging Face)
+*.parquet
+*.zip
+# Secretos
+.env
+*.key

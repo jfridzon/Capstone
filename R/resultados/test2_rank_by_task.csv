@@ -1,0 +1,233 @@
+task,rank,model,votes,win_rate,general_rank
+All votes (general ranking),1,gemini-2.5-pro,9219,0.548,1
+All votes (general ranking),2,gemini-2.5-pro-preview-03-25,1389,0.505,2
+All votes (general ranking),3,grok-4-0709,1561,0.498,3
+All votes (general ranking),4,o3-2025-04-16,8529,0.486,4
+All votes (general ranking),5,chatgpt-4o-latest-20250326,7650,0.474,5
+All votes (general ranking),6,deepseek-r1-0528,6554,0.464,6
+All votes (general ranking),7,gemini-2.5-pro-preview-05-06,3255,0.463,7
+All votes (general ranking),8,grok-3-preview-02-24,6040,0.461,8
+All votes (general ranking),9,llama-4-maverick-03-26-experimental,5806,0.46,9
+All votes (general ranking),10,gemini-2.5-flash,9668,0.443,10
+All votes (general ranking),11,kimi-k2-0711-preview,2743,0.414,11
+All votes (general ranking),12,qwen3-235b-a22b-no-thinking,9076,0.414,12
+All votes (general ranking),13,gemini-2.5-flash-preview-04-17,5050,0.409,13
+All votes (general ranking),14,gemini-2.0-flash-thinking-exp-01-21,366,0.399,14
+All votes (general ranking),15,gpt-4.1-2025-04-14,6540,0.387,15
+All votes (general ranking),16,deepseek-v3-0324,6117,0.386,16
+All votes (general ranking),17,o4-mini-2025-04-16,6477,0.386,17
+All votes (general ranking),18,gemini-2.5-flash-lite-preview-06-17-thinking,5232,0.383,18
+All votes (general ranking),19,minimax-m1,5469,0.38,19
+All votes (general ranking),20,hunyuan-turbos-20250416,1585,0.379,20
+All votes (general ranking),21,mistral-medium-2505,9135,0.378,21
+All votes (general ranking),22,qwen3-235b-a22b,5115,0.378,22
+All votes (general ranking),23,claude-opus-4-20250514-thinking-16k,6157,0.377,23
+All votes (general ranking),24,qwen-max-2025-01-25,4379,0.375,24
+All votes (general ranking),25,gemma-3-27b-it,7326,0.368,25
+All votes (general ranking),26,qwen3-235b-a22b-instruct-2507,622,0.367,26
+All votes (general ranking),27,claude-opus-4-20250514,10092,0.362,27
+All votes (general ranking),28,grok-3-mini-beta,5991,0.359,28
+All votes (general ranking),29,grok-3-mini-high,2801,0.358,29
+All votes (general ranking),30,gpt-4o-2024-11-20,573,0.353,30
+All votes (general ranking),31,claude-sonnet-4-20250514-thinking-32k,5613,0.346,31
+All votes (general ranking),32,gemini-2.0-flash-001,6074,0.332,32
+All votes (general ranking),33,qwq-32b,4259,0.33,33
+All votes (general ranking),34,mistral-small-2506,2373,0.327,34
+All votes (general ranking),35,gpt-4.1-mini-2025-04-14,6121,0.324,35
+All votes (general ranking),36,claude-sonnet-4-20250514,8295,0.321,36
+All votes (general ranking),37,qwen3-30b-a3b,5498,0.311,37
+All votes (general ranking),38,command-a-03-2025,6838,0.304,38
+All votes (general ranking),39,o3-mini,6624,0.296,39
+All votes (general ranking),40,gemma-3n-e4b-it,2611,0.291,40
+All votes (general ranking),41,amazon-nova-experimental-chat-05-14,3267,0.286,41
+All votes (general ranking),42,claude-3-7-sonnet-20250219-thinking-32k,7149,0.272,42
+All votes (general ranking),43,claude-3-5-sonnet-20241022,6817,0.267,43
+All votes (general ranking),44,llama-4-maverick-17b-128e-instruct,5332,0.267,44
+All votes (general ranking),45,claude-3-7-sonnet-20250219,6852,0.265,45
+All votes (general ranking),46,llama-4-scout-17b-16e-instruct,2805,0.262,46
+All votes (general ranking),47,llama-3.3-70b-instruct,4905,0.231,47
+All votes (general ranking),48,amazon.nova-pro-v1:0,6383,0.224,48
+All votes (general ranking),49,magistral-medium-2506,2606,0.222,49
+All votes (general ranking),50,mistral-small-3.1-24b-instruct-2503,3271,0.22,50
+All votes (general ranking),51,claude-3-5-haiku-20241022,6466,0.21,51
+All votes (general ranking),52,gpt-4o-mini-2024-07-18,590,0.2,52
+Math,1,gemini-2.5-pro,696,0.542,1
+Math,2,minimax-m1,390,0.503,19
+Math,3,gemini-2.5-flash,792,0.453,10
+Math,4,llama-4-maverick-03-26-experimental,455,0.44,9
+Math,5,qwen3-235b-a22b,346,0.439,22
+Math,6,o3-2025-04-16,622,0.429,4
+Math,7,chatgpt-4o-latest-20250326,712,0.421,5
+Math,8,claude-opus-4-20250514-thinking-16k,462,0.403,23
+Math,9,gemini-2.5-flash-preview-04-17,455,0.4,13
+Math,10,qwen3-235b-a22b-no-thinking,689,0.399,12
+Math,11,gemini-2.5-pro-preview-05-06,283,0.396,7
+Math,12,deepseek-r1-0528,357,0.378,6
+Math,13,gemini-2.5-flash-lite-preview-06-17-thinking,385,0.377,18
+Math,14,qwen-max-2025-01-25,421,0.373,24
+Math,15,o4-mini-2025-04-16,563,0.371,17
+Math,16,claude-sonnet-4-20250514-thinking-32k,378,0.37,31
+Math,17,grok-3-preview-02-24,558,0.36,8
+Math,18,claude-opus-4-20250514,810,0.357,27
+Math,19,claude-sonnet-4-20250514,637,0.352,36
+Math,20,qwq-32b,345,0.336,33
+Math,21,o3-mini,540,0.335,39
+Math,22,qwen3-30b-a3b,400,0.328,37
+Math,23,grok-3-mini-beta,527,0.323,28
+Math,24,deepseek-v3-0324,515,0.322,16
+Math,25,gpt-4.1-2025-04-14,574,0.314,15
+Math,26,mistral-medium-2505,712,0.299,21
+Math,27,gemini-2.0-flash-001,582,0.287,32
+Math,28,gemma-3-27b-it,605,0.276,25
+Math,29,gpt-4.1-mini-2025-04-14,500,0.276,35
+Math,30,claude-3-5-sonnet-20241022,584,0.271,43
+Math,31,claude-3-7-sonnet-20250219-thinking-32k,561,0.269,42
+Math,32,claude-3-7-sonnet-20250219,587,0.261,45
+Math,33,llama-4-maverick-17b-128e-instruct,472,0.258,44
+Math,34,command-a-03-2025,587,0.239,38
+Math,35,amazon-nova-experimental-chat-05-14,256,0.207,41
+Math,36,llama-3.3-70b-instruct,467,0.186,47
+Math,37,amazon.nova-pro-v1:0,519,0.183,48
+Math,38,claude-3-5-haiku-20241022,545,0.158,51
+Math,39,mistral-small-3.1-24b-instruct-2503,221,0.158,50
+Creative writing,1,gemini-2.5-pro,792,0.558,1
+Creative writing,2,grok-3-preview-02-24,514,0.5,8
+Creative writing,3,llama-4-maverick-03-26-experimental,518,0.479,9
+Creative writing,4,gemini-2.5-pro-preview-05-06,282,0.468,7
+Creative writing,5,chatgpt-4o-latest-20250326,659,0.446,5
+Creative writing,6,kimi-k2-0711-preview,252,0.437,11
+Creative writing,7,o3-2025-04-16,753,0.437,4
+Creative writing,8,deepseek-r1-0528,620,0.434,6
+Creative writing,9,gemini-2.5-flash,820,0.428,10
+Creative writing,10,gemini-2.5-flash-preview-04-17,448,0.424,13
+Creative writing,11,claude-opus-4-20250514-thinking-16k,507,0.42,23
+Creative writing,12,deepseek-v3-0324,531,0.42,16
+Creative writing,13,claude-opus-4-20250514,867,0.408,27
+Creative writing,14,qwen-max-2025-01-25,366,0.399,24
+Creative writing,15,gemini-2.5-flash-lite-preview-06-17-thinking,466,0.397,18
+Creative writing,16,qwen3-235b-a22b-no-thinking,745,0.393,12
+Creative writing,17,gemma-3-27b-it,638,0.392,25
+Creative writing,18,gpt-4.1-2025-04-14,553,0.382,15
+Creative writing,19,claude-sonnet-4-20250514-thinking-32k,437,0.371,31
+Creative writing,20,gemini-2.0-flash-001,522,0.366,32
+Creative writing,21,minimax-m1,430,0.358,19
+Creative writing,22,claude-sonnet-4-20250514,741,0.343,36
+Creative writing,23,o4-mini-2025-04-16,541,0.342,17
+Creative writing,24,grok-3-mini-high,219,0.338,29
+Creative writing,25,mistral-medium-2505,765,0.335,21
+Creative writing,26,qwq-32b,397,0.335,33
+Creative writing,27,claude-3-7-sonnet-20250219-thinking-32k,602,0.332,42
+Creative writing,28,qwen3-235b-a22b,447,0.327,22
+Creative writing,29,command-a-03-2025,603,0.32,38
+Creative writing,30,grok-3-mini-beta,506,0.316,28
+Creative writing,31,claude-3-5-sonnet-20241022,537,0.304,43
+Creative writing,32,claude-3-7-sonnet-20250219,571,0.303,45
+Creative writing,33,mistral-small-2506,206,0.286,34
+Creative writing,34,magistral-medium-2506,223,0.283,49
+Creative writing,35,gpt-4.1-mini-2025-04-14,516,0.279,35
+Creative writing,36,o3-mini,559,0.279,39
+Creative writing,37,amazon-nova-experimental-chat-05-14,288,0.278,41
+Creative writing,38,gemma-3n-e4b-it,209,0.278,40
+Creative writing,39,llama-4-scout-17b-16e-instruct,225,0.276,46
+Creative writing,40,llama-4-maverick-17b-128e-instruct,432,0.245,44
+Creative writing,41,llama-3.3-70b-instruct,418,0.234,47
+Creative writing,42,qwen3-30b-a3b,456,0.215,37
+Creative writing,43,claude-3-5-haiku-20241022,528,0.203,51
+Creative writing,44,amazon.nova-pro-v1:0,569,0.2,48
+Creative writing,45,mistral-small-3.1-24b-instruct-2503,298,0.188,50
+Code,1,gemini-2.5-pro,2679,0.518,1
+Code,2,grok-4-0709,497,0.477,3
+Code,3,o3-2025-04-16,3001,0.475,4
+Code,4,chatgpt-4o-latest-20250326,2410,0.464,5
+Code,5,gemini-2.5-pro-preview-03-25,428,0.463,2
+Code,6,grok-3-preview-02-24,1844,0.448,8
+Code,7,deepseek-r1-0528,1836,0.44,6
+Code,8,llama-4-maverick-03-26-experimental,1896,0.436,9
+Code,9,gemini-2.5-flash,2764,0.431,10
+Code,10,gemini-2.5-pro-preview-05-06,896,0.43,7
+Code,11,claude-opus-4-20250514-thinking-16k,1670,0.428,23
+Code,12,kimi-k2-0711-preview,862,0.406,11
+Code,13,qwen3-235b-a22b-no-thinking,2690,0.4,12
+Code,14,claude-opus-4-20250514,2718,0.396,27
+Code,15,claude-sonnet-4-20250514-thinking-32k,1505,0.393,31
+Code,16,qwen3-235b-a22b,1450,0.386,22
+Code,17,gemini-2.5-flash-preview-04-17,1437,0.38,13
+Code,18,gpt-4.1-2025-04-14,1900,0.374,15
+Code,19,o4-mini-2025-04-16,2169,0.374,17
+Code,20,mistral-medium-2505,2567,0.372,21
+Code,21,deepseek-v3-0324,1826,0.365,16
+Code,22,grok-3-mini-beta,1823,0.36,28
+Code,23,claude-sonnet-4-20250514,2281,0.35,36
+Code,24,gemini-2.5-flash-lite-preview-06-17-thinking,1402,0.349,18
+Code,25,grok-3-mini-high,866,0.348,29
+Code,26,qwen-max-2025-01-25,1314,0.347,24
+Code,27,hunyuan-turbos-20250416,483,0.346,20
+Code,28,mistral-small-2506,713,0.345,34
+Code,29,gpt-4.1-mini-2025-04-14,1753,0.34,35
+Code,30,minimax-m1,1548,0.338,19
+Code,31,gemma-3-27b-it,2134,0.336,25
+Code,32,qwen3-30b-a3b,1520,0.324,37
+Code,33,gemini-2.0-flash-001,1844,0.323,32
+Code,34,qwq-32b,1224,0.318,33
+Code,35,o3-mini,1905,0.313,39
+Code,36,command-a-03-2025,1864,0.293,38
+Code,37,claude-3-5-sonnet-20241022,1925,0.29,43
+Code,38,claude-3-7-sonnet-20250219-thinking-32k,1887,0.287,42
+Code,39,claude-3-7-sonnet-20250219,1858,0.274,45
+Code,40,amazon-nova-experimental-chat-05-14,973,0.27,41
+Code,41,magistral-medium-2506,757,0.251,49
+Code,42,llama-4-maverick-17b-128e-instruct,1500,0.249,44
+Code,43,llama-4-scout-17b-16e-instruct,829,0.248,46
+Code,44,gemma-3n-e4b-it,745,0.247,40
+Code,45,claude-3-5-haiku-20241022,1806,0.221,51
+Code,46,mistral-small-3.1-24b-instruct-2503,885,0.216,50
+Code,47,llama-3.3-70b-instruct,1381,0.2,47
+Code,48,amazon.nova-pro-v1:0,1809,0.192,48
+Instruction following,1,gemini-2.5-pro-preview-03-25,304,0.556,2
+Instruction following,2,gemini-2.5-pro,1687,0.518,1
+Instruction following,3,gemini-2.5-pro-preview-05-06,571,0.48,7
+Instruction following,4,grok-4-0709,288,0.472,3
+Instruction following,5,chatgpt-4o-latest-20250326,1420,0.449,5
+Instruction following,6,gemini-2.5-flash,1747,0.441,10
+Instruction following,7,gemini-2.5-flash-preview-04-17,900,0.44,13
+Instruction following,8,o3-2025-04-16,1505,0.44,4
+Instruction following,9,grok-3-preview-02-24,1099,0.436,8
+Instruction following,10,llama-4-maverick-03-26-experimental,1049,0.427,9
+Instruction following,11,claude-sonnet-4-20250514-thinking-32k,1011,0.417,31
+Instruction following,12,deepseek-r1-0528,1072,0.417,6
+Instruction following,13,claude-opus-4-20250514-thinking-16k,1095,0.414,23
+Instruction following,14,kimi-k2-0711-preview,577,0.407,11
+Instruction following,15,gemini-2.5-flash-lite-preview-06-17-thinking,965,0.4,18
+Instruction following,16,claude-opus-4-20250514,1872,0.399,27
+Instruction following,17,qwen3-235b-a22b-no-thinking,1640,0.395,12
+Instruction following,18,gpt-4.1-2025-04-14,1204,0.378,15
+Instruction following,19,grok-3-mini-beta,1032,0.363,28
+Instruction following,20,mistral-medium-2505,1630,0.36,21
+Instruction following,21,claude-sonnet-4-20250514,1536,0.357,36
+Instruction following,22,o4-mini-2025-04-16,1220,0.357,17
+Instruction following,23,grok-3-mini-high,517,0.356,29
+Instruction following,24,qwen3-235b-a22b,848,0.351,22
+Instruction following,25,qwen-max-2025-01-25,843,0.344,24
+Instruction following,26,minimax-m1,914,0.341,19
+Instruction following,27,gemma-3-27b-it,1359,0.34,25
+Instruction following,28,gpt-4.1-mini-2025-04-14,1126,0.337,35
+Instruction following,29,hunyuan-turbos-20250416,295,0.332,20
+Instruction following,30,deepseek-v3-0324,1124,0.331,16
+Instruction following,31,claude-3-7-sonnet-20250219,1232,0.328,45
+Instruction following,32,o3-mini,1201,0.324,39
+Instruction following,33,qwq-32b,738,0.32,33
+Instruction following,34,claude-3-7-sonnet-20250219-thinking-32k,1157,0.319,42
+Instruction following,35,claude-3-5-sonnet-20241022,1247,0.302,43
+Instruction following,36,gemini-2.0-flash-001,1157,0.298,32
+Instruction following,37,command-a-03-2025,1253,0.292,38
+Instruction following,38,qwen3-30b-a3b,970,0.284,37
+Instruction following,39,amazon-nova-experimental-chat-05-14,600,0.28,41
+Instruction following,40,mistral-small-2506,459,0.264,34
+Instruction following,41,llama-4-maverick-17b-128e-instruct,1009,0.257,44
+Instruction following,42,magistral-medium-2506,503,0.245,49
+Instruction following,43,llama-4-scout-17b-16e-instruct,537,0.24,46
+Instruction following,44,llama-3.3-70b-instruct,950,0.207,47
+Instruction following,45,mistral-small-3.1-24b-instruct-2503,584,0.205,50
+Instruction following,46,amazon.nova-pro-v1:0,1172,0.203,48
+Instruction following,47,gemma-3n-e4b-it,434,0.196,40
+Instruction following,48,claude-3-5-haiku-20241022,1246,0.193,51
