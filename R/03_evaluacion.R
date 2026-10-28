@@ -8,9 +8,11 @@
 #    NO question characteristics, fitted on train only. 1 strength per model.
 # 4. Baseline accuracy: in each decisive July vote, predict that the model with the
 #    higher strength wins, and measure the % of correct predictions.
+# 5. Second baseline (the one in docs/tareas/mark.md): general win rate in train.
+#    Both baselines are scored on the same July votes and saved in evaluacion.csv.
 #
 # Still to add here, when R/02_regresiones_por_modelo.R exists (docs/07):
-# accuracy of the 48 regressions vs this baseline, and the combined Bradley-Terry.
+# accuracy of the 48 regressions vs these baselines, and the combined Bradley-Terry.
 
 library(dplyr)
 library(readr)
@@ -141,3 +143,49 @@ baseline <- tibble(tie_handling = tie_handling,
 cat("\nBaseline (general ranking) in July:\n")
 print(as.data.frame(baseline))
 write_csv(baseline, file.path(out_folder, "test_baseline_ranking_general.csv"))
+
+# ---- 5. Second baseline: general win rate ----------------------------------------
+# Win rate of each model in train, all kinds of question together:
+# votes won / votes played. Same train votes as the Bradley-Terry fit (decisive only;
+# with tie_handling = "half", tie and both_bad add 0.5). In each July vote we predict
+# that the model with the higher win rate wins. It does not take the rival into
+# account, which is the limit of this baseline (docs/04, level 1).
+
+win_rates <- bind_rows(train |> transmute(model = model_a, score = y),
+                       train |> transmute(model = model_b, score = 1 - y)) |>
+  group_by(model) |>
+  summarise(train_votes = n(), win_rate = mean(score), .groups = "drop") |>
+  arrange(desc(win_rate)) |>
+  mutate(rank = row_number(), .before = 1)
+
+stopifnot(setequal(win_rates$model, ranking$model))   # same 44 models as Bradley-Terry
+cat("\nGeneral win rate in train (top 10):\n")
+print(head(win_rates, 10))
+write_csv(win_rates, file.path(out_folder, "winrate_general_train.csv"))
+
+# Same July votes as the Bradley-Terry baseline (test_used), so both are comparable
+test_wr <- test_used |>
+  mutate(win_rate_a = win_rates$win_rate[match(model_a, win_rates$model)],
+         win_rate_b = win_rates$win_rate[match(model_b, win_rates$model)],
+         predicted_wr = ifelse(win_rate_a > win_rate_b, "model_a", "model_b"),
+         correct_wr   = predicted_wr == winner)
+
+accuracy_row <- function(method, correct_votes) {
+  n  <- length(correct_votes)
+  k  <- sum(correct_votes)
+  ci <- prop.test(k, n)$conf.int
+  tibble(method = method, tie_handling = tie_handling,
+         test_votes_evaluated = n, correct = k,
+         accuracy_percent = round(100 * k / n, 1),
+         ci95_low_percent = round(100 * ci[1], 1),
+         ci95_high_percent = round(100 * ci[2], 1))
+}
+
+evaluacion <- bind_rows(accuracy_row("general_bradley_terry", test_used$correct),
+                        accuracy_row("general_win_rate", test_wr$correct_wr))
+
+cat("\nBoth baselines in July (same votes):\n")
+print(as.data.frame(evaluacion))
+cat("July votes where the two baselines predict a different winner:",
+    sum(test_wr$predicted != test_wr$predicted_wr), "\n")
+write_csv(evaluacion, file.path(out_folder, "evaluacion.csv"))
