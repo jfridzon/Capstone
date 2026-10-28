@@ -1,0 +1,12 @@
+Asociacion descriptiva; no causal. Largo no es predictor.
+Etiquetas solapadas; no sumar sus conteos.
+Sin filtro de 48 modelos ni eliminacion automatica de casos senalados por Nessim.
+IC binomiales nominales: no corrigen dependencia por sesion ni comparaciones multiples.
+Comparacion externa descriptiva; puede compartir votos con nuestro dataset, no es validacion independiente.
+El leaderboard ajusta por rival/estilo y usa otro universo e historial de votos.
+No se agrupan versiones. Coincidencia exacta de IDs; se exportan los no coincidentes.
+Diferencias de puestos calculadas dentro del conjunto de modelos comunes.
+MD5 coeficientes Jaime: 2d5c0b7660047d123735d62658455f73
+MD5 datos: e3b177ac1693c99e939d1343b4a5f0c5
+MD5 snapshot: de25a75c351940df7bd46cc21753b2b3
+Graficos: R/resultados/graficos/eli_contexto_2026-10-28_221546
