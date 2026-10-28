@@ -80,6 +80,17 @@ Este script pasa a R la línea base del ranking general (el 64.5% de arriba) y d
 
 Empates y both_bad quedan **excluidos** del ajuste, que es lo usado hasta ahora. Es la decisión abierta #1 de `docs/07`: el script tiene el parámetro `tie_handling` para cambiarlo a medio punto cuando el grupo decida.
 
+**Segunda línea base: % de victorias general** (`R/resultados/winrate_general_train.csv` y `R/resultados/evaluacion.csv`). Es la que pide la ficha de Mark (`docs/tareas/mark.md`): para cada modelo, votos ganados ÷ votos jugados en train, con todos los tipos de pregunta juntos, sobre los mismos 52,208 votos del ajuste anterior. En cada voto de julio se predice que gana el modelo con mayor %. No toma en cuenta contra quién jugó cada modelo (`docs/04`, nivel 1). Top 3 en train: gemini-2.5-pro (74.8%), gemini-2.5-pro-preview-03-25 (67.2%) y gemini-2.5-pro-preview-05-06 (65.3%).
+
+Las dos líneas base se evalúan sobre los mismos 20,416 votos de julio:
+
+| Línea base | Aciertos | % | IC 95% |
+|---|---|---|---|
+| Bradley-Terry (sin características) | 13,164 | 64.5% | 63.8% a 65.1% |
+| % de victorias | 13,162 | 64.5% | 63.8% a 65.1% |
+
+Dan prácticamente lo mismo: solo se separan en 210 de los 20,416 votos. Para comparar las 48 regresiones basta usar cualquiera de las dos como línea base. `evaluacion.csv` tiene una fila por método; las 48 regresiones y la regresión combinada se agregan ahí cuando existan.
+
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
 | Tipo | 1º | 2º | 3º |
