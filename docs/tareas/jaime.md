@@ -1,6 +1,6 @@
 # Tarea de Jaime: las 48 regresiones
 
-**Para cuándo:** lunes 9/11. **Rama:** `jaime/regresiones`. Usa `data/derivados/votos_largo.csv` de Nessim. Mientras no exista, se puede armar lo mismo desde `data/lmarena_votes.csv`.
+**Para cuándo:** lunes 9/11. **Rama:** `jaime/regresiones`. Usa la base larga de Nessim, `data/derivados/base_regresiones_2026-10-28_v2.csv.gz` (ver `docs/10`), y la partición de Mark, `R/resultados/split_train_test.csv`.
 
 ## Qué hay que hacer
 

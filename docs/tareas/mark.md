@@ -1,6 +1,6 @@
 # Tarea de Mark: evaluación y línea base
 
-**Para cuándo:** lunes 16/11. **Rama:** `mark/evaluacion`. Usa `votos_filtrados.csv` y `votos_largo.csv` de Nessim, y la función `ajustar_modelos()` de Jaime.
+**Para cuándo:** lunes 16/11. **Rama:** `mark/evaluacion`. Usa la base larga de Nessim (`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`, ver `docs/10`) y la función `ajustar_modelos()` de Jaime.
 
 ## Qué hay que hacer
 
