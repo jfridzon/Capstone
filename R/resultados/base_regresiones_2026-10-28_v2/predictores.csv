@@ -1,0 +1,12 @@
+columna,tipo,uso
+is_code,logical,predictor
+math,logical,predictor
+creative_writing,logical,predictor
+instruction_following,logical,predictor
+complexity,logical,predictor
+creativity,logical,predictor
+domain_knowledge,logical,predictor
+problem_solving,logical,predictor
+real_world,logical,predictor
+specificity,logical,predictor
+technical_accuracy,logical,predictor
