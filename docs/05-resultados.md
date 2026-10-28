@@ -55,6 +55,31 @@ Train de abril a junio y test en julio, con los votos decisivos de modelos que e
 
 Prácticamente igual. Pendiente: repetirla con Bradley-Terry con covariables (`docs/04`).
 
+## Partición train/test y línea base: el ranking general (`R/03_evaluacion.R`)
+
+Este script pasa a R la línea base del ranking general (el 64.5% de arriba) y deja la partición guardada, para que las 48 regresiones y la regresión combinada se evalúen exactamente con los mismos votos.
+
+**Partición** (`R/resultados/split_train_test.csv`, 1 fila por voto con `id`, `split` y `decisive`). Filtros de `docs/03`: solo el 1er voto y los 48 modelos con 1,000 votos o más. Train = 17/4 al 30/6, test = julio. Ninguna sesión queda partida entre train y test (el script lo verifica).
+
+| | Train | Test |
+|---|---|---|
+| Votos decisivos | 52,214 | 25,649 |
+| Empate o both_bad | 19,240 | 9,527 |
+
+**Ranking general** (`R/resultados/ranking_general_train.csv`). Bradley-Terry sin características (1 voto decisivo = 1 fila, respuesta = ganó model_a, 1 columna por modelo con +1 / −1 / 0, sin intercepto), ajustado solo con train y 44 modelos (los otros 4, grok-3-mini-high, grok-4-0709, kimi-k2-0711-preview y mistral-small-2506, solo aparecen en julio). Referencia (fuerza 0): claude-opus-4-20250514, el modelo con más votos en train. Top 5:
+
+| Rank | Modelo | Fuerza | Votos en train |
+|---|---|---|---|
+| 1 | gemini-2.5-pro | 1.098 | 3,522 |
+| 2 | gemini-2.5-pro-preview-03-25 | 0.756 | 796 |
+| 3 | gemini-2.5-pro-preview-05-06 | 0.668 | 1,939 |
+| 4 | deepseek-r1-0528 | 0.636 | 2,912 |
+| 5 | o3-2025-04-16 | 0.610 | 3,058 |
+
+**Línea base en julio** (`R/resultados/test_baseline_ranking_general.csv`). En cada voto decisivo de julio se predice que gana el modelo de mayor fuerza. De 25,649 votos decisivos, 5,233 se quedan fuera porque incluyen un modelo que no está en train. Se evalúan 20,416 votos y se acierta en 13,164: **64.5%** (IC 95%: 63.8% a 65.1%). Coincide con el 64.5% sobre 20,416 votos de la prueba anterior.
+
+Empates y both_bad quedan **excluidos** del ajuste, que es lo usado hasta ahora. Es la decisión abierta #1 de `docs/07`: el script tiene el parámetro `tie_handling` para cambiarlo a medio punto cuando el grupo decida.
+
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
 | Tipo | 1º | 2º | 3º |
@@ -73,4 +98,4 @@ Prácticamente igual. Pendiente: repetirla con Bradley-Terry con covariables (`d
 
 Cuidado: las versiones preview y grok-4 tienen pocos votos (a veces 30 a 100 en un tipo), así que su posición es inestable. Agrupar las versiones de un mismo modelo (por ejemplo todas las Gemini 2.5 Pro) es una decisión abierta.
 
-Estos números (chequeo aleatorio, cobertura, prueba de julio y top 3) se calcularon con un análisis aparte que todavía **no está en `R/`**. Pendiente: pasarlo a un script de R para que sea reproducible (`docs/07`).
+Estos números (chequeo aleatorio, cobertura, prueba de julio y top 3) se calcularon con un análisis aparte que todavía **no está en `R/`**, salvo el 64.5% del ranking general en julio, que ya se reproduce en `R/03_evaluacion.R` (ver arriba). Pendiente: pasar el resto a un script de R para que sea reproducible (`docs/07`).
