@@ -166,3 +166,29 @@ Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de toke
 - **Ojo con o3:** OpenAI le bajó el precio el 10/6/2025, de 10 / 40 a 2 / 8. La tabla usa el de julio.
 - **Ojo con los modelos que razonan** (thinking, o3, deepseek-r1, etc.): el precio por token es igual, pero gastan más tokens de salida. El costo real por pregunta no sale solo de esta tabla.
 - **qwen-max** es el único con precio de oct 2026, porque no estaba en la versión de 2025.
+
+## Las 48 regresiones, 1 por modelo (`R/02_regresiones_por_modelo.R`)
+
+Para cada uno de los 48 modelos, una regresión logística con todos los votos donde aparece. **Respuesta:** `won` (1 si ganó, 0 si perdió). **Predictores:** las 11 características TRUE/FALSE de la pregunta. Base: la de Nessim (`docs/10`), solo votos decisivos (decisión abierta #1, el script tiene `politica_empates` para cambiarlo) y sin los 28 votos que Nessim marcó para revisar (10 de un modelo contra sí mismo). Quedan **77,843 votos** (155,686 filas). Las 48 convergen.
+
+- Coeficientes: `R/resultados/coeficientes_por_modelo.csv` (48 modelos × 12 términos = 576 filas, con error estándar y p-valor).
+- Rankings: `R/resultados/rankings_ejemplo.csv`, top 10 por escenario.
+
+**Cuidado con los escenarios "solo esta característica".** Casi ninguna pregunta real tiene 1 sola característica. Una pregunta de código casi siempre también es `problem_solving`, `technical_accuracy`, etc. Votos que calzan exactamente: solo código 449, solo math 21, solo escritura creativa 513, código + math 10. Por eso cada escenario tiene 2 versiones:
+
+- `solo_estas`: una pregunta con solo esas características en TRUE (lo que pedía la ficha).
+- `preguntas_reales`: el promedio de la probabilidad de ganar sobre todas las preguntas reales que tienen esas características (el resto puede ser cualquier cosa). Es la que tiene sentido presentar.
+
+Top 3 con `preguntas_reales` (ajuste con todos los votos, abril a julio):
+
+| Escenario | Preguntas | 1º | 2º | 3º |
+|---|---|---|---|---|
+| Código | 21,048 | gemini-2.5-pro (72.2%) | gemini-2.5-pro-preview-03-25 (65.6%) | grok-4-0709 (65.1%) |
+| Math | 5,945 | gemini-2.5-pro (76.9%) | grok-4-0709 (73.5%) | gemini-2.5-pro-preview-03-25 (71.9%) |
+| Escritura creativa | 6,514 | gemini-2.5-pro (75.7%) | gemini-2.5-pro-preview-03-25 (74.6%) | grok-3-preview-02-24 (66.3%) |
+| Código + math | 1,491 | gemini-2.5-pro (74.8%) | grok-4-0709 (70.5%) | gemini-2.5-pro-preview-03-25 (69.2%) |
+| Todas | 77,843 | gemini-2.5-pro (74.2%) | grok-4-0709 (68.8%) | gemini-2.5-pro-preview-03-25 (67.3%) |
+
+grok-4-0709 (931 votos) y gemini-2.5-pro-preview-03-25 (796) tienen pocos votos, así que su posición es inestable. Las 3 versiones de Gemini 2.5 Pro aparecen por separado porque agruparlas es la decisión abierta #2.
+
+La evaluación contra julio y contra la línea base la hace Mark en `R/03_evaluacion.R` con `ajustar_modelos()` y `probabilidad()`. Para cargar solo las funciones: `options(correr_02 = FALSE); source("R/02_regresiones_por_modelo.R")`.
