@@ -15,7 +15,7 @@
 | 21/10 | El profesor no ve cómo sale la predicción si model_a y model_b pueden ser cualquier modelo en cualquier orden. Le mandamos una página paso a paso (`entregas/2026-10-21 metodo-ranking.html`) |
 | 21/10 | Pide los datos y la información de las pruebas |
 | 22/10 | Le mandamos `lmarena_votes.zip` (los 135,634 votos) y el resumen de los tests 1 y 2 (`entregas/2026-10-22 LMArena Data and Tests.docx`) |
-| 26/10 | Discusión del método: las cajas pierden información cuando una pregunta tiene varias características. El profesor quiere 1 regresión logística, o varias, para rankear modelos según las características. Opciones en `docs/04` |
+| 26/10 | Clase con el profesor: las cajas no sirven porque las características se combinan. Decidió **hacer primero las 48 regresiones (1 por modelo)** y después la combinada (Bradley-Terry) como comparación. Descartó las regresiones por par. Tokens y precio quedan fuera por ahora. Quiere ver el trabajo |
 
 ## Qué pide y qué valora el profesor (patrones)
 

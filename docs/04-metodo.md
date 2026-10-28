@@ -54,7 +54,16 @@ En la regresión:
 
 **Nombre técnico (para el reporte):** "A Bradley-Terry model (a logistic regression on paired comparisons) with question characteristics as contest-specific covariates interacting with each model's strength". Paquete de R: `BradleyTerry2`, o directo con `glm(..., family = binomial)` sin intercepto. LMArena usa la misma estructura en su "style control" (covariables de largo y formato).
 
-## Las opciones que se discutieron el 26/10 (decisión abierta)
+## Decisión del 26/10 (en clase con el profesor)
+
+- **Las cajas quedan descartadas.** Las características no son excluyentes (una pregunta puede ser código y math a la vez), así que la combinación importa.
+- **Primero: las 48 regresiones, 1 por modelo** (opción A de abajo). Por cada modelo se usan todos los votos donde aparece, con respuesta = ganó (1) o no (0) y predictores = las características de la pregunta. El profesor sabe que los votos se usan 2 veces (una por cada modelo) y que eso rompe la independencia, pero dijo que por ahora no nos preocupemos.
+- **Después: la regresión combinada (Bradley-Terry con covariables)** como comparación. El profesor conoce el paper y la quiere ver, pero después de las 48.
+- **Regresiones por par de modelos: descartadas** ("that's not going to work").
+- **Tokens y precio: fuera por ahora.** La pregunta de "quién gana y a qué costo" queda para después, y el profesor va a pensar cómo plantearla.
+- **Quiere ver el trabajo**, no solo el resultado.
+
+## Las opciones que se discutieron el 26/10
 
 El profesor quiere **una regresión logística, o varias, que permita rankear los modelos según las características de la pregunta.**
 
