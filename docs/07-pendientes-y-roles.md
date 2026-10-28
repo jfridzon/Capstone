@@ -46,3 +46,13 @@ El detalle esta en `docs/10-base-regresiones-nessim.md`.
 
 La politica de empates/both_bad y el control del rival siguen abiertos.
 La propuesta no cambia ninguna decision del grupo ni implica aprobacion.
+
+## Avance de Marco (28/10, tarea 4)
+
+La tabla de precios está en `data/derivados/precios_modelos_2026-10-28_v2.csv` (formato de la ficha), generada por `R/05_precios_modelos.R`. Además hay una **prueba** de costo por respuesta en `R/06_costo_por_respuesta.R`. Todo está explicado en `docs/11-precios-y-costo.md`.
+
+Decisiones abiertas que salen de esta tarea (el grupo decide):
+
+- **Modelos sin precio (13 de 48):** dejarlos fuera del análisis de costo, o ponerles el precio de un proveedor fijo (por ejemplo AWS Bedrock) marcado como "precio de proveedor".
+- **`disponible_gratis_en_app`:** definir qué significa. Quedó vacía porque no hay una fuente fiable de julio 2025.
+- **Cómo usar el costo** cuando el profesor lo pida: % de victorias por dólar, mejor modelo debajo de cierto precio, etc.

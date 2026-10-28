@@ -156,13 +156,24 @@ Reportes: `R/resultados/base_regresiones_2026-10-28_v2/`.
 La propuesta y el contrato de columnas estan en `docs/10-base-regresiones-nessim.md`.
 No se entrenaron regresiones ni se hizo la particion train/test.
 
-## Tabla de precios (`R/05_precios_modelos.R` → `data/derivados/precios_modelos.csv`)
+## Tabla de precios (`R/05_precios_modelos.R` → `data/derivados/precios_modelos_2026-10-28_v2.csv`)
 
-Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de tokens (entrada y salida), de la API del dueño del modelo, tarifa estándar. Los precios salen del archivo público de precios de LiteLLM en su versión del **24/7/2025** (el último día de nuestros datos), así que son los de la misma época de los votos. El script baja esa versión fija, así que cualquiera obtiene los mismos números.
+Explicación completa en `docs/11-precios-y-costo.md`.
+
+Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de tokens (entrada y salida), de la API del dueño del modelo, tarifa estándar, de **julio 2025** (la misma época de los votos). Se toman del archivo público de precios de LiteLLM en su versión del 24/7/2025 (commit fijo), porque las páginas oficiales ya muestran los precios de hoy.
 
 - **35 de 48 modelos tienen precio oficial.** Claude Opus 4, Sonnet 4 y Haiku 3.5 se compararon con la página oficial de Anthropic y coinciden.
-- **13 no tienen precio oficial:** 9 open-source (gemma, llama y qwen/qwq, que cada proveedor cobra distinto), 2 versiones experimentales que solo estuvieron en LMArena, minimax-m1 y hunyuan-turbos (no encontramos una fuente verificable). Quedan vacíos con la razón en la columna `nota`. Qué hacer con ellos lo decide el grupo.
+- **13 no tienen precio oficial:** 9 open-source (gemma, llama y qwen/qwq), 2 versiones experimentales que solo estuvieron en LMArena, minimax-m1 y hunyuan-turbos. Quedan vacíos con la razón en `notas`. Qué hacer con ellos lo decide el grupo.
 - **Rango:** de 0.10 / 0.30 (Mistral Small) a 15 / 75 (Claude Opus 4) por millón de tokens de entrada / salida.
 - **Ojo con o3:** OpenAI le bajó el precio el 10/6/2025, de 10 / 40 a 2 / 8. La tabla usa el de julio.
-- **Ojo con los modelos que razonan** (thinking, o3, deepseek-r1, etc.): el precio por token es igual, pero gastan más tokens de salida. El costo real por pregunta no sale solo de esta tabla.
 - **qwen-max** es el único con precio de oct 2026, porque no estaba en la versión de 2025.
+- La v1 (`data/derivados/precios_modelos.csv`, PR #4) tiene los mismos precios con columnas en inglés. La v2 sigue el formato de `docs/tareas/marco.md` y es la que se usa.
+
+## PRUEBA: costo por respuesta (`R/06_costo_por_respuesta.R` → `R/resultados/costo_por_modelo.csv`)
+
+**Es una prueba, no un resultado para el profesor todavía.** El profesor dejó tokens y precio fuera por ahora (26/10).
+
+- Costo de cada respuesta = tokens de la pregunta × precio de entrada + tokens de la respuesta × precio de salida.
+- Votos: 1er voto, 48 modelos, conversaciones de 1 turno y sin votos con el mismo modelo a los 2 lados: **91,104 votos**. 35 de 48 modelos tienen costo.
+- **Costo por 1,000 respuestas:** de 0.23 dólares (Mistral Small 3.1) a 41.78 (Claude Opus 4). Gemini 2.5 Pro, el que más gana (74.4% de los votos con ganador, conteo simple), cuesta 15.75. deepseek-r1-0528 gana 65.5% y cuesta 2.72. gemini-2.5-flash gana 63.9% y cuesta 4.04.
+- **Límites:** los tokens de razonamiento no están en los datos (los modelos que razonan salen más baratos de lo real); los tokens los contó LMArena con 1 solo método; las respuestas largas ganan más (61.8%); el % de victorias no ajusta por el rival.
