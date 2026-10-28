@@ -54,6 +54,10 @@ cat("1st votes:", nrow(first_votes), "(docs/03: 108,315)\n")
 cat("Models kept:", length(keep), "(docs/03: 48)\n")
 cat("Votes after cleaning:", nrow(clean), "(docs/03: 106,630)\n")
 cat("Decisive votes:", sum(clean$decisive), "(docs/03: 77,863)\n")
+# Same model on both sides: excluded from the fit and from the July test below
+cat("Same-model votes:", sum(clean$model_a == clean$model_b),
+    "| decisive:", sum(clean$model_a == clean$model_b & clean$decisive),
+    "| in test:", sum(clean$model_a == clean$model_b & clean$split == "test"), "\n")
 
 # ---- 2. Train / test split -----------------------------------------------------
 
@@ -79,7 +83,8 @@ train <- clean |>
                        winner == "model_b" ~ 0,
                        tie_handling == "half" ~ 0.5,
                        TRUE ~ NA_real_)) |>
-  filter(!is.na(y))
+  filter(!is.na(y),
+         model_a != model_b)  # same model on both sides says nothing about strength
 
 train_models <- sort(unique(c(train$model_a, train$model_b)))
 train_votes  <- sapply(train_models, function(m) sum(train$model_a == m | train$model_b == m))
@@ -109,7 +114,7 @@ write_csv(ranking, file.path(out_folder, "ranking_general_train.csv"))
 # ---- 4. Baseline accuracy in July -----------------------------------------------
 # Only decisive July votes where both models were in train.
 
-test_decisive <- clean |> filter(split == "test", decisive)
+test_decisive <- clean |> filter(split == "test", decisive, model_a != model_b)
 
 test_used <- test_decisive |>
   filter(model_a %in% ranking$model, model_b %in% ranking$model) |>

@@ -66,13 +66,13 @@ Este script pasa a R la línea base del ranking general (el 64.5% de arriba) y d
 | Votos decisivos | 52,214 | 25,649 |
 | Empate o both_bad | 19,240 | 9,527 |
 
-**Ranking general** (`R/resultados/ranking_general_train.csv`). Bradley-Terry sin características (1 voto decisivo = 1 fila, respuesta = ganó model_a, 1 columna por modelo con +1 / −1 / 0, sin intercepto), ajustado solo con train y 44 modelos (los otros 4, grok-3-mini-high, grok-4-0709, kimi-k2-0711-preview y mistral-small-2506, solo aparecen en julio). Referencia (fuerza 0): claude-opus-4-20250514, el modelo con más votos en train. Top 5:
+**Ranking general** (`R/resultados/ranking_general_train.csv`). Bradley-Terry sin características (1 voto decisivo = 1 fila, respuesta = ganó model_a, 1 columna por modelo con +1 / −1 / 0, sin intercepto), ajustado solo con train (52,208 votos decisivos) y 44 modelos. Hay 8 votos con el mismo modelo a ambos lados (6 decisivos, todos en train, todos de gemini-2.5-flash-preview-04-17); no dicen nada sobre la fuerza del modelo y se excluyen del ajuste y del test. Los otros 4 modelos ( grok-3-mini-high, grok-4-0709, kimi-k2-0711-preview y mistral-small-2506) solo aparecen en julio. Referencia (fuerza 0): claude-opus-4-20250514, el modelo con más votos en train. Top 5:
 
 | Rank | Modelo | Fuerza | Votos en train |
 |---|---|---|---|
 | 1 | gemini-2.5-pro | 1.098 | 3,522 |
 | 2 | gemini-2.5-pro-preview-03-25 | 0.756 | 796 |
-| 3 | gemini-2.5-pro-preview-05-06 | 0.668 | 1,939 |
+| 3 | gemini-2.5-pro-preview-05-06 | 0.669 | 1,939 |
 | 4 | deepseek-r1-0528 | 0.636 | 2,912 |
 | 5 | o3-2025-04-16 | 0.610 | 3,058 |
 
