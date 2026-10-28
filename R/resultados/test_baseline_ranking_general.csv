@@ -1,0 +1,2 @@
+tie_handling,train_votes_used,models_in_train,test_votes_decisive,test_votes_excluded_model_not_in_train,test_votes_evaluated,correct,accuracy_percent,ci95_low_percent,ci95_high_percent
+exclude,52208,44,25649,5233,20416,13164,64.5,63.8,65.1
