@@ -203,3 +203,69 @@ Top 3 con `preguntas_reales` (ajuste con todos los votos, abril a julio):
 grok-4-0709 (931 votos) y gemini-2.5-pro-preview-03-25 (796) tienen pocos votos, así que su posición es inestable. Las 3 versiones de Gemini 2.5 Pro aparecen por separado porque agruparlas es la decisión abierta #2.
 
 La evaluación contra julio y contra la línea base la hace Mark en `R/03_evaluacion.R` con `ajustar_modelos()` y `probabilidad()`. Para cargar solo las funciones: `options(correr_02 = FALSE); source("R/02_regresiones_por_modelo.R")`.
+
+
+## Contexto y gráficos de Eli — ejecución del 28/10/2026
+
+Generador: `R/04_contexto_y_graficos.R`, ejecutado con R 4.3.3 sobre el CSV
+del repositorio. Resultados: `R/resultados/eli_contexto_2026-10-28_221546/`.
+Gráficos: `R/resultados/graficos/eli_contexto_2026-10-28_221546/`.
+Fuente externa archivada: `R/resultados/fuentes_eli_2026-10-28/`.
+
+### Comparación histórica con LMArena
+
+Se usa `lmarena-ai/leaderboard-dataset`, subconjunto `text_style_control`,
+`full`, categoría `overall`. La publicación más reciente de julio disponible
+en ese archivo hasta el cierre de votos (24/7/2025) es del **17/7/2025**.
+No se presenta como un snapshot del día 24.
+
+Nuestro ranking es el porcentaje descriptivo del Test 2: todos los votos,
+mínimo de 200 participaciones, empates y both_bad cuentan como cero victorias.
+No reemplaza el Bradley–Terry de train de Mark ni decide la política de empates
+para las regresiones. Se usa el porcentaje sin redondear y rangos promedio
+cuando hay empate exacto. Solo se unen IDs exactamente iguales, sin agrupar
+versiones preview o thinking.
+
+- Modelos coincidentes: **41**. Sin coincidencia: **11**, exportados aparte.
+- Correlación de rangos de Spearman: **0.8641**.
+- Los cambios de puesto se calculan dentro de los modelos comunes,
+  no comparando posiciones de listas de distinto tamaño.
+
+| Modelo | Puesto nuestro (comunes) | Oficial (comunes) | Nuestro − oficial |
+|---|---:|---:|---:|
+| claude-3-7-sonnet-20250219-thinking-32k | 32 | 17 | 15 |
+| claude-3-7-sonnet-20250219 | 35 | 22 | 13 |
+| claude-opus-4-20250514 | 19 | 7 | 12 |
+| claude-opus-4-20250514-thinking-16k | 17 | 6 | 11 |
+| claude-sonnet-4-20250514 | 27 | 16 | 11 |
+| claude-sonnet-4-20250514-thinking-32k | 22 | 12 | 10 |
+
+Un valor positivo significa peor posición en nuestro ranking. La correlación
+no es precisión predictiva ni validación independiente: los datasets pueden
+compartir votos. El ranking oficial ajusta por rival y estilo y usa otro
+historial de votos. Nuestro periodo llega una semana después del snapshot.
+
+### Largo de respuestas
+
+Se reproduce el 61.8% del Test 3 (60,638 de 98,097 votos elegibles). En primer
+voto da 62.4% (49,207 de 78,885). Solo votos con ganador y largos distintos.
+Se exportan el desglose por tarea y `largo_por_modelo.csv`, con participaciones,
+victorias e intervalos cuando cada modelo escribe más largo o más corto.
+Los modelos están separados; se incluyen todos, sin el filtro de 48.
+Las tareas se solapan. Primer voto es `evaluation_order == 1`, no una garantía
+de sesión única. Se conservan los casos de revisión de Nessim.
+
+La asociación no identifica un efecto causal. Los IC exactos binomiales son
+nominales, sin ajuste por sesiones ni comparaciones múltiples. No se usa largo
+como predictor ni se entrenan regresiones con variables de las respuestas.
+
+Se generan top 15, dos gráficos del largo, dispersión de rangos y mapa de calor
+modelo × característica. Este último usa una copia exacta de los coeficientes
+publicados por Jaime en main; sus valores son cambios en log-odds, no
+probabilidades ni efectos causales. No se reentrenan los modelos.
+
+Fuentes oficiales:
+- https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset
+- https://arena.ai/blog/arena-leaderboard-dataset
+
+Código y documentación preparados con asistencia de ChatGPT (OpenAI).
