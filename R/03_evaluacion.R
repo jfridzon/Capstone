@@ -18,12 +18,18 @@
 #    one) and only decisive votes ("exclude", the sensitivity check). Each method is scored
 #    with accuracy and log-loss (lower is better) on the same July votes.
 #
-# Not here: the combined Bradley-Terry with question characteristics is Nessim's task now
-# (R/07, docs/tareas/nessim.md). Still to add here (docs/tareas/mark.md, part B): ridge
-# with lambda chosen inside train, the random split by session, and evaluar().
+# 7. Ridge: the same regressions with a penalty. Lambda is chosen by cross-validation inside
+#    train only (grouped by session) and July is scored once.
+# 10. Check: a random 80/20 split by session (5 seeds) with all 48 models.
+# Every method is measured with evaluar() (R/03b_evaluar.R): accuracy and log-loss.
+#
+# Not here: the combined Bradley-Terry with question characteristics is Nessim's task
+# (R/07, docs/tareas/nessim.md). He can score it with evaluar() on the July votes saved in
+# R/resultados/test_julio_votos.csv.
 
 library(dplyr)
 library(readr)
+source("R/03b_evaluar.R")   # evaluar(): accuracy and log-loss, the same for every method
 
 # ---- Settings ---------------------------------------------------------------
 
@@ -198,22 +204,19 @@ scores <- list(
                                p = plogis(qlogis(test_wr$win_rate_a) - qlogis(test_wr$win_rate_b)),
                                correct = test_wr$correct_wr))
 
+# evaluar() (R/03b_evaluar.R) measures every method; here it is applied to all of `scores`.
+# The July votes it measures are saved so anyone can score a new method on exactly them.
 accuracy_table <- function(scores) {
-  bind_rows(lapply(names(scores), function(m) {
-    s  <- scores[[m]]
-    n  <- length(s$correct)
-    k  <- sum(s$correct)
-    ci <- prop.test(k, n)$conf.int
-    tibble(method = m, tie_handling = s$policy,
-           test_votes_evaluated = n, correct = k,
-           accuracy_percent = round(100 * k / n, 1),
-           ci95_low_percent = round(100 * ci[1], 1),
-           ci95_high_percent = round(100 * ci[2], 1),
-           logloss = round(mean(loss_by_vote(s$p)), 4))
-  }))
+  bind_rows(lapply(names(scores), function(m)
+    evaluar(scores[[m]]$p, test_used$winner, method = m, tie_handling = scores[[m]]$policy)))
 }
 
+write_csv(test_used |> select(id, model_a, model_b, winner),
+          file.path(out_folder, "test_julio_votos.csv"))
+
 evaluacion <- accuracy_table(scores)
+# The old `correct` (higher strength wins) and the new rule (p > 0.5) must agree
+stopifnot(evaluacion$correct == vapply(scores, function(s) sum(s$correct), numeric(1)))
 
 cat("\nBoth baselines in July (same votes):\n")
 print(as.data.frame(evaluacion))
@@ -315,7 +318,120 @@ print(as.data.frame(evaluacion |> select(method, tie_handling, correct, accuracy
                                          ci95_low_percent, ci95_high_percent, logloss)))
 write_csv(evaluacion, file.path(out_folder, "evaluacion.csv"))
 
-# ---- 7. Paired comparison -----------------------------------------------------------
+# ---- 7. Ridge: the same 48 regressions with a penalty (docs/12, "Ridge") --------------
+# Ridge shrinks the 11 effects of each regression toward 0, which helps the models with few
+# votes. How strong the penalty is (lambda) is chosen ONLY with train votes: 5-fold
+# cross-validation grouped by session, lowest log-loss wins. July is never used to choose;
+# it is scored once, with the chosen lambda. The penalty is on the 11 effects, not on the
+# intercept. The predictors are TRUE/FALSE (0/1), not rescaled.
+# R/02 has no ridge, so the fit is written here (IRLS, like R/08). With lambda = 0 it gives
+# the same coefficients as glm(), which is checked below.
+
+lambdas <- c(0, 10, 30, 100, 300)   # docs/tareas/mark.md
+
+num_predictors <- function(d) { d[predictors] <- lapply(d[predictors], as.numeric); d }
+
+ridge_fit <- function(X, y, lambda) {
+  b   <- rep(0, ncol(X))
+  pen <- c(0, rep(lambda, ncol(X) - 1))
+  for (it in 1:100) {
+    mu   <- plogis(drop(X %*% b))
+    w    <- mu * (1 - mu)
+    step <- drop(solve(crossprod(X, X * w) + diag(pen, ncol(X)),
+                       crossprod(X, y - mu) - pen * b))
+    b    <- b + step
+    if (max(abs(step)) < 1e-10) return(b)
+  }
+  stop("ridge_fit did not converge")
+}
+
+# 1 regression per model. d = long rows (1 per model per vote) with the response in y.
+# Returns a matrix: 1 row per model, columns = intercept + the 11 characteristics.
+fit_models <- function(d, lambda, min_votes = 100) {
+  coefs <- list()
+  for (m in sort(unique(d$model))) {
+    f <- d[d$model == m, ]
+    if (nrow(f) < min_votes) next          # same rule as R/02
+    coefs[[m]] <- setNames(ridge_fit(cbind(1, as.matrix(f[predictors])), f$y, lambda),
+                           c("intercept", predictors))
+  }
+  do.call(rbind, coefs)
+}
+
+# P(model_a wins) = plogis(strength_a - strength_b) for vote rows with lado == "model_a".
+# Each strength is that model's own regression evaluated with the characteristics of the
+# question. NA if the model or its rival has no regression.
+p_model_a <- function(B, votes) {
+  Xq <- cbind(1, as.matrix(votes[predictors]))
+  ok <- votes$model %in% rownames(B) & votes$rival %in% rownames(B)
+  p  <- rep(NA_real_, nrow(votes))
+  p[ok] <- plogis(rowSums(Xq[ok, , drop = FALSE] * B[votes$model[ok], , drop = FALSE]) -
+                  rowSums(Xq[ok, , drop = FALSE] * B[votes$rival[ok], , drop = FALSE]))
+  p
+}
+
+# Cross-validation inside the rows given (train only). A session is never split between
+# folds. The held-out score uses decisive votes only, like the July test.
+cv_lambda <- function(d, lambdas, k = 5, seed = 1) {
+  sessions <- unique(d$evaluation_session_id)
+  set.seed(seed)
+  fold_of <- setNames(sample(rep_len(1:k, length(sessions))), sessions)
+  fold    <- unname(fold_of[as.character(d$evaluation_session_id)])
+  do.call(rbind, lapply(lambdas, function(l) {
+    loss <- 0; right <- 0; n <- 0
+    for (f in 1:k) {
+      B <- fit_models(d[fold != f, ], l)
+      v <- d[fold == f & d$lado == "model_a" & d$es_decisivo, ]
+      p <- p_model_a(B, v)
+      stopifnot(!anyNA(p))
+      y     <- as.numeric(v$won)
+      loss  <- loss - sum(y * log(p) + (1 - y) * log(1 - p))
+      right <- right + sum((p > 0.5) == (y == 1))
+      n     <- n + length(y)
+    }
+    data.frame(lambda = l, cv_votes = n, cv_accuracy_percent = round(100 * right / n, 2),
+               cv_logloss = round(loss / n, 6))
+  }))
+}
+
+# Train rows of the main version (half point), as numbers
+train_half <- num_predictors(env02$preparar_respuesta(long_base[long_base$split == "train", ],
+                                                      politica = "medio_punto"))
+
+# Check: lambda = 0 gives the glm() coefficients of R/02
+B0  <- fit_models(train_half, 0)
+glm_fits <- env02$ajustar_modelos(train_half)
+coef_gap <- max(vapply(names(glm_fits), function(m) max(abs(coef(glm_fits[[m]]) - B0[m, ])),
+                       numeric(1)))
+cat("\nRidge check: lambda = 0 vs glm(), largest coefficient difference:", signif(coef_gap, 2), "\n")
+stopifnot(coef_gap < 1e-6, nrow(B0) == length(train_models))
+
+cv <- cv_lambda(train_half, lambdas)
+lambda_star <- cv$lambda[which.min(cv$cv_logloss)]
+cat("\nCross-validation inside train (5 folds by session), lower log-loss is better:\n")
+print(cv)
+cat("Chosen lambda:", lambda_star, "\n")
+write_csv(cv, file.path(out_folder, "ridge_validacion_cruzada.csv"))
+
+# July, scored ONCE with the chosen lambda. Same 20,416 votes, same order as test_used.
+july_rows <- num_predictors(long_base[long_base$lado == "model_a" & long_base$id %in% test_used$id, ])
+july_rows <- july_rows[match(test_used$id, july_rows$id), ]
+stopifnot(identical(july_rows$model, test_used$model_a), identical(july_rows$rival, test_used$model_b))
+
+# Check: lambda = 0 reproduces the July probabilities of section 6
+stopifnot(max(abs(p_model_a(B0, july_rows) - scores$regressions_48_half_point$p)) < 1e-6)
+
+p_ridge <- p_model_a(fit_models(train_half, lambda_star), july_rows)
+stopifnot(!anyNA(p_ridge))
+scores$regressions_48_ridge_half_point <-
+  list(policy = "half", p = p_ridge, correct = (p_ridge > 0.5) == (y_a == 1))
+
+evaluacion <- accuracy_table(scores)
+cat("\nAll methods in July, with ridge (lambda =", lambda_star, "):\n")
+print(as.data.frame(evaluacion |> select(method, tie_handling, correct, accuracy_percent, logloss)))
+write_csv(evaluacion, file.path(out_folder, "evaluacion.csv"))
+
+# ---- 8. Paired comparison -----------------------------------------------------------
 # The same votes are scored by both methods, so the intervals above overlap a lot and do not
 # say whether the difference is real. What matters are the votes where ONLY ONE method is
 # right: if neither method were better, each would win about half of them (exact binomial
@@ -350,13 +466,16 @@ paired_tbl <- bind_rows(
   paired("regressions_48_exclude vs general_bradley_terry",          s$regressions_48_exclude,    s$general_bradley_terry),
   paired("regressions_48_half_point vs regressions_48_exclude",      s$regressions_48_half_point, s$regressions_48_exclude),
   paired("rival_check_half_point vs regressions_48_half_point",      s$regressions_48_rival_check_half_point, s$regressions_48_half_point),
-  paired("rival_check_exclude vs regressions_48_exclude",            s$regressions_48_rival_check_exclude,    s$regressions_48_exclude))
+  paired("rival_check_exclude vs regressions_48_exclude",            s$regressions_48_rival_check_exclude,    s$regressions_48_exclude),
+  paired("ridge_half_point vs regressions_48_half_point",            s$regressions_48_ridge_half_point, s$regressions_48_half_point),
+  paired("ridge_half_point vs general_win_rate_half_point",          s$regressions_48_ridge_half_point, s$general_win_rate_half_point),
+  paired("ridge_half_point vs general_bradley_terry",                s$regressions_48_ridge_half_point, s$general_bradley_terry))
 
 cat("\nPaired comparison (new method vs base method):\n")
 print(as.data.frame(paired_tbl))
 write_csv(paired_tbl, file.path(out_folder, "evaluacion_pareada.csv"))
 
-# ---- 8. By type of question (descriptive) ----------------------------------------------
+# ---- 9. By type of question (descriptive)----------------------------------------------
 # The labels overlap (a vote can be code AND math), so the groups are not added up. 4 groups
 # are looked at, so one of them can look better by chance: read it as a description.
 # Accuracy (%) of every method in each group.
@@ -374,3 +493,44 @@ by_task <- bind_rows(lapply(names(groups), function(g) {
 cat("\nAccuracy (%) by type of question, July:\n")
 print(as.data.frame(by_task))
 write_csv(by_task, file.path(out_folder, "evaluacion_por_tarea.csv"))
+
+# ---- 10. Random split by session (docs/12, decision 4) ---------------------------------
+# The main test is July, but it leaves out the 4 models that only appear in July. As a check,
+# the 48 models are split at random: 80% of the SESSIONS to train, 20% to test, 5 seeds.
+# (a session is never split). In each split, lambda is chosen with cross-validation inside
+# that split's own train, the same rule as section 7. The test uses decisive votes where both
+# models have a regression, and the three methods are scored on exactly the same votes.
+# Same exclusions as R/02: the 28 votes flagged for review are left out.
+
+pool          <- num_predictors(long_base[!long_base$requiere_revision, ])
+pool_sessions <- unique(pool$evaluation_session_id)
+
+random_split <- bind_rows(lapply(1:5, function(seed) {
+  set.seed(seed)
+  test_sessions <- sample(pool_sessions, round(0.2 * length(pool_sessions)))
+  is_test <- pool$evaluation_session_id %in% test_sessions
+  tr <- pool[!is_test, ]
+  tr$y <- tr$won_medio_punto_escenario                 # main version: tie and both_bad = 0.5
+  stopifnot(!anyNA(tr$y), !any(tr$evaluation_session_id %in% test_sessions))
+
+  cv_seed <- cv_lambda(tr, lambdas)
+  l_star  <- cv_seed$lambda[which.min(cv_seed$cv_logloss)]
+  B_zero  <- fit_models(tr, 0)
+  B_star  <- fit_models(tr, l_star)
+
+  te <- pool[is_test & pool$lado == "model_a" & pool$es_decisivo, ]
+  te <- te[te$model %in% rownames(B_zero) & te$rival %in% rownames(B_zero), ]
+  rate <- tapply(tr$y, tr$model, mean)
+  p_wr <- plogis(qlogis(unname(rate[te$model])) - qlogis(unname(rate[te$rival])))
+
+  out <- bind_rows(evaluar(p_wr,                   te$winner, "general_win_rate_half_point",   "half"),
+                   evaluar(p_model_a(B_zero, te),  te$winner, "regressions_48_half_point",     "half"),
+                   evaluar(p_model_a(B_star, te),  te$winner, "regressions_48_ridge_half_point", "half"))
+  cbind(seed = seed, models = nrow(B_zero), train_votes = nrow(tr) / 2,
+        test_sessions = length(test_sessions),
+        lambda = ifelse(out$method == "regressions_48_ridge_half_point", l_star, NA), out)
+}))
+
+cat("\nRandom split by session, 5 seeds (all 48 models):\n")
+print(random_split |> select(seed, method, lambda, test_votes_evaluated, correct, accuracy_percent, logloss))
+write_csv(random_split, file.path(out_folder, "particion_aleatoria.csv"))

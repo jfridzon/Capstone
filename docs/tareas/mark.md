@@ -35,7 +35,7 @@ Referencia para saber si está bien (`R/08_chequeo_decisiones.R`): medio punto 6
 
 ---
 
-## Fase 1 (hecha el 28/10, se deja como referencia)
+## Fase 1 (YA HECHA el 28/10). No la repitas: es solo historia
 
 **Para cuándo:** lunes 16/11. **Rama:** `mark/evaluacion`. Usa la base larga de Nessim (`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`, ver `docs/10`) y la función `ajustar_modelos()` de Jaime.
 

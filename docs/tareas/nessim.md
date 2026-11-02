@@ -2,9 +2,32 @@
 
 ## Fase 2 (desde el 2/11): lo que toca ahora
 
-**Fase 2, para el lunes 16/11. Rama:** `nessim/bradley-terry`. Lee antes `docs/04-metodo.md` (nivel 3) y `docs/12-decisiones-2-11.md`.
+Tienes 2 tareas, en este orden. **La 1 es nueva** (era de Jaime y pasó a ti el 2/11 en la noche). Lee antes `docs/12-decisiones-2-11.md`.
 
-### Qué hay que hacer: la regresión combinada (Bradley-Terry con covariables)
+### Tarea 1, para el lunes 9/11: las 48 regresiones, listas para mostrarle al profesor
+
+**Rama:** `nessim/regresiones-48`. El profesor dijo el 26/10 que quiere **ver el trabajo**, no solo el resultado: la variable de respuesta, los predictores y las regresiones de verdad. `R/02_regresiones_por_modelo.R` ya existe (lo hizo Jaime en la fase 1) y Mark ya lo evaluó en julio (`R/03`, PR #18 y #20). No empieces de cero.
+
+1. **Actualizar `R/02` a las decisiones del 2/11:**
+   - `politica_empates <- "medio_punto"` por defecto (usa `won_medio_punto_escenario`, `glm` con `quasibinomial`). `"excluir"` sigue disponible como chequeo.
+   - Argumento `lambda` en `ajustar_modelos()` para ridge (0 = el `glm` de siempre). Penaliza solo los 11 efectos, nunca el intercepto. Puedes copiar la función `ajustar()` de `R/08_chequeo_decisiones.R`. El λ lo elige Mark con train; tú solo dejas la opción.
+   - Función `top3(caracteristicas, ajustes, precio_max = NULL)`: los 3 modelos con mayor probabilidad de ganar en preguntas reales con esas características (usa `ranking_real()`), **solo entre modelos con 100 o más votos en julio** (`R/resultados/decisiones_2026-11-02/votos_por_mes.csv`). `precio_max` filtra por precio de salida con la tabla de Marco (`data/derivados/precios_modelos_2026-10-28_v2.csv`).
+   - Volver a generar `coeficientes_por_modelo.csv` y `rankings_ejemplo.csv` con medio punto y todos los votos (abril a julio), y actualizar la sección de las 48 en `docs/05`.
+   - No cambies los nombres de `ajustar_modelos()` ni `probabilidad()`: `R/03` de Mark los usa.
+2. **Un R Markdown para el profesor: `reporte/01_regresiones_48.Rmd`** (y el `.html` que genera, los 2 en el repo). En **inglés simple**, corto, que se entienda sin explicación:
+   - Qué se predice y con qué: respuesta = el modelo ganó (1), perdió (0) o empató (0.5); predictores = las 11 características TRUE/FALSE, cada una explicada en 1 línea.
+   - El código del `glm()` visible, y el `summary()` completo de 2 o 3 modelos de ejemplo (por ejemplo `gemini-2.5-pro`, `claude-opus-4-20250514` y uno con pocos votos), con 2 o 3 frases que lean los coeficientes (qué significa un coeficiente positivo en `math`).
+   - La tabla o el heatmap de los coeficientes de los 48 (puedes reusar el gráfico de Eli).
+   - El resultado en julio, leído de `R/resultados/evaluacion.csv` (no copies números a mano): 48 regresiones contra el ranking general, en aciertos y log-loss. Contarlo como es: ganan por poco (ver `docs/12`, decisión 6 y la corrección).
+   - El top 3 por tarea con `top3()`.
+   - Límites en 3 líneas: cada voto se usa 2 veces, 1 sola partición en el tiempo, 4 modelos solo en julio.
+3. Tienes que poder explicarlo en persona: el profesor pregunta.
+
+### Tarea 2, para el lunes 16/11: la regresión combinada
+
+**Rama:** `nessim/bradley-terry`. Lee antes `docs/04-metodo.md` (nivel 3). Usa la función `evaluar()` de Mark si ya está.
+
+#### Qué hay que hacer: Bradley-Terry con covariables
 
 Es la comparación que pidió el profesor después de las 48. Un script nuevo, `R/07_bradley_terry_covariables.R`:
 
@@ -14,13 +37,14 @@ Es la comparación que pidió el profesor después de las 48. Un script nuevo, `
 4. Ajustar **solo con train** (`R/resultados/split_train_test.csv`) y evaluar en los mismos votos decisivos de julio que Mark: aciertos y log-loss. Usa la función de evaluación de Mark si ya está; si no, la misma lógica de `R/08_chequeo_decisiones.R`.
 5. Guardar la fila en `R/resultados/evaluacion.csv` y los números en `docs/05`. Comparar el top 3 por tarea con el de las 48: ¿salen los mismos modelos?
 
-### Para documentar
+#### Para documentar
 
 Esta regresión sí controla al rival de forma exacta (decisión 5), y no usa cada voto 2 veces. Son las 2 ventajas sobre las 48, y hay que decirlas en el reporte.
 
-### No hagas
+#### No hagas
 
-- No toques `R/02` ni `R/03`.
+- No toques `R/03`.
+- No rehagas la fase 1 (la base ya está; ver abajo).
 
 ## Todos: primer update individual (lunes 9/11)
 
@@ -28,7 +52,7 @@ Esta regresión sí controla al rival de forma exacta (decisión 5), y no usa ca
 
 ---
 
-## Fase 1 (hecha el 28/10, se deja como referencia)
+## Fase 1 (YA HECHA el 28/10). No la repitas: es solo historia
 
 **Para cuándo:** lunes 2/11. **Rama:** `nessim/preparar-datos`. Las tareas de Jaime y Mark dependen de esta.
 
