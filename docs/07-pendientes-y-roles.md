@@ -9,7 +9,7 @@ La fase 1 está hecha (ver abajo). Las decisiones abiertas se cerraron el 2/11: 
 | 1 | **Nessim** (`NDB13`), antes Jaime | **Las 48 regresiones para mostrarle al profesor:** `R/02` a medio punto + ridge + `top3()`, y un R Markdown que muestre el trabajo | `R/02_regresiones_por_modelo.R`, `reporte/01_regresiones_48.Rmd` | lun 9/11 |
 | 2 | Mark (`markbzq`) | ~~Evaluar las 48 en julio~~ **hecho** (PR #18 y #20). Falta: ridge con λ elegido en train, partición aleatoria por sesión y función `evaluar()` | `R/03_evaluacion.R`, `R/resultados/evaluacion.csv` | lun 16/11 |
 | 3 | Nessim (`NDB13`) | **Regresión combinada (Bradley-Terry con covariables)**, evaluada sobre los mismos votos de julio. Va después de la tarea 1 | `R/07_bradley_terry_covariables.R` | lun 16/11 |
-| 4 | Marco (`marcofnounou-bit`) | ~~Cerrar el PR #9~~ (fusionado). Agregar la columna `razona`, y armar el **top 3 por tarea dentro de cada rango de precio** | `data/derivados/precios_modelos_2026-11-XX_v3.csv`, `R/06_costo_por_respuesta.R` | lun 16/11 |
+| 4 | Marco (`marcofnounou-bit`) | ~~Cerrar el PR #9~~ (fusionado). ~~Columna `razona` y top 3 por tarea dentro de cada rango de precio~~ **hecho** (PR #25). Tabla sin `disponible_gratis_en_app` (v4) | `data/derivados/precios_modelos_2026-11-02_v4.csv`, `R/06_costo_por_respuesta.R`, `R/resultados/top3_por_precio.csv` | lun 16/11 |
 | 5 | Eli (`eliwulfsohn03`) | Pasar a R los chequeos viejos de `docs/05` (asignación aleatoria y cobertura) y los gráficos de resultados (aciertos, log-loss, heatmap nuevo) | `R/09_chequeos_datos.R`, `R/04_contexto_y_graficos.R` | lun 16/11 |
 | Todos | | **Primer update individual:** 2 o 3 slides sobre la tarea propia (qué hice, qué salió, qué sigue y cómo ayuda al grupo) | Slides propias | lun 9/11 |
 
@@ -72,12 +72,12 @@ La tabla de precios v2 está en `data/derivados/precios_modelos_2026-10-28_v2.cs
 
 Sigue abierto (el grupo decide):
 
-- **`disponible_gratis_en_app`:** definir qué significa. Quedó vacía porque no hay una fuente fiable de julio 2025.
-- **Modelos sin precio (13 de 48):** ver "Decisiones abiertas" arriba. Para el top 3 por presupuesto quedan fuera (ficha de Marco, fase 2).
+- ~~**`disponible_gratis_en_app`**~~: decidido el 2/11 (issue #15), se elimina. Hecho en la v4.
+- ~~**Modelos sin precio (13 de 48)**~~: decidido el 2/11 (issue #15). Siguen en la tabla con `tiene_precio_oficial = no` y quedan fuera del top 3.
 
 ### Fase 2 (2/11, rama `marco/precios-v3`)
 
-- **`razona`:** `data/derivados/precios_modelos_2026-11-02_v3.csv` = la v2 + la columna `razona` (22 si, 24 no, 2 vacíos), con la fuente en `notas`. También arregla los acentos que la v2 tenía dañados (`versi<c3><b3>n`).
+- **`razona`** (PR #25): la v2 + la columna `razona` (22 si, 24 no, 2 vacíos), con la fuente en `notas`. También arregla los acentos que la v2 tenía dañados (`versi<c3><b3>n`). La tabla que se usa es `data/derivados/precios_modelos_2026-11-02_v4.csv`: la misma, sin `disponible_gratis_en_app`.
 - **Top 3 por presupuesto:** `R/resultados/top3_por_precio.csv`, desde `R/06_costo_por_respuesta.R`. Usa las funciones de `R/02` con medio punto y todos los votos, sin esperar los coeficientes nuevos de Jaime. Cuando esté `top3(..., precio_max)`, se cambia por esa función. Detalle en `docs/11`, Partes 3 y 4.
 
 ## Complemento de la entrega de Nessim: fase 1 (PR #19)
