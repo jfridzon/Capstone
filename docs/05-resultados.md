@@ -292,32 +292,85 @@ Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de toke
 - **Límites:** los tokens de razonamiento no están en los datos (los modelos que razonan salen más baratos de lo real); los tokens los contó LMArena con 1 solo método; las respuestas largas ganan más (61.8%); el % de victorias no ajusta por el rival.
 
 
-## Las 48 regresiones, 1 por modelo (`R/02_regresiones_por_modelo.R`)
+## Las 48 regresiones, 1 por modelo: actualizacion de Nessim (2/11/2026)
 
-Para cada uno de los 48 modelos, una regresión logística con todos los votos donde aparece. **Respuesta:** `won` (1 si ganó, 0 si perdió). **Predictores:** las 11 características TRUE/FALSE de la pregunta. Base: la de Nessim (`docs/10`), solo votos decisivos (decisión abierta #1, el script tiene `politica_empates` para cambiarlo) y sin los 28 votos que Nessim marcó para revisar (10 de un modelo contra sí mismo). Quedan **77,843 votos** (155,686 filas). Las 48 convergen.
+Tarea 1 de fase 2, issue #17. Se actualiza el codigo existente de Jaime en
+`R/02_regresiones_por_modelo.R`; no se rehace la base ni se modifica `R/03`.
 
-- Coeficientes: `R/resultados/coeficientes_por_modelo.csv` (48 modelos × 12 términos = 576 filas, con error estándar y p-valor).
-- Rankings: `R/resultados/rankings_ejemplo.csv`, top 10 por escenario.
+**Respuesta:** 1 victoria, 0 derrota y 0.5 empate o both_bad, por defecto
+(`politica_empates = "medio_punto"`). Se usa `quasibinomial`; `"excluir"`
+permanece como sensibilidad. **Predictores:** las 11 caracteristicas de la
+pregunta, sin rival, tokens, precio ni variables de la respuesta. Un coeficiente
+positivo aumenta el log-odds del puntaje esperado, manteniendo las demas
+caracteristicas constantes; no es un efecto causal.
 
-**Cuidado con los escenarios "solo esta característica".** Casi ninguna pregunta real tiene 1 sola característica. Una pregunta de código casi siempre también es `problem_solving`, `technical_accuracy`, etc. Votos que calzan exactamente: solo código 449, solo math 21, solo escritura creativa 513, código + math 10. Por eso cada escenario tiene 2 versiones:
+**Ajuste descriptivo con todos los meses (abril a julio):** 106,602 votos,
+213,204 filas largas, 48 modelos y 576 coeficientes. Los 28 casos de revision
+siguen excluidos como en el codigo anterior; no se toma una nueva decision de
+limpieza. Se incluyen 28,759 votos no decisivos con medio punto. Las 48
+regresiones convergen. Los archivos `coeficientes_por_modelo.csv` y
+`rankings_ejemplo.csv` se regeneran con esta politica; la seccion anterior de
+este documento conserva la evaluacion temporal de Mark.
 
-- `solo_estas`: una pregunta con solo esas características en TRUE (lo que pedía la ficha).
-- `preguntas_reales`: el promedio de la probabilidad de ganar sobre todas las preguntas reales que tienen esas características (el resto puede ser cualquier cosa). Es la que tiene sentido presentar.
+**Ridge opcional:** `ajustar_modelos(datos, lambda = 0)` conserva el `glm`
+anterior. Con lambda positivo penaliza solo los 11 efectos, nunca el intercepto
+ni el control opcional de rival de los chequeos. El objetivo usa la suma de la
+perdida logistica mas `lambda/2 * sum(beta_efectos^2)`, sin estandarizar.
+No selecciona lambda: eso lo hace Mark usando train; su evaluacion actual
+eligio lambda = 30 (`ridge_validacion_cruzada.csv`). Los ajustes ridge no
+reportan p-valores ni errores estandar de un `glm` sin penalizacion.
 
-Top 3 con `preguntas_reales` (ajuste con todos los votos, abril a julio):
+**Top 3 para la herramienta:** `top3(caracteristicas, ajustes, precio_max = NULL)`
+usa `ranking_real()` sobre las preguntas usadas en el ajuste, conservando las
+combinaciones reales de caracteristicas. Solo recomienda modelos con al menos
+100 votos en julio, segun `R/resultados/decisiones_2026-11-02/votos_por_mes.csv`.
+`precio_max` filtra el precio de salida en USD por millon de tokens con la tabla
+v2 de Marco; no es costo por respuesta. Sin presupuesto, se conservan modelos
+con precio desconocido; con presupuesto, no se pueden comparar y se excluyen.
+Puede devolver menos de tres si no hay candidatos suficientes. La funcion
+implementa las preguntas reales que pide la ficha y usa las tarifas publicadas;
+no interpreta la tarifa por token como costo real de una respuesta.
 
-| Escenario | Preguntas | 1º | 2º | 3º |
-|---|---|---|---|---|
-| Código | 21,048 | gemini-2.5-pro (72.2%) | gemini-2.5-pro-preview-03-25 (65.6%) | grok-4-0709 (65.1%) |
-| Math | 5,945 | gemini-2.5-pro (76.9%) | grok-4-0709 (73.5%) | gemini-2.5-pro-preview-03-25 (71.9%) |
-| Escritura creativa | 6,514 | gemini-2.5-pro (75.7%) | gemini-2.5-pro-preview-03-25 (74.6%) | grok-3-preview-02-24 (66.3%) |
-| Código + math | 1,491 | gemini-2.5-pro (74.8%) | grok-4-0709 (70.5%) | gemini-2.5-pro-preview-03-25 (69.2%) |
-| Todas | 77,843 | gemini-2.5-pro (74.2%) | grok-4-0709 (68.8%) | gemini-2.5-pro-preview-03-25 (67.3%) |
+Top 3 del ajuste descriptivo, con el filtro de julio (puntajes, no precision):
 
-grok-4-0709 (931 votos) y gemini-2.5-pro-preview-03-25 (796) tienen pocos votos, así que su posición es inestable. Las 3 versiones de Gemini 2.5 Pro aparecen por separado porque agruparlas es la decisión abierta #2.
+| Escenario | 1o | 2o | 3o |
+|---|---|---|---|
+| codigo | gemini-2.5-pro (0.665) | grok-4-0709 (0.615) | o3-2025-04-16 (0.614) |
+| math | gemini-2.5-pro (0.694) | grok-4-0709 (0.673) | minimax-m1 (0.635) |
+| escritura_creativa | gemini-2.5-pro (0.698) | grok-3-preview-02-24 (0.623) | grok-4-0709 (0.615) |
+| instrucciones | gemini-2.5-pro (0.674) | grok-4-0709 (0.624) | gemini-2.5-flash (0.604) |
+| codigo_y_math | gemini-2.5-pro (0.673) | grok-4-0709 (0.657) | qwen3-235b-a22b (0.630) |
+| todas | gemini-2.5-pro (0.684) | grok-4-0709 (0.641) | o3-2025-04-16 (0.619) |
 
-La evaluación contra julio y contra la línea base la hace Mark en `R/03_evaluacion.R` con `ajustar_modelos()` y `probabilidad()`. Para cargar solo las funciones: `options(correr_02 = FALSE); source("R/02_regresiones_por_modelo.R")`.
+Los puntajes con medio punto no son probabilidades de victoria exclusivamente
+en votos decisivos. `rankings_ejemplo.csv` conserva tambien rankings tecnicos
+sin el filtro de recomendaciones, incluidos los previews. No confundirlos.
 
+**Evaluacion fuera de muestra:** se lee de `R/resultados/evaluacion.csv` de
+Mark, no del ajuste descriptivo. Sobre los mismos 20,416 votos decisivos de
+julio: 48 con medio punto, 13,298 aciertos (65.1%) y log-loss 0.6321;
+Bradley-Terry general, 13,164 (64.5%) y 0.6340; porcentaje de victorias con
+medio punto, 13,171 (64.5%) y 0.6378. La mejora en aciertos es pequena. En
+log-loss es clara contra el porcentaje de victorias; contra Bradley-Terry el
+intervalo de Mark llega a cero, asi que no se afirma una mejora clara.
+
+**Reporte para el profesor:** `reporte/01_regresiones_48.Rmd` y su HTML, en
+ingles simple. Contiene la respuesta, las 11 definiciones, el `glm` visible,
+el `summary()` completo de tres ejemplos, heatmap de los 48, evaluacion leida
+del CSV y el top 3. El codigo visible distingue el ajuste descriptivo del test.
+
+**Reproducir:** `Rscript R/generar_reporte_48.R` (requiere Pandoc para HTML).
+Reportes y controles en `R/resultados/regresiones_48_2026-11-02/`.
+Pruebas: `Rscript R/probar_regresiones_48.R`. El chequeo de compatibilidad
+corre el `R/03` intacto en una carpeta temporal y verifica que conserva los
+resultados de Mark.
+
+Limites: cada voto se usa dos veces en las regresiones independientes, solo
+hay una particion temporal principal y cuatro modelos solo aparecen en julio.
+La regresion combinada del issue #14 es una tarea posterior, fuera de este PR.
+
+Actualizacion y reporte preparados con asistencia de ChatGPT/Codex, a partir
+del codigo de Jaime y la evaluacion de Mark.
 
 ## Contexto y gráficos de Eli — ejecución del 28/10/2026
 
@@ -438,3 +491,21 @@ Script: `R/06_costo_por_respuesta.R`. Detalle y cómo leerlo: `docs/11-precios-y
 - minimax-m1 es 3º en math antes de filtrar por precio, pero no tiene precio oficial y no entra.
 
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+
+## Demostracion en vivo del grupo en RStudio (2/11/2026)
+
+`R/00_demo_profesor.R` ajusta en memoria las 48 regresiones descriptivas,
+los modelos de train con y sin ridge, Bradley-Terry general y el porcentaje
+de victorias; evalua los mismos votos de julio con `R/03b_evaluar.R`.
+La comprobacion de la demostracion reproduce los aciertos y el log-loss
+guardados por Mark, incluidos los modelos con ridge. No modifica los datos
+ni los CSV de resultados.
+
+Muestra los coeficientes de todos los modelos, las predicciones individuales,
+graficos de evaluacion, top 3 por presupuesto con precios de Marco y contexto
+de largo de respuesta y ranking externo de Eli. No incluye como terminados
+Bradley-Terry con covariables, Shiny ni dashboards.
+
+Se abre con `Capstone.Rproj`; instrucciones en `docs/13-demostracion-rstudio.md`.
+Codigo y guia preparados con asistencia de ChatGPT/Codex.
