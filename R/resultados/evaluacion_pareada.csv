@@ -6,3 +6,6 @@ regressions_48_exclude vs general_bradley_terry,20416,1233,1094,0.68,0.22,1.14,0
 regressions_48_half_point vs regressions_48_exclude,20416,120,125,-0.02,-0.17,0.13,0.7984,-0.0022,-0.0036,-9e-4
 rival_check_half_point vs regressions_48_half_point,20416,579,562,0.08,-0.24,0.41,0.6358,-0.0047,-0.0078,-0.0016
 rival_check_exclude vs regressions_48_exclude,20416,582,583,0,-0.33,0.32,1,-0.0385,-0.0428,-0.0342
+ridge_half_point vs regressions_48_half_point,20416,323,281,0.21,-0.03,0.44,0.0952,0,-5e-4,4e-4
+ridge_half_point vs general_win_rate_half_point,20416,996,827,0.83,0.42,1.24,1e-4,0.0057,0.0045,0.0069
+ridge_half_point vs general_bradley_terry,20416,1007,831,0.86,0.45,1.27,0,0.0019,2e-4,0.0036
