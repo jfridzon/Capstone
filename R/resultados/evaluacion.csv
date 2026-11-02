@@ -1,5 +1,8 @@
-method,tie_handling,test_votes_evaluated,correct,accuracy_percent,ci95_low_percent,ci95_high_percent
-general_bradley_terry,exclude,20416,13164,64.5,63.8,65.1
-general_win_rate,exclude,20416,13162,64.5,63.8,65.1
-regressions_48,exclude,20416,13303,65.2,64.5,65.8
-regressions_48_with_rival_check,exclude,20416,13302,65.2,64.5,65.8
+method,tie_handling,test_votes_evaluated,correct,accuracy_percent,ci95_low_percent,ci95_high_percent,logloss
+general_bradley_terry,exclude,20416,13164,64.5,63.8,65.1,0.634
+general_win_rate,exclude,20416,13162,64.5,63.8,65.1,0.634
+general_win_rate_half_point,half,20416,13171,64.5,63.9,65.2,0.6378
+regressions_48_half_point,half,20416,13298,65.1,64.5,65.8,0.6321
+regressions_48_exclude,exclude,20416,13303,65.2,64.5,65.8,0.6298
+regressions_48_rival_check_half_point,half,20416,13315,65.2,64.6,65.9,0.6368
+regressions_48_rival_check_exclude,exclude,20416,13302,65.2,64.5,65.8,0.6684

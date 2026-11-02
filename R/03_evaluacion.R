@@ -14,9 +14,13 @@
 #    vote, each model's win probability is computed with the characteristics of THAT
 #    question, and the model with the higher probability is predicted to win.
 #    Scored on the same July votes as the baselines, plus a paired comparison.
+#    Fitted twice (docs/12, decision 1): tie and both_bad = 0.5 ("half point", the main
+#    one) and only decisive votes ("exclude", the sensitivity check). Each method is scored
+#    with accuracy and log-loss (lower is better) on the same July votes.
 #
-# Still to add here (second part of docs/tareas/mark.md): the combined Bradley-Terry
-# with question characteristics (docs/04).
+# Not here: the combined Bradley-Terry with question characteristics is Nessim's task now
+# (R/07, docs/tareas/nessim.md). Still to add here (docs/tareas/mark.md, part B): ridge
+# with lambda chosen inside train, the random split by session, and evaluar().
 
 library(dplyr)
 library(readr)
@@ -28,8 +32,11 @@ out_folder <- "R/resultados"
 min_votes  <- 1000                   # a model needs this many 1st votes (docs/03)
 cutoff     <- as.Date("2025-07-01")  # train: before this date. test: this date or later
 
-# OPEN DECISION #1 in docs/07 (the group decides): ties and both_bad.
-#   "exclude" = only decisive votes (what has been used so far)
+# Ties and both_bad (decision #1, closed on 2/11 in docs/12): the 48 regressions use
+# "half point" in the fit, and "exclude" stays as a sensitivity check. Section 6 runs both.
+# THIS setting only controls the general ranking and win rate of sections 3 to 5; leave it
+# on "exclude" (what the earlier results use).
+#   "exclude" = only decisive votes
 #   "half"    = tie and both_bad count as 0.5 in the training fit
 # The July test always uses decisive votes only, because we predict a winner.
 tie_handling <- "exclude"
@@ -174,19 +181,39 @@ test_wr <- test_used |>
          predicted_wr = ifelse(win_rate_a > win_rate_b, "model_a", "model_b"),
          correct_wr   = predicted_wr == winner)
 
-accuracy_row <- function(method, correct_votes) {
-  n  <- length(correct_votes)
-  k  <- sum(correct_votes)
-  ci <- prop.test(k, n)$conf.int
-  tibble(method = method, tie_handling = tie_handling,
-         test_votes_evaluated = n, correct = k,
-         accuracy_percent = round(100 * k / n, 1),
-         ci95_low_percent = round(100 * ci[1], 1),
-         ci95_high_percent = round(100 * ci[2], 1))
+# Every method is scored with 2 numbers on the same July votes:
+#   accuracy = % of votes where the predicted winner really won
+#   log-loss = how good the probabilities are (lower is better). Every method gives
+#              P(model_a wins) = plogis(strength_a - strength_b) on the logit scale
+# `scores` keeps, for each method: the tie policy used in its fit, P(model_a wins) and
+# whether the predicted winner was right. `evaluacion` and the later tables come from it.
+y_a <- as.numeric(test_used$winner == "model_a")   # 1 if model_a won the vote
+loss_by_vote <- function(p) -(y_a * log(p) + (1 - y_a) * log(1 - p))
+
+scores <- list(
+  general_bradley_terry = list(policy = "exclude",
+                               p = plogis(test_used$strength_a - test_used$strength_b),
+                               correct = test_used$correct),
+  general_win_rate      = list(policy = "exclude",
+                               p = plogis(qlogis(test_wr$win_rate_a) - qlogis(test_wr$win_rate_b)),
+                               correct = test_wr$correct_wr))
+
+accuracy_table <- function(scores) {
+  bind_rows(lapply(names(scores), function(m) {
+    s  <- scores[[m]]
+    n  <- length(s$correct)
+    k  <- sum(s$correct)
+    ci <- prop.test(k, n)$conf.int
+    tibble(method = m, tie_handling = s$policy,
+           test_votes_evaluated = n, correct = k,
+           accuracy_percent = round(100 * k / n, 1),
+           ci95_low_percent = round(100 * ci[1], 1),
+           ci95_high_percent = round(100 * ci[2], 1),
+           logloss = round(mean(loss_by_vote(s$p)), 4))
+  }))
 }
 
-evaluacion <- bind_rows(accuracy_row("general_bradley_terry", test_used$correct),
-                        accuracy_row("general_win_rate", test_wr$correct_wr))
+evaluacion <- accuracy_table(scores)
 
 cat("\nBoth baselines in July (same votes):\n")
 print(as.data.frame(evaluacion))
@@ -205,25 +232,11 @@ sys.source("R/02_regresiones_por_modelo.R", envir = env02)
 options(old_opt)
 
 predictors <- env02$predictores   # the 11 characteristics, all known BEFORE the answer
-policy_02  <- c(exclude = "excluir", half = "medio_punto")[[tie_handling]]
 
 # Nessim's long base (docs/10): 2 rows per vote, 1 per model
 long_base <- env02$cargar_base()
 long_base$split <- clean$split[match(long_base$id, clean$id)]
 stopifnot(!anyNA(long_base$split))
-
-# TRAIN ONLY. preparar_respuesta() applies Jaime's choices: the tie policy and leaving out
-# the 28 votes Nessim flagged for review (all of them are in train, so July is untouched).
-train_long <- env02$preparar_respuesta(long_base[long_base$split == "train", ],
-                                       politica = policy_02)
-cat("\nRegressions: train votes used:", nrow(train_long) / 2,
-    "| baselines used:", nrow(train), "(difference = the votes flagged for review)\n")
-
-fits <- env02$ajustar_modelos(train_long)
-stopifnot(length(fits) == length(train_models),
-          all(vapply(fits, function(f) f$converged, logical(1))))
-cat("Regressions fitted:", length(fits), "| smallest one uses",
-    min(vapply(fits, function(f) f$n_votos, numeric(1))), "votes\n")
 
 # The July votes are the same as in the baselines (test_used). Characteristics of each
 # question: 1 row per vote from the long base.
@@ -231,66 +244,113 @@ questions <- long_base[!duplicated(long_base$id), c("id", predictors)]
 test_q    <- questions[match(test_used$id, questions$id), predictors]
 stopifnot(!anyNA(test_q))
 
-# Win probability of model_a and of model_b for the characteristics of that vote
-p_a <- env02$probabilidad(fits, test_used$model_a, test_q)
-p_b <- env02$probabilidad(fits, test_used$model_b, test_q)
-stopifnot(!anyNA(p_a), !anyNA(p_b))
-cat("July votes where both probabilities are exactly equal:", sum(p_a == p_b), "\n")
+# Fits the regressions on TRAIN ONLY and scores the July votes.
+#   policy: "medio_punto" (tie and both_bad = 0.5, the main one) or "excluir" (decisive only)
+#   rival : TRUE adds the rival's general win rate as a 12th predictor (check only, decision 5)
+# preparar_respuesta() applies Jaime's choices: the tie policy and leaving out the 28 votes
+# Nessim flagged for review (all of them are in train, so July is untouched).
+# With half points the response is not only 0/1, so R/02 uses quasibinomial.
+score_regressions <- function(policy, rival = FALSE) {
+  train_long <- env02$preparar_respuesta(long_base[long_base$split == "train", ],
+                                         politica = policy)
+  fits <- env02$ajustar_modelos(train_long, rival = rival)
+  stopifnot(length(fits) == length(train_models),
+            all(vapply(fits, function(f) f$converged, logical(1))))
 
-test_reg <- test_used |>
-  mutate(predicted_reg = ifelse(p_a > p_b, "model_a", "model_b"),
-         correct_reg   = predicted_reg == winner)
+  # General win rate of each model in these same train rows (used by the rival check and
+  # as the win-rate baseline with half points)
+  rate <- tapply(train_long$y, train_long$model, mean)
 
-# Secondary check, NOT a decision (open decision #5 in docs/07): the same regressions with
-# the rival's general win rate as a 12th predictor (ajustar_modelos(rival = TRUE)).
-# The rival's win rate comes from train only, like in R/02.
-fits_rival <- env02$ajustar_modelos(train_long, rival = TRUE)
-rival_rate <- tapply(train_long$y, train_long$model, mean)
-p_a_r <- env02$probabilidad(fits_rival, test_used$model_a,
-                            cbind(test_q, fuerza_rival = unname(rival_rate[test_used$model_b])))
-p_b_r <- env02$probabilidad(fits_rival, test_used$model_b,
-                            cbind(test_q, fuerza_rival = unname(rival_rate[test_used$model_a])))
-stopifnot(!anyNA(p_a_r), !anyNA(p_b_r))
+  qa <- qb <- test_q
+  if (rival) {
+    qa$fuerza_rival <- unname(rate[test_used$model_b])   # model_a plays against model_b
+    qb$fuerza_rival <- unname(rate[test_used$model_a])
+  }
+  p_a <- env02$probabilidad(fits, test_used$model_a, qa)   # P(model_a wins), own regression
+  p_b <- env02$probabilidad(fits, test_used$model_b, qb)   # P(model_b wins), own regression
+  stopifnot(!anyNA(p_a), !anyNA(p_b))
 
-test_reg <- test_reg |>
-  mutate(correct_reg_rival = ifelse(p_a_r > p_b_r, "model_a", "model_b") == winner)
+  list(policy = c(excluir = "exclude", medio_punto = "half")[[policy]],
+       p = plogis(qlogis(p_a) - qlogis(p_b)),               # as docs/tareas/mark.md asks
+       correct = ifelse(p_a > p_b, "model_a", "model_b") == test_used$winner,
+       ties_exact = sum(p_a == p_b),
+       train_votes = nrow(train_long) / 2,
+       smallest_regression = min(vapply(fits, function(f) f$n_votos, numeric(1))),
+       rate = rate)
+}
 
-# All methods on the same votes: the baselines come from sections 4 and 5
-stopifnot(identical(test_reg$id, test_wr$id))
-evaluacion <- bind_rows(evaluacion,
-                        accuracy_row("regressions_48", test_reg$correct_reg),
-                        accuracy_row("regressions_48_with_rival_check", test_reg$correct_reg_rival))
+runs <- list(half    = score_regressions("medio_punto"),
+             exclude = score_regressions("excluir"),
+             half_rival    = score_regressions("medio_punto", rival = TRUE),
+             exclude_rival = score_regressions("excluir",     rival = TRUE))
+
+cat("\nRegressions: train votes used (half point / exclude):",
+    runs$half$train_votes, "/", runs$exclude$train_votes,
+    "| baselines (decisive only):", nrow(train), "\n")
+cat("Regressions fitted:", length(train_models), "| smallest one uses",
+    runs$exclude$smallest_regression, "votes (exclude),",
+    runs$half$smallest_regression, "votes (half point)\n")
+cat("July votes where both probabilities are exactly equal:",
+    sum(vapply(runs, function(r) r$ties_exact, numeric(1))), "(all 4 runs)\n")
+
+# Win-rate baseline with half points: the same idea as `general_win_rate`, but the rate
+# comes from the same train rows as the half-point regressions (ties count 0.5)
+rate_half <- runs$half$rate
+stopifnot(setequal(names(rate_half), train_models))
+wr_a <- rate_half[test_used$model_a]
+wr_b <- rate_half[test_used$model_b]
+
+scores$general_win_rate_half_point <-
+  list(policy = "half", p = plogis(qlogis(unname(wr_a)) - qlogis(unname(wr_b))),
+       correct = ifelse(wr_a > wr_b, "model_a", "model_b") == test_used$winner)
+scores$regressions_48_half_point         <- runs$half[c("policy", "p", "correct")]
+scores$regressions_48_exclude            <- runs$exclude[c("policy", "p", "correct")]
+scores$regressions_48_rival_check_half_point <- runs$half_rival[c("policy", "p", "correct")]
+scores$regressions_48_rival_check_exclude    <- runs$exclude_rival[c("policy", "p", "correct")]
+
+evaluacion <- accuracy_table(scores)
 
 cat("\nAll methods in July (same votes):\n")
-print(as.data.frame(evaluacion |> select(method, correct, accuracy_percent, ci95_low_percent, ci95_high_percent)))
+print(as.data.frame(evaluacion |> select(method, tie_handling, correct, accuracy_percent,
+                                         ci95_low_percent, ci95_high_percent, logloss)))
 write_csv(evaluacion, file.path(out_folder, "evaluacion.csv"))
 
 # ---- 7. Paired comparison -----------------------------------------------------------
 # The same votes are scored by both methods, so the intervals above overlap a lot and do not
 # say whether the difference is real. What matters are the votes where ONLY ONE method is
 # right: if neither method were better, each would win about half of them (exact binomial
-# test, the same idea as McNemar's test). The p-value is nominal: it ignores that models
-# repeat across votes.
+# test, the same idea as McNemar's test). For log-loss: the average, over the votes, of
+# (loss of the base method - loss of the new one); positive = the new method is better.
+# The p-value and the intervals are nominal: they ignore that models repeat across votes.
 
-paired <- function(label, ok_new, ok_base) {
-  n         <- length(ok_new)
-  only_new  <- sum(ok_new & !ok_base)
-  only_base <- sum(!ok_new & ok_base)
+paired <- function(label, new, base) {
+  n         <- length(new$correct)
+  only_new  <- sum(new$correct & !base$correct)
+  only_base <- sum(!new$correct & base$correct)
   diff      <- (only_new - only_base) / n                     # accuracy difference, in proportion
   se        <- sqrt(only_new + only_base - (only_new - only_base)^2 / n) / n   # paired Wald
+  gain      <- loss_by_vote(base$p) - loss_by_vote(new$p)     # per vote, positive = new is better
+  se_gain   <- sd(gain) / sqrt(n)
   tibble(comparison = label, test_votes = n,
          only_new_right = only_new, only_base_right = only_base,
          difference_points = round(100 * diff, 2) + 0,      # + 0 turns -0 into 0
          ci95_low_points   = round(100 * (diff - 1.96 * se), 2) + 0,
          ci95_high_points  = round(100 * (diff + 1.96 * se), 2) + 0,
-         p_value = round(binom.test(only_new, only_new + only_base, p = 0.5)$p.value, 4))
+         p_value = round(binom.test(only_new, only_new + only_base, p = 0.5)$p.value, 4),
+         logloss_gain = round(mean(gain), 4) + 0,
+         logloss_gain_ci95_low  = round(mean(gain) - 1.96 * se_gain, 4) + 0,
+         logloss_gain_ci95_high = round(mean(gain) + 1.96 * se_gain, 4) + 0)
 }
 
+s <- scores
 paired_tbl <- bind_rows(
-  paired("regressions_48 vs general_win_rate",              test_reg$correct_reg,       test_wr$correct_wr),
-  paired("regressions_48 vs general_bradley_terry",         test_reg$correct_reg,       test_reg$correct),
-  paired("with_rival_check vs general_bradley_terry",       test_reg$correct_reg_rival, test_reg$correct),
-  paired("with_rival_check vs regressions_48",              test_reg$correct_reg_rival, test_reg$correct_reg))
+  paired("regressions_48_half_point vs general_win_rate_half_point", s$regressions_48_half_point, s$general_win_rate_half_point),
+  paired("regressions_48_half_point vs general_bradley_terry",       s$regressions_48_half_point, s$general_bradley_terry),
+  paired("regressions_48_exclude vs general_win_rate",               s$regressions_48_exclude,    s$general_win_rate),
+  paired("regressions_48_exclude vs general_bradley_terry",          s$regressions_48_exclude,    s$general_bradley_terry),
+  paired("regressions_48_half_point vs regressions_48_exclude",      s$regressions_48_half_point, s$regressions_48_exclude),
+  paired("rival_check_half_point vs regressions_48_half_point",      s$regressions_48_rival_check_half_point, s$regressions_48_half_point),
+  paired("rival_check_exclude vs regressions_48_exclude",            s$regressions_48_rival_check_exclude,    s$regressions_48_exclude))
 
 cat("\nPaired comparison (new method vs base method):\n")
 print(as.data.frame(paired_tbl))
@@ -299,18 +359,16 @@ write_csv(paired_tbl, file.path(out_folder, "evaluacion_pareada.csv"))
 # ---- 8. By type of question (descriptive) ----------------------------------------------
 # The labels overlap (a vote can be code AND math), so the groups are not added up. 4 groups
 # are looked at, so one of them can look better by chance: read it as a description.
+# Accuracy (%) of every method in each group.
 
 task_tags <- c("is_code", "math", "creative_writing", "instruction_following")
-groups <- c(list(all = rep(TRUE, nrow(test_reg))),
+groups <- c(list(all = rep(TRUE, nrow(test_used))),
             setNames(lapply(task_tags, function(tg) test_q[[tg]]), task_tags))
 
 by_task <- bind_rows(lapply(names(groups), function(g) {
   i <- groups[[g]]
-  tibble(group = g, test_votes = sum(i),
-         general_bradley_terry  = round(100 * mean(test_reg$correct[i]), 1),
-         general_win_rate       = round(100 * mean(test_wr$correct_wr[i]), 1),
-         regressions_48         = round(100 * mean(test_reg$correct_reg[i]), 1),
-         with_rival_check       = round(100 * mean(test_reg$correct_reg_rival[i]), 1))
+  bind_cols(tibble(group = g, test_votes = sum(i)),
+            as_tibble(lapply(scores, function(sc) round(100 * mean(sc$correct[i]), 1))))
 }))
 
 cat("\nAccuracy (%) by type of question, July:\n")

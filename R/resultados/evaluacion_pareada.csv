@@ -1,5 +1,8 @@
-comparison,test_votes,only_new_right,only_base_right,difference_points,ci95_low_points,ci95_high_points,p_value
-regressions_48 vs general_win_rate,20416,1226,1085,0.69,0.23,1.15,0.0036
-regressions_48 vs general_bradley_terry,20416,1233,1094,0.68,0.22,1.14,0.0042
-with_rival_check vs general_bradley_terry,20416,675,537,0.68,0.34,1.01,1e-4
-with_rival_check vs regressions_48,20416,582,583,0,-0.33,0.32,1
+comparison,test_votes,only_new_right,only_base_right,difference_points,ci95_low_points,ci95_high_points,p_value,logloss_gain,logloss_gain_ci95_low,logloss_gain_ci95_high
+regressions_48_half_point vs general_win_rate_half_point,20416,1215,1088,0.62,0.16,1.08,0.0086,0.0058,0.0042,0.0074
+regressions_48_half_point vs general_bradley_terry,20416,1230,1096,0.66,0.19,1.12,0.0058,0.0019,0,0.0039
+regressions_48_exclude vs general_win_rate,20416,1226,1085,0.69,0.23,1.15,0.0036,0.0042,0.0021,0.0063
+regressions_48_exclude vs general_bradley_terry,20416,1233,1094,0.68,0.22,1.14,0.0042,0.0042,0.002,0.0063
+regressions_48_half_point vs regressions_48_exclude,20416,120,125,-0.02,-0.17,0.13,0.7984,-0.0022,-0.0036,-9e-4
+rival_check_half_point vs regressions_48_half_point,20416,579,562,0.08,-0.24,0.41,0.6358,-0.0047,-0.0078,-0.0016
+rival_check_exclude vs regressions_48_exclude,20416,582,583,0,-0.33,0.32,1,-0.0385,-0.0428,-0.0342

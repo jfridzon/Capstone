@@ -1,6 +1,6 @@
-group,test_votes,general_bradley_terry,general_win_rate,regressions_48,with_rival_check
-all,20416,64.5,64.5,65.2,65.2
-is_code,5502,63.2,63,64.1,64
-math,1409,65.9,65.6,66.7,67.6
-creative_writing,1621,61.2,61.1,63,62.9
-instruction_following,3215,62.9,62.6,64.9,64
+group,test_votes,general_bradley_terry,general_win_rate,general_win_rate_half_point,regressions_48_half_point,regressions_48_exclude,regressions_48_rival_check_half_point,regressions_48_rival_check_exclude
+all,20416,64.5,64.5,64.5,65.1,65.2,65.2,65.2
+is_code,5502,63.2,63,63.1,64,64.1,64,64
+math,1409,65.9,65.6,65.6,66.4,66.7,67.7,67.6
+creative_writing,1621,61.2,61.1,61.2,62.6,63,62.9,62.9
+instruction_following,3215,62.9,62.6,62.5,64.9,64.9,64.2,64
