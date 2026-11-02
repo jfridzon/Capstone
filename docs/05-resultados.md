@@ -483,7 +483,7 @@ Codigo y documentacion preparados con asistencia de ChatGPT/Codex.
 
 Script: `R/06_costo_por_respuesta.R`. Detalle y cómo leerlo: `docs/11-precios-y-costo.md`, Partes 3 y 4.
 
-- **`razona`** (`data/derivados/precios_modelos_2026-11-02_v3.csv`): 22 modelos razonan, 24 no y 2 quedan vacíos (los experimentales). Entre los 35 con precio: 17 si y 18 no. Fuente de cada uno en `notas`.
+- **`razona`** (`data/derivados/precios_modelos_2026-11-02_v4.csv`, igual a la v3 pero sin `disponible_gratis_en_app`, issue #15): 22 modelos razonan, 24 no y 2 quedan vacíos (los experimentales). Entre los 35 con precio: 17 si y 18 no. Fuente de cada uno en `notas`.
 - **Top 3 por tarea y presupuesto** (`R/resultados/top3_por_precio.csv`): las 48 regresiones de `R/02` con medio punto y todos los votos (106,602), probabilidad promedio sobre las preguntas reales de cada tarea, solo modelos con 100 o más votos en julio y con precio oficial. Presupuesto = precio de salida por millón: sin límite, hasta $10, $2 y $0.50.
 - **gemini-2.5-pro es 1º en las 4 tareas** cuando entra en el presupuesto (68.4% en todas, $10).
 - **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas (55.7% en todas). Su precio de $0.60 es sin razonamiento (con razonamiento era $3.50): decisión abierta en `docs/07`.

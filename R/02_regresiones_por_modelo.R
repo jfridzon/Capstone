@@ -17,11 +17,11 @@
 #             specificity + technical_accuracy, family = quasibinomial)
 #
 # Then, for any combination of characteristics (for example code + math), each model's
-# regression gives its probability of winning, and sorting those gives the ranking.
+# regression gives its expected preference score; sorting those gives the ranking.
 #
 # What this script leaves for others:
 #   ajustar_modelos(datos)            -> Mark calls it with the train votes only (R/03)
-#   probabilidad(ajustes, modelos, x) -> win probability for any model and question
+#   probabilidad(ajustes, modelos, x) -> expected preference score (API name retained)
 #   ranking(caracteristicas, ajustes) -> models sorted from most to least likely to win
 #
 # Known limitation (the professor knows and said not to worry for now): every vote is
@@ -175,7 +175,10 @@ pregunta <- function(caracteristicas = character(0)) {
   x
 }
 
-# Win probability of each model in `modelos` for the question in the same row of `x`.
+# Expected preference score for each model/question. With half points it is
+# P(win) + 0.5 * P(tie or both_bad), not a pure decisive-win probability.
+# API/column names probabilidad and prob_ganar remain for Mark/Marco compatibility.
+# Scores across different models are not mutually exclusive and do not sum to 1.
 # x: data frame with the 11 characteristics (and fuerza_rival if the fits use it).
 # Mark uses this on the July votes: once with model_a, once with model_b.
 probabilidad <- function(ajustes, modelos, x) {

@@ -75,3 +75,18 @@ Mark. No cambia `R/03`, las fuentes de Marco/Eli ni los datos. La tabla de
 precios usa la version mas reciente que exista en esta copia del repo.
 
 Guion y documentacion preparados con asistencia de ChatGPT/Codex.
+
+
+## Que significan los puntajes del ranking
+
+La columna historica `prob_ganar` es el puntaje esperado de preferencia de
+cada modelo: victoria 1, derrota 0, empate o both_bad 0.5. En el visor de la
+demostracion aparece como `puntaje_preferencia` para evitar confusiones.
+No es la probabilidad de que ese modelo sea el ganador entre los 48.
+No deben sumarse ni normalizarse los puntajes para que den 100%.
+
+Para evaluar un par concreto, la demostracion usa la transformacion de
+diferencia de logits que usa Mark. Es una regla de comparacion del metodo,
+no una igualdad que convierta por si sola los scores separados en
+probabilidades verdaderas o garantice su calibracion. La evaluacion de julio
+mide empiricamente como predice esa regla.

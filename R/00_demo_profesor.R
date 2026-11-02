@@ -13,11 +13,14 @@ options(opciones)
 source("R/03b_evaluar.R")
 
 mostrar_tabla <- function(x, titulo) {
-  print(utils::head(x, 10), row.names = FALSE)
+  vista <- x
+  # Nombre historico del API; mostrar su significado correcto al profesor.
+  names(vista)[names(vista) == "prob_ganar"] <- "puntaje_preferencia"
+  print(utils::head(vista, 10), row.names = FALSE)
   # View sin utils:: usa el visor que RStudio instala en la sesion.
   # utils::View evita ese visor y puede exigir XQuartz en macOS.
   if (interactive() && identical(Sys.getenv("RSTUDIO"), "1")) {
-    View(x, title = titulo)
+    View(vista, title = titulo)
   }
   invisible(x)
 }
@@ -95,6 +98,8 @@ stopifnot(!anyNA(preguntas_julio))
 probabilidad_del_par <- function(ajustes, pares, preguntas) {
   p_a <- probabilidad(ajustes, pares$model_a, preguntas)
   p_b <- probabilidad(ajustes, pares$model_b, preguntas)
+  # Group evaluation rule: transform two fitted scores into a pair estimate.
+  # These are not the raw scores from the 48 separate regressions.
   plogis(qlogis(p_a) - qlogis(p_b))
 }
 p_48 <- probabilidad_del_par(ajustes_train, julio, preguntas_julio)
@@ -172,6 +177,8 @@ comparar_graficamente <- function(tabla) {
 comparar_graficamente(comparacion)
 
 # The task ranking uses real questions, not an artificial one-feature question.
+# Scores include half points: they are NOT mutually exclusive winning chances.
+# They do not sum to 1 across models and must not be normalized to make them do so.
 top_codigo <- top3("is_code", ajustes_completos)
 top_math <- top3("math", ajustes_completos)
 mostrar_tabla(top_codigo, "Code: top 3, at least 100 July votes")
