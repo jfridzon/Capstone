@@ -14,7 +14,11 @@ source("R/03b_evaluar.R")
 
 mostrar_tabla <- function(x, titulo) {
   print(utils::head(x, 10), row.names = FALSE)
-  if (interactive()) utils::View(x, title = titulo)
+  # View sin utils:: usa el visor que RStudio instala en la sesion.
+  # utils::View evita ese visor y puede exigir XQuartz en macOS.
+  if (interactive() && identical(Sys.getenv("RSTUDIO"), "1")) {
+    View(x, title = titulo)
+  }
   invisible(x)
 }
 
