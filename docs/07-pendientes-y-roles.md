@@ -1,55 +1,67 @@
-# 07. Roles, pendientes y decisiones abiertas
+# 07. Roles, pendientes y decisiones
 
-## Plan de trabajo (desde el 28/10)
+## Fase 2: análisis (desde el 2/11)
 
-Cada update individual (20% de la nota) tiene que mostrar qué hizo **esa persona**, así que cada uno tiene una parte suya. La cadena principal (datos, regresiones, evaluación) la llevan los 3 responsables. Las otras 2 partes son archivos nuevos que no tocan el código de los demás.
+La fase 1 está hecha (ver abajo). Las decisiones abiertas se cerraron el 2/11: ver `docs/12-decisiones-2-11.md`. Cada persona tiene su ficha en `docs/tareas/` y un issue en GitHub con lo mismo.
 
-| # | Quién | Tarea | Entrega | Para cuándo |
+| # | Quién | Tarea fase 2 | Entrega | Para cuándo |
 |---|---|---|---|---|
-| 1 | Nessim (`NDB13`) | **Base para las regresiones:** filtrar 1er voto y los 48 modelos, y armar la base "larga" (1 fila por modelo por voto) con `won`, rival, las 11 características y el mes. Proponer cómo tratar empates y both_bad | `R/01_preparar_datos.R` y el archivo que genere en `data/derivados/` | lun 2/11 |
-| 2 | Jaime (`jfridzon`) | **Las 48 regresiones:** 1 `glm` por modelo con las 11 características, tabla de coeficientes y función que, dada una combinación de características, devuelve el ranking de modelos | `R/02_regresiones_por_modelo.R` y `R/resultados/` | lun 9/11 |
-| 3 | Mark (`markbzq`) | **Evaluación y línea base:** train (abril a junio) y test (julio), ranking general como línea base y % de aciertos de las 48 regresiones contra esa base. Después, la regresión combinada (Bradley-Terry) como comparación | `R/03_evaluacion.R` | lun 16/11 |
-| 4 | Marco (`marcofnounou-bit`) | **Tabla de precios** para la pregunta de costo de más adelante: precio por millón de tokens (entrada y salida) de cada uno de los 48 modelos, con fuente y fecha | `data/derivados/precios_modelos.csv` | lun 9/11 |
-| 5 | Eli (`eliwulfsohn03`) | **Contexto y gráficos:** comparar nuestros rankings con el leaderboard publicado de LMArena, medir el efecto del largo de la respuesta y hacer los primeros gráficos para la presentación | `R/04_contexto_y_graficos.R` y `R/resultados/` | lun 16/11 |
+| 1 | Jaime (`jfridzon`) | Actualizar las 48 regresiones a las decisiones del 2/11 (medio punto, opción ridge) y armar la herramienta `top3()` | `R/02_regresiones_por_modelo.R` | lun 9/11 |
+| 2 | Mark (`markbzq`) | **Evaluar las 48 en julio** (aciertos y log-loss) contra la línea base. Después: ridge con λ elegido en train y partición aleatoria por sesión | `R/03_evaluacion.R`, `R/resultados/evaluacion.csv` | lun 9/11 (evaluación) y lun 16/11 (el resto) |
+| 3 | Nessim (`NDB13`) | **Regresión combinada (Bradley-Terry con covariables)**, evaluada sobre los mismos votos de julio | `R/07_bradley_terry_covariables.R` | lun 16/11 |
+| 4 | Marco (`marcofnounou-bit`) | Cerrar el PR #9, agregar la columna `razona`, y armar el **top 3 por tarea dentro de cada rango de precio** | `data/derivados/precios_modelos_2026-11-XX_v3.csv`, `R/06_costo_por_respuesta.R` | lun 16/11 |
+| 5 | Eli (`eliwulfsohn03`) | Pasar a R los chequeos viejos de `docs/05` (asignación aleatoria y cobertura) y los gráficos de resultados (aciertos, log-loss, heatmap nuevo) | `R/09_chequeos_datos.R`, `R/04_contexto_y_graficos.R` | lun 16/11 |
+| Todos | | **Primer update individual:** 2 o 3 slides sobre la tarea propia (qué hice, qué salió, qué sigue y cómo ayuda al grupo) | Slides propias | lun 9/11 |
 
-**Cada persona tiene una ficha con el detalle exacto en `docs/tareas/`** (por ejemplo `docs/tareas/nessim.md`).
-
-Orden: la tarea 1 alimenta la 2 y la 3. Mientras tanto, 2 y 3 pueden arrancar con `data/lmarena_votes.csv` directo.
+Orden: Jaime (1) y Mark (2) van en paralelo: Mark ya puede llamar `ajustar_modelos()` con `politica_empates = "medio_punto"` sin esperar a Jaime. Nessim (3) usa la partición de Mark. Marco (4) y Eli (5) usan los coeficientes nuevos de Jaime cuando estén.
 
 ## Decisiones tomadas
 
 - **Método (26/10):** primero las 48 regresiones, después la combinada como comparación. Ver `docs/04`.
-- **Características:** entran las 11 directo como predictores. Ya no se usa la regla de "difícil" ni las 10 cajas.
-- **Tokens y precio:** fuera de las regresiones por ahora.
+- **Características:** entran las 11 directo como predictores. Ya no se usan las 10 cajas ni la regla de "difícil".
+- **Tokens y precio:** fuera de las regresiones. El precio entra después, en el top 3 por presupuesto.
+- **2/11, ver `docs/12`:**
+  1. Empates y both_bad: medio punto en el ajuste. Evaluación sobre votos decisivos. Excluir queda como chequeo.
+  2. Gemini 2.5 Pro: no se agrupa. La herramienta solo recomienda modelos con 100 o más votos en julio.
+  3. `thinking`: no es predictor. Columna `razona` en la tabla de precios.
+  4. Modelos solo de julio: evaluación principal en julio y partición aleatoria por sesión (5 semillas) como chequeo.
+  5. Rival: no se controla en las 48. Lo controla la regresión combinada.
+  6. Resultado: se reporta tal cual (ganamos poco en aciertos y siempre en log-loss). El valor de la presentación va al top 3 por tarea + precio.
+  - Nuevo: ridge como variante, con λ elegido solo con train.
 
-## Decisiones abiertas (el grupo decide, no la IA)
+## Decisiones abiertas
 
-1. **Empates y both_bad:** se excluyen o cuentan como medio punto. Propuesta de Nessim en la tarea 1.
-2. **Versiones de un mismo modelo:** agrupar o no las preview de Gemini 2.5 Pro con la versión final, y las thinking con la normal.
-3. **Variable `thinking`:** cómo etiquetar los modelos que razonan pero no dicen "thinking" en el nombre (o3, deepseek-r1, qwq, magistral, etc.).
-4. **Modelos que solo aparecen en julio** (grok-4, kimi-k2, mistral-small-2506, grok-3-mini-high): no se pueden evaluar con train de abril a junio. ¿Se agrega una partición aleatoria por sesión como chequeo?
-5. **Rival en las 48 regresiones:** se controla por la fuerza general del rival o no.
-6. **Qué hacer si no le ganamos al ranking general:** reportarlo como hallazgo y mover el valor al ángulo de precio.
+- Qué hacer con los 13 modelos sin precio oficial (propuesta de Marco en el PR #9).
+- Cómo plantear la pregunta de costo: el profesor dijo que lo iba a pensar. Mientras tanto, va el top 3 por presupuesto.
+
+## Fase 1 (hecha el 28/10)
+
+| Quién | Qué | PR |
+|---|---|---|
+| Nessim | Base larga para las regresiones (`R/01`, `docs/10`) | #3 |
+| Jaime | Las 48 regresiones y rankings (`R/02`) | #8 |
+| Mark | Partición train/test y 2 líneas base, 64.5% (`R/03`) | #2, #6, #10 |
+| Marco | Tabla de precios v1 (`R/05`); v2 y prueba de costo pendientes | #4, #9 (abierto) |
+| Eli | Comparación con el leaderboard oficial, largo de respuesta y gráficos (`R/04`) | #11 |
 
 ## Pendientes generales
 
-- [ ] Preparar el primer update formal individual (2 o 3 slides cada uno, sobre su tarea de arriba).
-- [ ] Pasar a R los análisis de `docs/05` que todavía no están en `R/`.
-- [ ] Calendario: limpieza 28/10 y 2/11, analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
+- [ ] Primer update individual (todos, lun 9/11).
+- [ ] Aprobar el PR #9 de Marco (Mark o Nessim).
+- [ ] Mark: archivar su repo viejo `markbzq/proyecto-capstone-DataAnalytics`.
+- [ ] Calendario: analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
 
+## Complemento de la entrega de Nessim: fase 1 (PR #19)
 
-## Avance propuesto de Nessim (28/10, pendiente de integrar)
+El generador de `R/01_preparar_datos.R` produce `votos_filtrados.csv` y
+`votos_largo.csv` con las columnas de la ficha de fase 1. Incluye auditoria,
+pruebas y validacion de las exportaciones. Ver `docs/10-base-regresiones-nessim.md`
+y los conteos en `docs/05-resultados.md`. Pendiente de aprobacion del PR.
 
-La tarea 1 esta preparada en `R/01_preparar_datos.R`, con base larga nueva en
-`data/derivados/base_regresiones_2026-10-28_v2.csv.gz`, auditoria y pruebas.
-El detalle esta en `docs/10-base-regresiones-nessim.md`.
+La base exportada conserva `won = NA` para empates y both_bad y guarda su
+detalle en `resultado`. Esto no cambia las decisiones del grupo del 2/11
+(`docs/12`): el ajuste posterior usa medio punto. La tarea actual de Nessim
+sigue siendo la regresion combinada de fase 2, descrita arriba y en su ficha.
 
-La politica de empates/both_bad y el control del rival siguen abiertos.
-La propuesta no cambia ninguna decision del grupo ni implica aprobacion.
-
-
-## Ajuste propuesto de Nessim (2/11, pendiente de integrar)
-
-El generador se ajusta a `docs/tareas/nessim.md`: produce `votos_filtrados.csv`
-y `votos_largo.csv` con las columnas exactas. Ver `docs/10-base-regresiones-nessim.md`.
-La politica de empates/both_bad, versiones y rival sigue abierta.
+Conflictos de documentacion combinados con asistencia de ChatGPT/Codex,
+conservando los resultados de Mark y el plan vigente del grupo.

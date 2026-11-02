@@ -1,7 +1,8 @@
 # 10. Entrega de Nessim: contrato actualizado al 2/11/2026
 
-Preparado con asistencia de ChatGPT/Codex. Implementa la ficha actual
-`docs/tareas/nessim.md`. No modifica las decisiones abiertas de `docs/07`.
+Preparado con asistencia de ChatGPT/Codex. Implementa el contrato de
+**fase 1** de `docs/tareas/nessim.md`. Las decisiones vigentes del grupo
+estan en `docs/12-decisiones-2-11.md`; esta exportacion no las modifica.
 
 ## Ejecutar desde la raiz
 
@@ -59,13 +60,21 @@ la carpeta de la ejecucion del 2/11. Comprueba los valores exportados contra
 el original, los dos lados de cada voto y la conservacion de las caracteristicas,
 los tokens de la pregunta y el idioma. Los conteos estan en `docs/05`.
 
-## Propuesta, no decision
+## Relacion con las decisiones vigentes
 
-Se mantiene la propuesta de ajustar el modelo binario con votos decisivos y
-usar las otras respuestas para sensibilidad. El grupo debe aprobarla.
-No se asigna medio punto a `won`, no se agrupan versiones, no se estima la
-fuerza del rival y no se parte train/test. Mark conserva su responsabilidad
-de evaluar sin dividir votos ni sesiones y sin aprender reglas del test.
+La propuesta inicial de excluir los no decisivos queda como antecedente, no
+como politica vigente: el grupo decidio medio punto para el ajuste y excluir
+como sensibilidad (`docs/12`). La evaluacion sigue sobre votos decisivos.
+
+Se conserva el contrato de fase 1: `won` no contiene medio punto y `resultado`
+permite derivar la respuesta 0.5 en el ajuste posterior. No se reescriben las
+bases ni los reportes historicos. Las referencias a propuestas pendientes en
+los reportes describen su preparacion; para el estado actual prevalece `docs/12`.
+
+Este generador no agrupa versiones, estima la fuerza del rival ni parte
+train/test. Mark conserva su responsabilidad de evaluar sin dividir votos
+ni sesiones y sin aprender reglas del test. La fase 2 de Nessim se desarrolla
+por separado en la rama y el script indicados en su ficha.
 
 Las autocomparaciones y sesiones con primeros votos repetidos permanecen en
 los archivos para reproducir la ficha. Las banderas se guardan por separado;

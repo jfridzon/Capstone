@@ -6,7 +6,7 @@ Este archivo es para cualquier asistente de IA (Claude, ChatGPT, Copilot, Cursor
 
 1. Lee `README.md` y `docs/01-contexto.md` completos.
 2. Lee el documento de `docs/` que tenga que ver con tu tarea. Si es de datos, `docs/03-datos.md`. Si es de modelos, `docs/04-metodo.md`. Si vas a usar un número, `docs/05-resultados.md`.
-3. Revisa `docs/07-pendientes-y-roles.md` para saber qué le toca a tu persona y qué decisiones siguen abiertas. **No tomes por tu cuenta una decisión que está marcada como abierta.** Propónla en el pull request y que el grupo decida.
+3. Lee la ficha de tu persona en `docs/tareas/` (por ejemplo `docs/tareas/marco.md`): ahí está exactamente qué hacer, qué entregar y qué no tocar. Revisa también `docs/07-pendientes-y-roles.md` para ver qué decisiones siguen abiertas. **No tomes por tu cuenta una decisión que está marcada como abierta.** Propónla en el pull request y que el grupo decida.
 
 ## Reglas que no se rompen
 
