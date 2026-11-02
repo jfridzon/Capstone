@@ -1,0 +1,3 @@
+method,tie_handling,test_votes_evaluated,correct,accuracy_percent,ci95_low_percent,ci95_high_percent
+general_bradley_terry,exclude,20416,13164,64.5,63.8,65.1
+general_win_rate,exclude,20416,13162,64.5,63.8,65.1

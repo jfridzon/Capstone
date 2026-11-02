@@ -80,6 +80,17 @@ Este script pasa a R la línea base del ranking general (el 64.5% de arriba) y d
 
 Empates y both_bad quedan **excluidos** del ajuste, que es lo usado hasta ahora. Es la decisión abierta #1 de `docs/07`: el script tiene el parámetro `tie_handling` para cambiarlo a medio punto cuando el grupo decida.
 
+**Segunda línea base: % de victorias general** (`R/resultados/winrate_general_train.csv` y `R/resultados/evaluacion.csv`). Es la que pide la ficha de Mark (`docs/tareas/mark.md`): para cada modelo, votos ganados ÷ votos jugados en train, con todos los tipos de pregunta juntos, sobre los mismos 52,208 votos del ajuste anterior. En cada voto de julio se predice que gana el modelo con mayor %. No toma en cuenta contra quién jugó cada modelo (`docs/04`, nivel 1). Top 3 en train: gemini-2.5-pro (74.8%), gemini-2.5-pro-preview-03-25 (67.2%) y gemini-2.5-pro-preview-05-06 (65.3%).
+
+Las dos líneas base se evalúan sobre los mismos 20,416 votos de julio:
+
+| Línea base | Aciertos | % | IC 95% |
+|---|---|---|---|
+| Bradley-Terry (sin características) | 13,164 | 64.5% | 63.8% a 65.1% |
+| % de victorias | 13,162 | 64.5% | 63.8% a 65.1% |
+
+Dan prácticamente lo mismo: solo se separan en 210 de los 20,416 votos. Para comparar las 48 regresiones basta usar cualquiera de las dos como línea base. `evaluacion.csv` tiene una fila por método; las 48 regresiones y la regresión combinada se agregan ahí cuando existan.
+
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
 | Tipo | 1º | 2º | 3º |
@@ -177,3 +188,96 @@ Precio de lista de cada uno de los 48 modelos, en dólares por 1 millón de toke
 - Votos: 1er voto, 48 modelos, conversaciones de 1 turno y sin votos con el mismo modelo a los 2 lados: **91,104 votos**. 35 de 48 modelos tienen costo.
 - **Costo por 1,000 respuestas:** de 0.23 dólares (Mistral Small 3.1) a 41.78 (Claude Opus 4). Gemini 2.5 Pro, el que más gana (74.4% de los votos con ganador, conteo simple), cuesta 15.75. deepseek-r1-0528 gana 65.5% y cuesta 2.72. gemini-2.5-flash gana 63.9% y cuesta 4.04.
 - **Límites:** los tokens de razonamiento no están en los datos (los modelos que razonan salen más baratos de lo real); los tokens los contó LMArena con 1 solo método; las respuestas largas ganan más (61.8%); el % de victorias no ajusta por el rival.
+
+
+## Las 48 regresiones, 1 por modelo (`R/02_regresiones_por_modelo.R`)
+
+Para cada uno de los 48 modelos, una regresión logística con todos los votos donde aparece. **Respuesta:** `won` (1 si ganó, 0 si perdió). **Predictores:** las 11 características TRUE/FALSE de la pregunta. Base: la de Nessim (`docs/10`), solo votos decisivos (decisión abierta #1, el script tiene `politica_empates` para cambiarlo) y sin los 28 votos que Nessim marcó para revisar (10 de un modelo contra sí mismo). Quedan **77,843 votos** (155,686 filas). Las 48 convergen.
+
+- Coeficientes: `R/resultados/coeficientes_por_modelo.csv` (48 modelos × 12 términos = 576 filas, con error estándar y p-valor).
+- Rankings: `R/resultados/rankings_ejemplo.csv`, top 10 por escenario.
+
+**Cuidado con los escenarios "solo esta característica".** Casi ninguna pregunta real tiene 1 sola característica. Una pregunta de código casi siempre también es `problem_solving`, `technical_accuracy`, etc. Votos que calzan exactamente: solo código 449, solo math 21, solo escritura creativa 513, código + math 10. Por eso cada escenario tiene 2 versiones:
+
+- `solo_estas`: una pregunta con solo esas características en TRUE (lo que pedía la ficha).
+- `preguntas_reales`: el promedio de la probabilidad de ganar sobre todas las preguntas reales que tienen esas características (el resto puede ser cualquier cosa). Es la que tiene sentido presentar.
+
+Top 3 con `preguntas_reales` (ajuste con todos los votos, abril a julio):
+
+| Escenario | Preguntas | 1º | 2º | 3º |
+|---|---|---|---|---|
+| Código | 21,048 | gemini-2.5-pro (72.2%) | gemini-2.5-pro-preview-03-25 (65.6%) | grok-4-0709 (65.1%) |
+| Math | 5,945 | gemini-2.5-pro (76.9%) | grok-4-0709 (73.5%) | gemini-2.5-pro-preview-03-25 (71.9%) |
+| Escritura creativa | 6,514 | gemini-2.5-pro (75.7%) | gemini-2.5-pro-preview-03-25 (74.6%) | grok-3-preview-02-24 (66.3%) |
+| Código + math | 1,491 | gemini-2.5-pro (74.8%) | grok-4-0709 (70.5%) | gemini-2.5-pro-preview-03-25 (69.2%) |
+| Todas | 77,843 | gemini-2.5-pro (74.2%) | grok-4-0709 (68.8%) | gemini-2.5-pro-preview-03-25 (67.3%) |
+
+grok-4-0709 (931 votos) y gemini-2.5-pro-preview-03-25 (796) tienen pocos votos, así que su posición es inestable. Las 3 versiones de Gemini 2.5 Pro aparecen por separado porque agruparlas es la decisión abierta #2.
+
+La evaluación contra julio y contra la línea base la hace Mark en `R/03_evaluacion.R` con `ajustar_modelos()` y `probabilidad()`. Para cargar solo las funciones: `options(correr_02 = FALSE); source("R/02_regresiones_por_modelo.R")`.
+
+
+## Contexto y gráficos de Eli — ejecución del 28/10/2026
+
+Generador: `R/04_contexto_y_graficos.R`, ejecutado con R 4.3.3 sobre el CSV
+del repositorio. Resultados: `R/resultados/eli_contexto_2026-10-28_221546/`.
+Gráficos: `R/resultados/graficos/eli_contexto_2026-10-28_221546/`.
+Fuente externa archivada: `R/resultados/fuentes_eli_2026-10-28/`.
+
+### Comparación histórica con LMArena
+
+Se usa `lmarena-ai/leaderboard-dataset`, subconjunto `text_style_control`,
+`full`, categoría `overall`. La publicación más reciente de julio disponible
+en ese archivo hasta el cierre de votos (24/7/2025) es del **17/7/2025**.
+No se presenta como un snapshot del día 24.
+
+Nuestro ranking es el porcentaje descriptivo del Test 2: todos los votos,
+mínimo de 200 participaciones, empates y both_bad cuentan como cero victorias.
+No reemplaza el Bradley–Terry de train de Mark ni decide la política de empates
+para las regresiones. Se usa el porcentaje sin redondear y rangos promedio
+cuando hay empate exacto. Solo se unen IDs exactamente iguales, sin agrupar
+versiones preview o thinking.
+
+- Modelos coincidentes: **41**. Sin coincidencia: **11**, exportados aparte.
+- Correlación de rangos de Spearman: **0.8641**.
+- Los cambios de puesto se calculan dentro de los modelos comunes,
+  no comparando posiciones de listas de distinto tamaño.
+
+| Modelo | Puesto nuestro (comunes) | Oficial (comunes) | Nuestro − oficial |
+|---|---:|---:|---:|
+| claude-3-7-sonnet-20250219-thinking-32k | 32 | 17 | 15 |
+| claude-3-7-sonnet-20250219 | 35 | 22 | 13 |
+| claude-opus-4-20250514 | 19 | 7 | 12 |
+| claude-opus-4-20250514-thinking-16k | 17 | 6 | 11 |
+| claude-sonnet-4-20250514 | 27 | 16 | 11 |
+| claude-sonnet-4-20250514-thinking-32k | 22 | 12 | 10 |
+
+Un valor positivo significa peor posición en nuestro ranking. La correlación
+no es precisión predictiva ni validación independiente: los datasets pueden
+compartir votos. El ranking oficial ajusta por rival y estilo y usa otro
+historial de votos. Nuestro periodo llega una semana después del snapshot.
+
+### Largo de respuestas
+
+Se reproduce el 61.8% del Test 3 (60,638 de 98,097 votos elegibles). En primer
+voto da 62.4% (49,207 de 78,885). Solo votos con ganador y largos distintos.
+Se exportan el desglose por tarea y `largo_por_modelo.csv`, con participaciones,
+victorias e intervalos cuando cada modelo escribe más largo o más corto.
+Los modelos están separados; se incluyen todos, sin el filtro de 48.
+Las tareas se solapan. Primer voto es `evaluation_order == 1`, no una garantía
+de sesión única. Se conservan los casos de revisión de Nessim.
+
+La asociación no identifica un efecto causal. Los IC exactos binomiales son
+nominales, sin ajuste por sesiones ni comparaciones múltiples. No se usa largo
+como predictor ni se entrenan regresiones con variables de las respuestas.
+
+Se generan top 15, dos gráficos del largo, dispersión de rangos y mapa de calor
+modelo × característica. Este último usa una copia exacta de los coeficientes
+publicados por Jaime en main; sus valores son cambios en log-odds, no
+probabilidades ni efectos causales. No se reentrenan los modelos.
+
+Fuentes oficiales:
+- https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset
+- https://arena.ai/blog/arena-leaderboard-dataset
+
+Código y documentación preparados con asistencia de ChatGPT (OpenAI).

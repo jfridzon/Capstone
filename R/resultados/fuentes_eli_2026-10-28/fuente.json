@@ -1,0 +1,12 @@
+{
+  "dataset": "lmarena-ai/leaderboard-dataset",
+  "subset": "text_style_control",
+  "split": "full",
+  "category": "overall",
+  "snapshot_date": "2025-07-17",
+  "selection": "latest publication on or before 2025-07-24, within July 2025",
+  "url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset/resolve/main/text_style_control/full-00000-of-00001.parquet",
+  "sha256_parquet": "d60bd49a712f83b787c6ac0a1f255974ea3cbc943a1ea45432b8e8afa3cea24f",
+  "retrieved": "2026-10-28",
+  "revision_inspected": "6852ae7aa7c105ff8cf86bb1551d1b1fd52f9dd3"
+}
