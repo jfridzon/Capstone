@@ -1,0 +1,9 @@
+escenario,etapa,filas,modelos,decisivos,empates,both_bad
+original,01_original,135634,53,98348,21532,15754
+original,02_primer_voto,108315,53,79073,16589,12653
+original,03_ambos_modelos_elegibles,106630,48,77863,16329,12438
+original,04_solo_decisivos_escenario_historico,77863,48,77863,0,0
+primer_voto,01_original,135634,53,98348,21532,15754
+primer_voto,02_primer_voto,108315,53,79073,16589,12653
+primer_voto,03_ambos_modelos_elegibles,106630,48,77863,16329,12438
+primer_voto,04_solo_decisivos_escenario_historico,77863,48,77863,0,0

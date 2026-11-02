@@ -333,3 +333,29 @@ Las 48 regresiones ajustadas solo con train (abril a junio, 44 modelos) y evalua
 - Controlar por el rival no mejora los aciertos y empeora el log-loss. Agrupar las 3 versiones de Gemini 2.5 Pro da lo mismo (65.13% contra 65.16%).
 - Lectura: el modelo que es mejor en general gana casi siempre. Las características mejoran las probabilidades y cambian el orden debajo del 1º.
 - La tabla de ridge mira julio, así que no sirve para elegir λ. Eso se hace con train (`docs/tareas/mark.md`).
+
+## Exportaciones de Nessim: ficha de fase 1 (2/11/2026)
+
+Generador: `R/01_preparar_datos.R`. Reportes:
+`R/resultados/preparacion_ficha_2026-11-02/`.
+
+| Archivo | Filas |
+|---|---:|
+| `data/derivados/votos_filtrados.csv` | 106,630 |
+| `data/derivados/votos_largo.csv` | 213,260 |
+
+Se mantienen 48 modelos y 77,863 votos decisivos. La base larga conserva
+los empates y both_bad con `won = NA` y detalle en `resultado`, como pide
+el contrato de exportacion de fase 1. Para el ajuste posterior rige la decision
+del grupo de usar medio punto (`docs/12-decisiones-2-11.md`); se deriva desde
+`resultado` sin cambiar estos CSV. Los 28 votos con banderas de revision se conservan
+y se identifican en un reporte separado.
+
+Validacion de los archivos escritos: el ancho conserva los campos y valores
+originales de los votos seleccionados; cada voto produce dos filas en el largo,
+con modelo y rival invertidos, mes, las once caracteristicas, tokens de la
+pregunta e idioma. Se verifico el hash del original y no cambio.
+La base comprimida de octubre tampoco se reemplazo.
+
+No se modificaron las regresiones ni la evaluacion de otros integrantes.
+Codigo y documentacion preparados con asistencia de ChatGPT/Codex.

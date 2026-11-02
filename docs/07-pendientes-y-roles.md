@@ -59,3 +59,18 @@ Sigue abierto (el grupo decide):
 
 - **`disponible_gratis_en_app`:** definir qué significa. Quedó vacía porque no hay una fuente fiable de julio 2025.
 - **Modelos sin precio (13 de 48):** ver "Decisiones abiertas" arriba. Para el top 3 por presupuesto quedan fuera (ficha de Marco, fase 2).
+
+## Complemento de la entrega de Nessim: fase 1 (PR #19)
+
+El generador de `R/01_preparar_datos.R` produce `votos_filtrados.csv` y
+`votos_largo.csv` con las columnas de la ficha de fase 1. Incluye auditoria,
+pruebas y validacion de las exportaciones. Ver `docs/10-base-regresiones-nessim.md`
+y los conteos en `docs/05-resultados.md`. Pendiente de aprobacion del PR.
+
+La base exportada conserva `won = NA` para empates y both_bad y guarda su
+detalle en `resultado`. Esto no cambia las decisiones del grupo del 2/11
+(`docs/12`): el ajuste posterior usa medio punto. La tarea actual de Nessim
+sigue siendo la regresion combinada de fase 2, descrita arriba y en su ficha.
+
+Conflictos de documentacion combinados con asistencia de ChatGPT/Codex,
+conservando los resultados de Mark y el plan vigente del grupo.
