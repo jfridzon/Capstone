@@ -53,7 +53,7 @@ Se detalla en las fichas cuando termine la fase 2. Por ahora:
 | Nessim | Base larga para las regresiones (`R/01`, `docs/10`) | #3 |
 | Jaime | Las 48 regresiones y rankings (`R/02`) | #8 |
 | Mark | Partición train/test y 2 líneas base, 64.5% (`R/03`) | #2, #6, #10 |
-| Marco | Tabla de precios v1 (`R/05`); v2 y prueba de costo pendientes | #4, #9 (abierto) |
+| Marco | Tabla de precios v1 y v2 (`R/05`) y prueba de costo (`R/06`) | #4, #9 |
 | Eli | Comparación con el leaderboard oficial, largo de respuesta y gráficos (`R/04`) | #11 |
 
 ## Pendientes generales
@@ -64,7 +64,9 @@ Se detalla en las fichas cuando termine la fase 2. Por ahora:
 - [ ] Mark: archivar su repo viejo `markbzq/proyecto-capstone-DataAnalytics`.
 - [ ] Calendario: analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
 
-## Avance de Marco (PR #9, tarea 4 de la fase 1)
+## Avance de Marco (tarea 4)
+
+### Fase 1 (PR #9)
 
 La tabla de precios v2 está en `data/derivados/precios_modelos_2026-10-28_v2.csv` (formato de la ficha), generada por `R/05_precios_modelos.R`. Además hay una **prueba** de costo por respuesta en `R/06_costo_por_respuesta.R`. Todo está explicado en `docs/11-precios-y-costo.md`.
 
@@ -72,6 +74,11 @@ Sigue abierto (el grupo decide):
 
 - **`disponible_gratis_en_app`:** definir qué significa. Quedó vacía porque no hay una fuente fiable de julio 2025.
 - **Modelos sin precio (13 de 48):** ver "Decisiones abiertas" arriba. Para el top 3 por presupuesto quedan fuera (ficha de Marco, fase 2).
+
+### Fase 2 (2/11, rama `marco/precios-v3`)
+
+- **`razona`:** `data/derivados/precios_modelos_2026-11-02_v3.csv` = la v2 + la columna `razona` (22 si, 24 no, 2 vacíos), con la fuente en `notas`. También arregla los acentos que la v2 tenía dañados (`versi<c3><b3>n`).
+- **Top 3 por presupuesto:** `R/resultados/top3_por_precio.csv`, desde `R/06_costo_por_respuesta.R`. Usa las funciones de `R/02` con medio punto y todos los votos, sin esperar los coeficientes nuevos de Jaime. Cuando esté `top3(..., precio_max)`, se cambia por esa función. Detalle en `docs/11`, Partes 3 y 4.
 
 ## Complemento de la entrega de Nessim: fase 1 (PR #19)
 
