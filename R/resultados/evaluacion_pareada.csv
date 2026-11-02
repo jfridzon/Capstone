@@ -1,0 +1,5 @@
+comparison,test_votes,only_new_right,only_base_right,difference_points,ci95_low_points,ci95_high_points,p_value
+regressions_48 vs general_win_rate,20416,1226,1085,0.69,0.23,1.15,0.0036
+regressions_48 vs general_bradley_terry,20416,1233,1094,0.68,0.22,1.14,0.0042
+with_rival_check vs general_bradley_terry,20416,675,537,0.68,0.34,1.01,1e-4
+with_rival_check vs regressions_48,20416,582,583,0,-0.33,0.32,1
