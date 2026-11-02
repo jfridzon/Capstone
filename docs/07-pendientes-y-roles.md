@@ -12,6 +12,8 @@ Cada update individual (20% de la nota) tiene que mostrar qué hizo **esa person
 | 4 | Marco (`marcofnounou-bit`) | **Tabla de precios** para la pregunta de costo de más adelante: precio por millón de tokens (entrada y salida) de cada uno de los 48 modelos, con fuente y fecha | `data/derivados/precios_modelos.csv` | lun 9/11 |
 | 5 | Eli (`eliwulfsohn03`) | **Contexto y gráficos:** comparar nuestros rankings con el leaderboard publicado de LMArena, medir el efecto del largo de la respuesta y hacer los primeros gráficos para la presentación | `R/04_contexto_y_graficos.R` y `R/resultados/` | lun 16/11 |
 
+**Cada persona tiene una ficha con el detalle exacto en `docs/tareas/`** (por ejemplo `docs/tareas/nessim.md`).
+
 Orden: la tarea 1 alimenta la 2 y la 3. Mientras tanto, 2 y 3 pueden arrancar con `data/lmarena_votes.csv` directo.
 
 ## Decisiones tomadas
@@ -44,3 +46,10 @@ El detalle esta en `docs/10-base-regresiones-nessim.md`.
 
 La politica de empates/both_bad y el control del rival siguen abiertos.
 La propuesta no cambia ninguna decision del grupo ni implica aprobacion.
+
+
+## Ajuste propuesto de Nessim (2/11, pendiente de integrar)
+
+El generador se ajusta a `docs/tareas/nessim.md`: produce `votos_filtrados.csv`
+y `votos_largo.csv` con las columnas exactas. Ver `docs/10-base-regresiones-nessim.md`.
+La politica de empates/both_bad, versiones y rival sigue abierta.

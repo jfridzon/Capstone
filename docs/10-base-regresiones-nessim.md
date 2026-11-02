@@ -1,79 +1,80 @@
-# 10. Entrega de Nessim: base para las regresiones
+# 10. Entrega de Nessim: contrato actualizado al 2/11/2026
 
-Preparada el 28/10/2026 con asistencia de ChatGPT/Codex.
-Corresponde a la tarea 1 del plan vigente en `docs/07-pendientes-y-roles.md`.
-Es una propuesta para revision del grupo; no cambia sus decisiones abiertas.
-
-## Archivos
-
-- Generador: `R/01_preparar_datos.R`.
-- Dependencia: `R/auditar_limpieza.R`.
-- Base generada: `data/derivados/base_regresiones_2026-10-28_v2.csv.gz`.
-- Reportes: `R/resultados/base_regresiones_2026-10-28_v2/`.
-- Pruebas: `R/probar_preparacion.R` y `R/probar_auditoria.R`.
-
-El CSV se comprime para respetar el limite de archivos del grupo. `readr` lo lee
-directamente sin descomprimirlo a mano.
+Preparado con asistencia de ChatGPT/Codex. Implementa la ficha actual
+`docs/tareas/nessim.md`. No modifica las decisiones abiertas de `docs/07`.
 
 ## Ejecutar desde la raiz
 
 ```r
-library(readr)
-library(dplyr)
 source("R/01_preparar_datos.R")
-preparar_datos(nombre = "base_regresiones_revision_nueva")
+preparar_datos(nombre = "preparacion_ficha_2026-11-02")
+```
 
-base <- read_csv(
-  "data/derivados/base_regresiones_2026-10-28_v2.csv.gz",
-  show_col_types = FALSE
+Requiere `readr` y `dplyr`. Si ya existe cualquiera de las dos salidas o la
+carpeta de reportes, se detiene ANTES de escribir. Para una nueva version:
+
+```r
+preparar_datos(
+  nombre = "preparacion_revision_nueva",
+  salida = "data/derivados/revision_nueva"
 )
 ```
 
-No reutilizar un nombre existente: se detiene antes de sobrescribir archivos.
+Esto crea una carpeta nueva, sin reemplazar versiones anteriores.
 
-## Columnas para la entrega
+## Archivos que genera
 
-| Columna | Significado |
-|---|---|
-| `id`, `evaluation_session_id` | Identificadores para mantener juntos los votos y sesiones al evaluar |
-| `model`, `rival`, `lado` | Modelo de esa fila, su oponente y lado original |
-| `winner`, `es_decisivo` | Resultado original y si hay un ganador |
-| `won` | Victoria 1 o derrota 0 en votos decisivos; NA para empates y both_bad |
-| `won_medio_punto_escenario` | Alternativa con medio punto para empates y both_bad; no esta aprobada |
-| Las 11 caracteristicas | TRUE/FALSE, sin agrupar en cajas ni crear una etiqueta de dificultad |
-| `timestamp`, `month` | Fecha UTC y mes numerico; disponibles para Mark |
-| `requiere_revision` | Caso de mismo modelo o sesion con primeros votos repetidos |
+- `data/derivados/votos_filtrados.csv`: una fila por voto, con todos los campos
+  del original, en el mismo orden y con los mismos valores. Filtra solo
+  `evaluation_order == 1` y comparaciones entre modelos con al menos
+  1.000 participaciones, contando ambos lados en el original.
+- `data/derivados/votos_largo.csv`: exactamente las columnas de la ficha,
+  con `mes`, `modelo`, `rival`, `lado` a/b, `resultado` y `won`, las once
+  caracteristicas, `sum_user_tokens` y `language`.
+- `R/resultados/preparacion_ficha_2026-11-02/`: auditoria, conteos,
+  elegibilidad, banderas por voto y huellas de las salidas.
 
-Las columnas de resultado y las banderas de revision no son predictores.
-No se incluyen tokens, precio ni formato de respuesta. El rival queda como
-identidad: no se estima su fuerza, porque ese control sigue abierto.
+`resultado` distingue `gano`, `perdio`, `empate` y `ambos_malos` desde la
+perspectiva del modelo de cada fila. `won` es 1/0 para victoria/derrota y NA
+para empates y ambos_malos. Los dos tipos no decisivos permanecen en ambas bases.
 
-La seleccion reproduce el primer voto y el universo de modelos con suficientes
-participaciones descritos en `docs/03`. No reagrupa versiones. No aprende
-elegibilidad de modelado ni fuerza del rival usando test; Mark debe resolver
-la evaluacion y la cobertura de los modelos que aparecen solo en julio.
+Los CSV se leen directamente con `readr::read_csv()`. `mes` es el numero del
+mes UTC. Las caracteristicas son booleanas en el archivo largo.
+`sum_user_tokens` y `language` se conservan por la ficha; no se incorporan
+por eso automaticamente a la formula de las regresiones.
 
-## Propuesta para empates y both_bad (pendiente de aprobacion)
+Los campos de largo y formato de respuesta quedan solo en el archivo ancho,
+porque este conserva el original. No aparecen entre los predictores del largo.
 
-Propongo usar solo victorias y derrotas para el ajuste binario principal,
-conservando todos los resultados en la base para comparar alternativas.
-Un empate no identifica un ganador y both_bad indica rechazo de ambas
-respuestas, que no necesariamente equivale a igual calidad.
+## Validaciones
 
-La alternativa del grupo, medio punto para ambos tipos, queda disponible en
-una columna separada para un analisis de sensibilidad. Si se usa, se debe
-explicar que es una respuesta fraccional y acordar el ajuste estadistico;
-no son victorias binarias observadas. No se ha elegido una politica final.
+```sh
+Rscript R/probar_auditoria.R
+Rscript R/probar_preparacion.R
+Rscript R/validar_exportaciones_nessim.R
+```
 
-Antes de entrenar, Jaime y el grupo deben elegir explicitamente la respuesta
-y revisar las filas senaladas. No usar `glm` con omision automatica de NA
-como sustituto de esa decision.
+El ultimo comando valida los dos CSV predeterminados y guarda su reporte en
+la carpeta de la ejecucion del 2/11. Comprueba los valores exportados contra
+el original, los dos lados de cada voto y la conservacion de las caracteristicas,
+los tokens de la pregunta y el idioma. Los conteos estan en `docs/05`.
 
-## Pendiente para aceptar la entrega
+## Propuesta, no decision
 
-- Revisar los casos senalados sin eliminarlos automaticamente.
-- Acordar politica para empates y both_bad.
-- Acordar el control del rival y coordinar con Mark la evaluacion por sesiones.
-- Subir los archivos en una rama y recibir revision antes de integrar a main.
+Se mantiene la propuesta de ajustar el modelo binario con votos decisivos y
+usar las otras respuestas para sensibilidad. El grupo debe aprobarla.
+No se asigna medio punto a `won`, no se agrupan versiones, no se estima la
+fuerza del rival y no se parte train/test. Mark conserva su responsabilidad
+de evaluar sin dividir votos ni sesiones y sin aprender reglas del test.
 
-Los conteos comprobados se documentan en `docs/05-resultados.md`.
+Las autocomparaciones y sesiones con primeros votos repetidos permanecen en
+los archivos para reproducir la ficha. Las banderas se guardan por separado;
+no son predictores. Mark ya excluye autocomparaciones de su ajuste y evaluacion.
+
+## Compatibilidad con la entrega anterior
+
+`data/derivados/base_regresiones_2026-10-28_v2.csv.gz` permanece intacto.
+El nuevo generador produce los dos contratos pedidos; no vuelve a generar el
+formato anterior con `model`/`month` ni la columna del escenario de medio punto.
+Los scripts de otros integrantes no se modifican. Si consumen el formato
+anterior, deben coordinar su migracion a `modelo`/`mes` por separado.

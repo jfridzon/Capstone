@@ -1,0 +1,9 @@
+control,resultado
+campos_originales_conservados,TRUE
+valores_originales_conservados,TRUE
+modelo_rival_lado_consistentes,TRUE
+caracteristicas_tokens_idioma_conservados,TRUE
+dos_filas_por_voto,TRUE
+won_segun_resultado,TRUE
+filas_filtradas,106630
+filas_largas,213260
