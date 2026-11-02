@@ -30,8 +30,11 @@ eval <- read.csv(file.path(raiz, "R/resultados/evaluacion.csv"))
 principal <- eval[eval$method == "regressions_48_half_point", ]
 baseline_bt <- eval[eval$method == "general_bradley_terry", ]
 baseline_wr <- eval[eval$method == "general_win_rate_half_point", ]
+ridge <- eval[eval$method == "regressions_48_ridge_half_point", ]
+cv_mark <- read.csv(file.path(raiz, "R/resultados/ridge_validacion_cruzada.csv"))
+lambda_mark <- cv_mark$lambda[which.min(cv_mark$cv_logloss)]
 stopifnot(nrow(principal) == 1L, nrow(baseline_bt) == 1L,
-          nrow(baseline_wr) == 1L, length(ajustes) == 48L)
+          nrow(baseline_wr) == 1L, nrow(ridge) == 1L, length(ajustes) == 48L)
 chico <- names(ajustes)[which.min(vapply(ajustes, function(x) x$n_votos, numeric(1)))]
 escenarios <- list(Code = "is_code", Math = "math",
   `Creative writing` = "creative_writing",
@@ -96,8 +99,10 @@ glm(y ~ is_code + math + creative_writing + instruction_following +
 
 The default uses `lambda = 0`, so these are ordinary `glm()` fits. The updated
 function also accepts ridge: `ajustar_modelos(datos, lambda = ...)`. It shrinks
-only the 11 feature effects, never the intercept. **Mark will choose lambda
-using train only**; this report does not choose it by looking at July.
+only the 11 feature effects, never the intercept. **Mark chooses lambda using train only**. His saved cross-validation selects
+**lambda = `r lambda_mark`**. The descriptive fit in this report remains
+unpenalized; the held-out table below also shows his ridge evaluation.
+This report does not tune lambda by looking at July.
 
 ## The regressions: full R output
 
@@ -153,11 +158,12 @@ seen in train. Ties and both bad affect the half-point training fit but are
 not scored as winners in the test.
 
 ```{r evaluation}
-comparacion <- rbind(baseline_bt, baseline_wr, principal)
+comparacion <- rbind(baseline_bt, baseline_wr, principal, ridge)
 knitr::kable(data.frame(
   Method = c("General Bradley–Terry ranking (decisive train votes)",
     "General win rate (half points in train)",
-    "Separate regressions (half points in train)"),
+    "Separate regressions (half points in train)",
+    paste0("Separate regressions + ridge (lambda = ", lambda_mark, ")")),
   `July votes` = comparacion$test_votes_evaluated,
   Correct = comparacion$correct,
   `Accuracy (%)` = comparacion$accuracy_percent,
@@ -191,7 +197,10 @@ knitr::kable(tabla_top, row.names = FALSE)
 
 An optional budget filters **output price per million tokens**, not total
 cost per answer. Unknown prices are excluded only when a budget is supplied.
-For example:
+The budget example uses Marco's v2 price table, as required by this task.
+The group is still reviewing the reasoning price of the Flash preview model
+and the ranking format for the final presentation. This example does not
+settle either question. For example:
 
 ```{r budget-code, echo=TRUE, eval=FALSE}
 top3("math", ajustes, precio_max = 2)

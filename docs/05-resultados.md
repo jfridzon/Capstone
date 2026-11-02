@@ -146,7 +146,52 @@ Para la decisión 6 de `docs/12` (cómo contar el resultado): las 48 le ganan al
 
 Con las 10 cajas (ya descartadas) la diferencia era 64.7% contra 64.5%. Ese número viene de un análisis que todavía no está en `R/`, así que no lo reproduje y no lo comparo directamente con estos.
 
-Pendiente de Mark (Parte B de la ficha): ridge con λ elegido por validación cruzada dentro de train, partición aleatoria por sesión y la función `evaluar()`. La regresión combinada (Bradley-Terry con covariables, `docs/04`) la hace Nessim en `R/07` y se agrega a `evaluacion.csv`.
+### Ridge, partición aleatoria y la función `evaluar()` (Parte B)
+
+**Ridge** (`R/03_evaluacion.R`, sección 7). Es la misma regresión de cada modelo con una penalización que encoge sus 11 efectos hacia 0 (no el intercepto), lo que ayuda a los modelos con pocos votos. `R/02` no tiene ridge, así que el ajuste está escrito en `R/03` (mínimos cuadrados reponderados, como `R/08`). Con λ = 0 da los mismos coeficientes que `glm()` (diferencia máxima 1.1e-8; el script lo verifica). La fuerza de la penalización, λ, se elige **solo con train**: validación cruzada de 5 grupos de sesiones (una sesión nunca queda partida), con medio punto en el ajuste, y se queda el λ de menor log-loss sobre los votos decisivos que quedan fuera de cada grupo. Julio no se usa para elegir; se mide una sola vez con el λ elegido.
+
+| λ | Aciertos (validación cruzada en train) | Log-loss (validación cruzada en train) |
+|---|---|---|
+| 0 | 63.45% | 0.6411 |
+| 10 | 63.66% | 0.6406 |
+| **30** | 63.78% | **0.6404** |
+| 100 | 63.90% | 0.6410 |
+| 300 | 63.94% | 0.6422 |
+
+Se elige **λ = 30** (`R/resultados/ridge_validacion_cruzada.csv`). Las diferencias entre λ son chicas (0.0006 de log-loss entre el mejor y λ = 0). En julio, con λ = 30:
+
+| Método | Aciertos | % | IC 95% | Log-loss |
+|---|---|---|---|---|
+| 48 regresiones, medio punto (λ = 0) | 13,298 | 65.1% | 64.5% a 65.8% | 0.6321 |
+| **48 regresiones con ridge (λ = 30)** | **13,340** | **65.3%** | 64.7% a 66.0% | 0.6321 |
+
+Contra las 48 sin penalización, ridge acierta en 323 votos donde ellas fallan y falla en 281 donde ellas aciertan: **+0.21 puntos** (IC 95%: −0.03 a +0.44; p = 0.095). El log-loss no cambia (mejora de 0.0000; IC −0.0005 a +0.0004). Contra el % de victorias con medio punto: +0.83 puntos (IC 95%: +0.42 a +1.24; p = 0.0001) y 0.0057 menos de log-loss (IC +0.0045 a +0.0069). Contra Bradley-Terry: +0.86 puntos (IC 95%: +0.45 a +1.27) y 0.0019 menos de log-loss (IC +0.0002 a +0.0036). **Lectura:** ridge no cambia el log-loss en julio y la mejora en aciertos contra las 48 sin penalización no se distingue de cero. Los p-valores e intervalos son nominales, como arriba. Las filas están en `evaluacion.csv` y `evaluacion_pareada.csv` (`regressions_48_ridge_half_point`).
+
+**Partición aleatoria por sesión** (`R/03_evaluacion.R`, sección 10; `R/resultados/particion_aleatoria.csv`). La decisión 4 de `docs/12` pide este chequeo porque la evaluación de julio deja fuera los 4 modelos que solo aparecen en julio. Aquí entran los 48: 80% de las sesiones a train (85,282 votos) y 20% a test, con 5 semillas. En cada partición, λ se elige con validación cruzada dentro de su propio train (salió λ = 30 en las 5). Los tres métodos se miden en los mismos votos decisivos de test (entre 15,468 y 15,652 por semilla). Las 48 regresiones usan medio punto en el ajuste.
+
+| Semilla | Aciertos % de victorias | Aciertos 48 (λ = 0) | Aciertos 48 (ridge) | Log-loss % de victorias | Log-loss 48 (λ = 0) | Log-loss 48 (ridge) |
+|---|---|---|---|---|---|---|
+| 1 | 63.9% | 64.1% | 64.2% | 0.6444 | 0.6381 | 0.6383 |
+| 2 | 63.8% | 63.6% | 63.7% | 0.6440 | 0.6405 | 0.6397 |
+| 3 | 64.1% | 63.9% | 64.2% | 0.6426 | 0.6397 | 0.6389 |
+| 4 | 64.6% | 64.5% | 64.8% | 0.6409 | 0.6377 | 0.6369 |
+| 5 | 63.8% | 63.9% | 64.0% | 0.6442 | 0.6398 | 0.6393 |
+| Promedio | 64.0% | 64.0% | 64.2% | 0.6432 | 0.6392 | 0.6386 |
+
+**Lectura:** en aciertos, las 48 sin penalización quedan empatadas con el % de victorias (mejores en 2 semillas y peores en 3), y con ridge quedan arriba del % de victorias en 4 de 5 semillas y por encima de las 48 sin ridge en las 5. En log-loss las 48 ganan al % de victorias en las 5 semillas, con o sin ridge, y ridge mejora a las 48 sin ridge en 4 de 5. Son 5 particiones del mismo conjunto de votos, así que no se calcularon intervalos. No son comparables número a número con la tabla de `docs/12`: con la misma semilla esa tabla da otros números (por ejemplo, semilla 1: 64.40% para el % de victorias, contra 63.9% aquí), así que las sesiones de test no son las mismas. No investigué por qué; aquí además se sacan los 28 votos marcados para revisión, como en `R/02`.
+
+**`evaluar()`** (`R/03b_evaluar.R`). Una sola función mide todo igual: `evaluar(p_model_a, winner, method, tie_handling)` recibe, para cada voto de test, la probabilidad de que gane `model_a` y quién ganó, y devuelve aciertos, IC 95% y log-loss. Predice `model_a` si la probabilidad es mayor que 0.5. `R/03` la usa para todas las filas de `evaluacion.csv`. Para medir la regresión combinada sobre los mismos votos de julio (Nessim):
+
+```r
+source("R/03b_evaluar.R")
+test <- read.csv("R/resultados/test_julio_votos.csv")   # 20,416 votos: id, model_a, model_b, winner
+# p = probabilidad de que gane model_a en cada fila de `test`, en ese mismo orden
+evaluar(p, test$winner, method = "combined_bradley_terry", tie_handling = "half")
+```
+
+Con un puntaje por modelo y pregunta en escala logit, `p = plogis(puntaje_a - puntaje_b)`. Los 20,416 votos son los de las líneas base y las 48 (los de julio con ganador y con los dos modelos en train).
+
+La regresión combinada (Bradley-Terry con covariables, `docs/04`) la hace Nessim en `R/07` y se agrega a `evaluacion.csv`.
 
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
@@ -271,7 +316,8 @@ este documento conserva la evaluacion temporal de Mark.
 anterior. Con lambda positivo penaliza solo los 11 efectos, nunca el intercepto
 ni el control opcional de rival de los chequeos. El objetivo usa la suma de la
 perdida logistica mas `lambda/2 * sum(beta_efectos^2)`, sin estandarizar.
-No selecciona lambda: eso lo hace Mark usando train. Los ajustes ridge no
+No selecciona lambda: eso lo hace Mark usando train; su evaluacion actual
+eligio lambda = 30 (`ridge_validacion_cruzada.csv`). Los ajustes ridge no
 reportan p-valores ni errores estandar de un `glm` sin penalizacion.
 
 **Top 3 para la herramienta:** `top3(caracteristicas, ajustes, precio_max = NULL)`
@@ -281,7 +327,10 @@ combinaciones reales de caracteristicas. Solo recomienda modelos con al menos
 `precio_max` filtra el precio de salida en USD por millon de tokens con la tabla
 v2 de Marco; no es costo por respuesta. Sin presupuesto, se conservan modelos
 con precio desconocido; con presupuesto, no se pueden comparar y se excluyen.
-Puede devolver menos de tres si no hay candidatos suficientes.
+Puede devolver menos de tres si no hay candidatos suficientes. La funcion
+implementa las preguntas reales que pide la ficha; no cierra la decision sobre
+el ranking de la presentacion ni sobre el precio de razonamiento del Flash
+preview, que siguen abiertos en `docs/07`.
 
 Top 3 del ajuste descriptivo, con el filtro de julio (puntajes, no precision):
 
@@ -430,3 +479,16 @@ La base comprimida de octubre tampoco se reemplazo.
 
 No se modificaron las regresiones ni la evaluacion de otros integrantes.
 Codigo y documentacion preparados con asistencia de ChatGPT/Codex.
+
+## Marco, fase 2: `razona` y top 3 por presupuesto (2/11/2026)
+
+Script: `R/06_costo_por_respuesta.R`. Detalle y cómo leerlo: `docs/11-precios-y-costo.md`, Partes 3 y 4.
+
+- **`razona`** (`data/derivados/precios_modelos_2026-11-02_v3.csv`): 22 modelos razonan, 24 no y 2 quedan vacíos (los experimentales). Entre los 35 con precio: 17 si y 18 no. Fuente de cada uno en `notas`.
+- **Top 3 por tarea y presupuesto** (`R/resultados/top3_por_precio.csv`): las 48 regresiones de `R/02` con medio punto y todos los votos (106,602), probabilidad promedio sobre las preguntas reales de cada tarea, solo modelos con 100 o más votos en julio y con precio oficial. Presupuesto = precio de salida por millón: sin límite, hasta $10, $2 y $0.50.
+- **gemini-2.5-pro es 1º en las 4 tareas** cuando entra en el presupuesto (68.4% en todas, $10).
+- **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas (55.7% en todas). Su precio de $0.60 es sin razonamiento (con razonamiento era $3.50): decisión abierta en `docs/07`.
+- **Hasta $10:** deepseek-r1-0528 ($2.19) queda a 1.4 puntos de o3 ($8) en todas las preguntas (60.5% contra 61.9%).
+- minimax-m1 es 3º en math antes de filtrar por precio, pero no tiene precio oficial y no entra.
+
+Código y documentación preparados con asistencia de Claude (Anthropic).

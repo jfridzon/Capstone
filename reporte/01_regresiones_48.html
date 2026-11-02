@@ -549,9 +549,11 @@ these separate regressions (group decision 5).</p>
 <p>The default uses <code>lambda = 0</code>, so these are ordinary
 <code>glm()</code> fits. The updated function also accepts ridge:
 <code>ajustar_modelos(datos, lambda = ...)</code>. It shrinks only the
-11 feature effects, never the intercept. <strong>Mark will choose lambda
-using train only</strong>; this report does not choose it by looking at
-July.</p>
+11 feature effects, never the intercept. <strong>Mark chooses lambda
+using train only</strong>. His saved cross-validation selects
+<strong>lambda = 30</strong>. The descriptive fit in this report remains
+unpenalized; the held-out table below also shows his ridge evaluation.
+This report does not tune lambda by looking at July.</p>
 </div>
 <div id="the-regressions-full-r-output" class="section level2">
 <h2>The regressions: full R output</h2>
@@ -739,6 +741,13 @@ votes)</td>
 <td align="right">65.1</td>
 <td align="right">0.6321</td>
 </tr>
+<tr class="even">
+<td align="left">Separate regressions + ridge (lambda = 30)</td>
+<td align="right">20416</td>
+<td align="right">13340</td>
+<td align="right">65.3</td>
+<td align="right">0.6321</td>
+</tr>
 </tbody>
 </table>
 <p>The separate regressions gain <strong>0.66 percentage points</strong>
@@ -879,7 +888,11 @@ evaluation.</p>
 </table>
 <p>An optional budget filters <strong>output price per million
 tokens</strong>, not total cost per answer. Unknown prices are excluded
-only when a budget is supplied. For example:</p>
+only when a budget is supplied. The budget example uses Marco’s v2 price
+table, as required by this task. The group is still reviewing the
+reasoning price of the Flash preview model and the ranking format for
+the final presentation. This example does not settle either question.
+For example:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">top3</span>(<span class="st">&quot;math&quot;</span>, ajustes, <span class="at">precio_max =</span> <span class="dv">2</span>)</span></code></pre></div>
 </div>
 <div id="limits-and-next-step" class="section level2">
