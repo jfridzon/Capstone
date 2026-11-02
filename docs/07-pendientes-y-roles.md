@@ -6,14 +6,16 @@ La fase 1 está hecha (ver abajo). Las decisiones abiertas se cerraron el 2/11: 
 
 | # | Quién | Tarea fase 2 | Entrega | Para cuándo |
 |---|---|---|---|---|
-| 1 | Jaime (`jfridzon`) | Actualizar las 48 regresiones a las decisiones del 2/11 (medio punto, opción ridge) y armar la herramienta `top3()` | `R/02_regresiones_por_modelo.R` | lun 9/11 |
-| 2 | Mark (`markbzq`) | **Evaluar las 48 en julio** (aciertos y log-loss) contra la línea base. Después: ridge con λ elegido en train y partición aleatoria por sesión | `R/03_evaluacion.R`, `R/resultados/evaluacion.csv` | lun 9/11 (evaluación) y lun 16/11 (el resto) |
-| 3 | Nessim (`NDB13`) | **Regresión combinada (Bradley-Terry con covariables)**, evaluada sobre los mismos votos de julio | `R/07_bradley_terry_covariables.R` | lun 16/11 |
-| 4 | Marco (`marcofnounou-bit`) | Cerrar el PR #9, agregar la columna `razona`, y armar el **top 3 por tarea dentro de cada rango de precio** | `data/derivados/precios_modelos_2026-11-XX_v3.csv`, `R/06_costo_por_respuesta.R` | lun 16/11 |
+| 1 | **Nessim** (`NDB13`), antes Jaime | **Las 48 regresiones para mostrarle al profesor:** `R/02` a medio punto + ridge + `top3()`, y un R Markdown que muestre el trabajo | `R/02_regresiones_por_modelo.R`, `reporte/01_regresiones_48.Rmd` | lun 9/11 |
+| 2 | Mark (`markbzq`) | ~~Evaluar las 48 en julio~~ **hecho** (PR #18 y #20). Falta: ridge con λ elegido en train, partición aleatoria por sesión y función `evaluar()` | `R/03_evaluacion.R`, `R/resultados/evaluacion.csv` | lun 16/11 |
+| 3 | Nessim (`NDB13`) | **Regresión combinada (Bradley-Terry con covariables)**, evaluada sobre los mismos votos de julio. Va después de la tarea 1 | `R/07_bradley_terry_covariables.R` | lun 16/11 |
+| 4 | Marco (`marcofnounou-bit`) | ~~Cerrar el PR #9~~ (fusionado). Agregar la columna `razona`, y armar el **top 3 por tarea dentro de cada rango de precio** | `data/derivados/precios_modelos_2026-11-XX_v3.csv`, `R/06_costo_por_respuesta.R` | lun 16/11 |
 | 5 | Eli (`eliwulfsohn03`) | Pasar a R los chequeos viejos de `docs/05` (asignación aleatoria y cobertura) y los gráficos de resultados (aciertos, log-loss, heatmap nuevo) | `R/09_chequeos_datos.R`, `R/04_contexto_y_graficos.R` | lun 16/11 |
 | Todos | | **Primer update individual:** 2 o 3 slides sobre la tarea propia (qué hice, qué salió, qué sigue y cómo ayuda al grupo) | Slides propias | lun 9/11 |
 
-Orden: Jaime (1) y Mark (2) van en paralelo: Mark ya puede llamar `ajustar_modelos()` con `politica_empates = "medio_punto"` sin esperar a Jaime. Nessim (3) usa la partición de Mark. Marco (4) y Eli (5) usan los coeficientes nuevos de Jaime cuando estén.
+Cambio del 2/11 (noche): la tarea 1 pasó de Jaime a Nessim. Orden: Nessim hace primero la 1 (lun 9/11) y después la 3 (lun 16/11). Marco (4) y Eli (5) usan los coeficientes nuevos de la tarea 1 cuando estén. Jaime revisa y aprueba los PR y coordina con el profesor.
+
+**Fase 1 ya está hecha. Ninguna IA debe rehacerla** (el 2/11 se repitió la base de Nessim por leer la sección vieja de la ficha: PR #19).
 
 ## Decisiones tomadas
 
@@ -26,7 +28,7 @@ Orden: Jaime (1) y Mark (2) van en paralelo: Mark ya puede llamar `ajustar_model
   3. `thinking`: no es predictor. Columna `razona` en la tabla de precios.
   4. Modelos solo de julio: evaluación principal en julio y partición aleatoria por sesión (5 semillas) como chequeo.
   5. Rival: no se controla en las 48. Lo controla la regresión combinada.
-  6. Resultado: se reporta tal cual (ganamos poco en aciertos y siempre en log-loss). El valor de la presentación va al top 3 por tarea + precio.
+  6. Resultado: se reporta tal cual (ganamos poco en aciertos; en log-loss le ganamos al % de victorias, contra Bradley-Terry no es claro). El valor de la presentación va al top 3 por tarea + precio.
   - Nuevo: ridge como variante, con λ elegido solo con train.
 
 ## Decisiones abiertas
@@ -47,7 +49,8 @@ Orden: Jaime (1) y Mark (2) van en paralelo: Mark ya puede llamar `ajustar_model
 ## Pendientes generales
 
 - [ ] Primer update individual (todos, lun 9/11).
-- [ ] Aprobar el PR #9 de Marco (Mark o Nessim).
+- [x] PR #9 de Marco fusionado.
+- [ ] Aprobar el PR #20 de Mark (Jaime o Nessim).
 - [ ] Mark: archivar su repo viejo `markbzq/proyecto-capstone-DataAnalytics`.
 - [ ] Calendario: analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
 

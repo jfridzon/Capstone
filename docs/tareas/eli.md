@@ -26,7 +26,7 @@
 
 ---
 
-## Fase 1 (hecha el 28/10, se deja como referencia)
+## Fase 1 (YA HECHA el 28/10). No la repitas: es solo historia
 
 **Para cuándo:** lunes 16/11. **Rama:** `eli/contexto-graficos`. Las partes 1 y 2 no dependen de nadie. La 3 usa los resultados de Jaime cuando estén.
 
