@@ -1,0 +1,6 @@
+group,test_votes,general_bradley_terry,general_win_rate,regressions_48,with_rival_check
+all,20416,64.5,64.5,65.2,65.2
+is_code,5502,63.2,63,64.1,64
+math,1409,65.9,65.6,66.7,67.6
+creative_writing,1621,61.2,61.1,63,62.9
+instruction_following,3215,62.9,62.6,64.9,64
