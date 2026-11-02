@@ -1,47 +1,181 @@
-# PRUEBA: costo por respuesta de cada modelo (Marco)
+# Precio, costo y top 3 por presupuesto (Marco, tarea 4)
+# Correr desde la raíz del repo: source("R/06_costo_por_respuesta.R")
 #
-# Esto es una prueba para cuando el grupo agregue el precio al análisis.
-# El profesor dijo el 26/10 que tokens y precio quedan fuera de las regresiones por ahora.
-# Nada de esto entra a las regresiones.
+# Este script hace 3 cosas, en orden:
 #
-# Qué hace:
-#   Por cada voto y cada modelo calcula cuánto costó su respuesta:
-#     costo = tokens de la pregunta  x precio de entrada / 1,000,000
-#           + tokens de la respuesta x precio de salida  / 1,000,000
-#   y lo resume por modelo.
+#   Parte 1. Tabla de precios v3 = la v2 + la columna `razona` (decisión 3 de docs/12).
+#            Resultado: data/derivados/precios_modelos_2026-11-02_v3.csv
+#            (en data/ no se sobrescribe nada, por eso es un archivo nuevo)
 #
-# Filtros (los mismos de docs/03, más 1):
-#   - 1er voto de cada conversación (evaluation_order == 1)
-#   - los 48 modelos con 1,000 votos o más
-#   - solo conversaciones de 1 pregunta y 1 respuesta (turns == 1). Con más turnos,
-#     los tokens se suman entre mensajes y el costo real de entrada es más alto.
-#   - sin los votos con el mismo modelo a los 2 lados (igual que Mark en R/03_evaluacion.R)
+#   Parte 2. PRUEBA de costo por respuesta de cada modelo (la de la fase 1, sin cambios).
+#            Resultado: R/resultados/costo_por_modelo.csv
+#
+#   Parte 3. Top 3 por tarea dentro de cada presupuesto (decisión 6 de docs/12).
+#            Resultado: R/resultados/top3_por_precio.csv
+#
+# Necesita: data/derivados/precios_modelos_2026-10-28_v2.csv (R/05_precios_modelos.R),
+#           data/lmarena_votes.csv, la base larga de Nessim y las funciones de R/02 (Jaime).
 #
 # Limitaciones (decirlas siempre que se use):
 #   - Los tokens de razonamiento NO están en los datos. Los modelos que razonan
-#     (o3, thinking, deepseek-r1, etc.) salen más baratos de lo que son.
+#     (columna `razona`) salen más baratos de lo que son en la Parte 2.
 #   - Los tokens los contó LMArena con 1 solo método, no con el de cada compañía.
 #   - Las respuestas más largas ganan más (61.8%, docs/05). Costo y victorias van juntos.
-#
-# Necesita: data/derivados/precios_modelos_2026-10-28_v2.csv (lo genera R/05_precios_modelos.R)
-# Resultado: R/resultados/costo_por_modelo.csv
+#   - El presupuesto de la Parte 3 es el precio de lista por millón de tokens de SALIDA,
+#     no el costo real de una respuesta (un modelo que razona gasta más tokens).
+
+# Los textos tienen acentos. Sin UTF-8, R los guarda dañados ("versi<c3><b3>n"), como
+# pasó en la v2. RStudio en Windows y Mac (R 4.2 o más nuevo) ya usa UTF-8.
+if (!l10n_info()$`UTF-8`) stop("Este script necesita UTF-8. En Linux: Sys.setlocale('LC_CTYPE', 'C.UTF-8')")
+
+dir.create("R/resultados", showWarnings = FALSE)
+
+# =============================================================================
+# Parte 1. Columna `razona` -> tabla de precios v3
+# =============================================================================
+# razona = "si" si el modelo piensa (escribe un razonamiento) antes de responder,
+#          "no" si responde directo, y vacío si no hay una fuente clara.
+# La fuente va en `notas`. No se adivina: los 2 modelos experimentales quedan vacíos.
+
+f_openai  <- "https://platform.openai.com/docs/guides/reasoning"
+f_anthro  <- "https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking"
+f_gemini  <- "https://developers.googleblog.com/en/start-building-with-gemini-25-flash"
+f_deepsk  <- "https://api-docs.deepseek.com/guides/reasoning_model"
+f_mistral <- "https://mistral.ai/news/magistral"
+f_qwen3   <- "https://qwenlm.github.io/blog/qwen3/"
+f_qwq     <- "https://qwenlm.github.io/blog/qwq-32b/"
+f_grok3   <- "https://www.notebookcheck.net/xAI-launches-Grok-3-AI-with-chart-topping-performance-along-with-beta-reasoning-models.965366.0.html"
+f_grokmin <- "https://www.promptfoo.dev/docs/providers/xai/"
+f_grok4   <- "https://docs.x.ai/docs/guides/reasoning"
+
+razona <- read.csv(text = '
+modelo|razona|nota
+qwen-max-2025-01-25|no|Qwen2.5-Max: modelo de instrucciones, sin modo de razonamiento (https://qwenlm.github.io/blog/qwen2.5-max/)
+qwen3-235b-a22b|si|Qwen3 piensa por defecto (enable_thinking=True); LMArena tiene aparte la versión no-thinking
+qwen3-235b-a22b-no-thinking|no|Misma Qwen3 con el modo de razonamiento apagado
+qwen3-30b-a3b|si|Qwen3 piensa por defecto (enable_thinking=True)
+qwq-32b|si|Modelo de razonamiento de Alibaba
+amazon-nova-experimental-chat-05-14||Experimental, solo existió en LMArena: no hay fuente
+amazon.nova-pro-v1:0|no|Nova Pro v1 no tiene modo de razonamiento (Amazon lo agregó después, en Nova 2) (https://aws.amazon.com/ai/generative-ai/nova/)
+claude-3-5-haiku-20241022|no|No tiene extended thinking (empieza en Claude 3.7 Sonnet)
+claude-3-5-sonnet-20241022|no|No tiene extended thinking (empieza en Claude 3.7 Sonnet)
+claude-3-7-sonnet-20250219|no|Extended thinking apagado (LMArena tiene aparte la versión -thinking)
+claude-3-7-sonnet-20250219-thinking-32k|si|Extended thinking encendido, presupuesto de 32k tokens
+claude-opus-4-20250514|no|Extended thinking apagado (LMArena tiene aparte la versión -thinking)
+claude-opus-4-20250514-thinking-16k|si|Extended thinking encendido, presupuesto de 16k tokens
+claude-sonnet-4-20250514|no|Extended thinking apagado (LMArena tiene aparte la versión -thinking)
+claude-sonnet-4-20250514-thinking-32k|si|Extended thinking encendido, presupuesto de 32k tokens
+command-a-03-2025|no|Command A no razona; Cohere sacó después un modelo aparte, Command A Reasoning (https://cohere.com/blog/command-a-reasoning)
+deepseek-r1-0528|si|deepseek-reasoner (R1) es el modelo de razonamiento de DeepSeek
+deepseek-v3-0324|no|deepseek-chat (V3) responde sin razonamiento
+gemini-2.0-flash-001|no|Los modelos que piensan de Google empiezan en Gemini 2.5
+gemini-2.5-flash|si|Google: "Our Gemini 2.5 models are thinking models"
+gemini-2.5-flash-lite-preview-06-17-thinking|si|Versión con razonamiento encendido (el nombre lo dice)
+gemini-2.5-flash-preview-04-17|si|Google: "Our Gemini 2.5 models are thinking models"; piensa por defecto
+gemini-2.5-pro|si|Google: "Our Gemini 2.5 models are thinking models"
+gemini-2.5-pro-preview-03-25|si|Google: "Our Gemini 2.5 models are thinking models"
+gemini-2.5-pro-preview-05-06|si|Google: "Our Gemini 2.5 models are thinking models"
+gemma-3-27b-it|no|Gemma 3 no tiene modo de razonamiento (https://ai.google.dev/gemma/docs/core)
+gemma-3n-e4b-it|no|Gemma 3n no tiene modo de razonamiento (https://ai.google.dev/gemma/docs/gemma-3n)
+llama-3.3-70b-instruct|no|Modelo de instrucciones sin razonamiento (https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_3/)
+llama-4-maverick-03-26-experimental||Experimental, solo existió en LMArena: no hay fuente
+llama-4-maverick-17b-128e-instruct|no|Llama 4 no es modelo de razonamiento (https://ai.meta.com/blog/llama-4-multimodal-intelligence/)
+llama-4-scout-17b-16e-instruct|no|Llama 4 no es modelo de razonamiento (https://ai.meta.com/blog/llama-4-multimodal-intelligence/)
+minimax-m1|si|MiniMax: "the world\'s first open-weight, large-scale hybrid-attention reasoning model" (https://github.com/MiniMax-AI/MiniMax-M1)
+magistral-medium-2506|si|Magistral es el primer modelo de razonamiento de Mistral
+mistral-medium-2505|no|Antes de Magistral, el primer modelo de razonamiento de Mistral
+mistral-small-2506|no|Antes de Magistral, el primer modelo de razonamiento de Mistral
+mistral-small-3.1-24b-instruct-2503|no|Antes de Magistral, el primer modelo de razonamiento de Mistral
+kimi-k2-0711-preview|no|Moonshot: "state-of-the-art performance among open-source non-thinking models" (https://arxiv.org/abs/2507.20534)
+chatgpt-4o-latest-20250326|no|GPT-4o no es modelo de razonamiento (los de OpenAI son la serie o)
+gpt-4.1-2025-04-14|no|GPT-4.1 no es modelo de razonamiento (los de OpenAI son la serie o)
+gpt-4.1-mini-2025-04-14|no|GPT-4.1 no es modelo de razonamiento (los de OpenAI son la serie o)
+o3-2025-04-16|si|Modelo de razonamiento de OpenAI (serie o)
+o3-mini|si|Modelo de razonamiento de OpenAI (serie o)
+o4-mini-2025-04-16|si|Modelo de razonamiento de OpenAI (serie o)
+hunyuan-turbos-20250416|si|Adaptativo: piensa solo en las preguntas difíciles ("adaptive long-short chain-of-thought") (https://arxiv.org/abs/2505.15431)
+grok-3-mini-beta|si|En la API, grok-3-mini razona (tiene reasoning_effort). En la app de Grok la versión que piensa se llamaba aparte "Think"
+grok-3-mini-high|si|grok-3-mini con esfuerzo de razonamiento alto
+grok-3-preview-02-24|no|Grok 3 beta normal no razona; la versión que razona era "Grok 3 (Think)"
+grok-4-0709|si|xAI: "Grok 4 is a reasoning model with no non-reasoning mode"
+', sep = "|", stringsAsFactors = FALSE, colClasses = "character", strip.white = TRUE)
+
+# Fuente por compañía cuando la nota no trae su propio link
+fuente_razona <- function(modelo, nota) {
+  if (grepl("https://", nota, fixed = TRUE)) return("")
+  if (grepl("^(o3|o4|gpt|chatgpt)", modelo)) return(f_openai)
+  if (grepl("^claude", modelo))   return(f_anthro)
+  if (grepl("^gemini", modelo))   return(f_gemini)
+  if (grepl("^deepseek", modelo)) return(f_deepsk)
+  if (grepl("^(magistral|mistral)", modelo)) return(f_mistral)
+  if (grepl("^qwen3", modelo))    return(f_qwen3)
+  if (grepl("^qwq", modelo))      return(f_qwq)
+  if (modelo == "grok-4-0709")    return(f_grok4)
+  if (grepl("^grok-3-mini", modelo)) return(f_grokmin)
+  if (grepl("^grok-3", modelo))   return(f_grok3)
+  ""
+}
+
+v2 <- read.csv("data/derivados/precios_modelos_2026-10-28_v2.csv", stringsAsFactors = FALSE,
+               colClasses = c(disponible_gratis_en_app = "character"))
+stopifnot(nrow(v2) == 48, !anyDuplicated(v2$modelo), setequal(v2$modelo, razona$modelo))
+
+# La v2 se escribió sin UTF-8 y quedaron acentos como "versi<c3><b3>n". En la v3 se
+# devuelven a su letra (la v2 no se toca: en data/ no se sobrescribe nada).
+arreglar_acentos <- function(x) {
+  for (cod in unique(unlist(regmatches(x, gregexpr("(<[0-9a-f]{2}>)+", x))))) {
+    bytes <- as.raw(strtoi(regmatches(cod, gregexpr("[0-9a-f]{2}", cod))[[1]], 16L))
+    x <- gsub(cod, rawToChar(bytes), x, fixed = TRUE)
+  }
+  Encoding(x) <- "UTF-8"
+  x
+}
+v2[] <- lapply(v2, function(col) if (is.character(col)) arreglar_acentos(col) else col)
+
+v3 <- merge(v2, razona, by = "modelo", sort = FALSE)
+v3 <- v3[match(v2$modelo, v3$modelo), ]                       # mismo orden que la v2
+fuente <- mapply(fuente_razona, v3$modelo, v3$nota)
+texto  <- ifelse(v3$razona == "", paste0("razona: vacío. ", v3$nota),
+                 paste0("razona: ", v3$razona, ". ", v3$nota,
+                        ifelse(fuente == "", "", paste0(" (", fuente, ")"))))
+v3$notas <- ifelse(v3$notas == "", texto, paste0(v3$notas, " | ", texto))
+v3$nota <- NULL
+
+# `razona` va justo después de `disponible_gratis_en_app`
+cols <- names(v2)
+cols <- append(cols, "razona", after = match("disponible_gratis_en_app", cols))
+v3 <- v3[, cols]
+stopifnot(nrow(v3) == 48, all(v3$razona %in% c("si", "no", "")))
+
+# Los textos de este script están en UTF-8: se marcan así para que los acentos salgan
+# bien en cualquier compu (Windows, Mac o Linux).
+v3[] <- lapply(v3, function(col) { if (is.character(col)) Encoding(col) <- "UTF-8"; col })
+
+archivo_v3 <- "data/derivados/precios_modelos_2026-11-02_v3.csv"
+write.csv(v3, archivo_v3, row.names = FALSE, na = "", fileEncoding = "UTF-8")
+cat("Parte 1:", archivo_v3, "| razona: si =", sum(v3$razona == "si"),
+    "| no =", sum(v3$razona == "no"), "| vacío =", sum(v3$razona == ""), "\n")
+
+# =============================================================================
+# Parte 2. PRUEBA: costo por respuesta (sin cambios desde la fase 1)
+# =============================================================================
+# Por cada voto y cada modelo:
+#   costo = tokens de la pregunta  x precio de entrada / 1,000,000
+#         + tokens de la respuesta x precio de salida  / 1,000,000
+# Filtros: 1er voto, los 48 modelos, conversaciones de 1 turno, sin votos con el
+# mismo modelo a los 2 lados (igual que Mark en R/03_evaluacion.R).
 
 votes  <- read.csv("data/lmarena_votes.csv", stringsAsFactors = FALSE)
-prices <- read.csv("data/derivados/precios_modelos_2026-10-28_v2.csv", stringsAsFactors = FALSE)
-prices <- data.frame(model             = prices$modelo,
-                     company           = prices$compania,
-                     input_usd_per_1m  = prices$precio_entrada_usd_por_millon,
-                     output_usd_per_1m = prices$precio_salida_usd_por_millon)
-
-# ---- 1. Filtros ---------------------------------------------------------------
+prices <- data.frame(model             = v3$modelo,
+                     company           = v3$compania,
+                     input_usd_per_1m  = v3$precio_entrada_usd_por_millon,
+                     output_usd_per_1m = v3$precio_salida_usd_por_millon)
 
 first <- votes[votes$evaluation_order == 1, ]
 n_votes <- table(c(first$model_a, first$model_b))
 models_48 <- names(n_votes)[n_votes >= 1000]
 first <- first[first$model_a %in% models_48 & first$model_b %in% models_48, ]
 single <- first[first$turns == 1 & first$model_a != first$model_b, ]
-
-# ---- 2. Base larga: 1 fila por modelo por voto --------------------------------
 
 long <- data.frame(
   model         = c(single$model_a, single$model_b),
@@ -50,13 +184,9 @@ long <- data.frame(
   won           = c(single$winner == "model_a", single$winner == "model_b"),
   decisive      = rep(single$winner %in% c("model_a", "model_b"), 2)
 )
-
-long <- merge(long, prices[, c("model", "company", "input_usd_per_1m", "output_usd_per_1m")],
-              by = "model", all.x = TRUE)
+long <- merge(long, prices, by = "model", all.x = TRUE)
 long$cost_usd <- (long$input_tokens  * long$input_usd_per_1m +
                   long$output_tokens * long$output_usd_per_1m) / 1e6
-
-# ---- 3. Resumen por modelo ----------------------------------------------------
 
 summ <- do.call(rbind, lapply(split(long, long$model), function(d) data.frame(
   model                    = d$model[1],
@@ -71,11 +201,79 @@ summ <- do.call(rbind, lapply(split(long, long$model), function(d) data.frame(
   win_rate_decisive        = round(sum(d$won) / sum(d$decisive), 3)  # % simple (nivel 1, docs/04)
 )))
 summ <- summ[order(summ$cost_per_1000_responses, na.last = TRUE), ]
-
-dir.create("R/resultados", showWarnings = FALSE)
 write.csv(summ, "R/resultados/costo_por_modelo.csv", row.names = FALSE, na = "")
+cat("Parte 2: votos usados (1er voto, 48 modelos, 1 turno, modelos distintos):", nrow(single),
+    "| modelos con costo:", sum(!is.na(summ$cost_per_1000_responses)), "de", nrow(summ), "\n")
 
-cat("Votos usados (1er voto, 48 modelos, 1 turno, modelos distintos):", nrow(single), "\n")
-cat("Modelos con costo:", sum(!is.na(summ$cost_per_1000_responses)), "de", nrow(summ), "\n")
-print(summ[, c("model", "median_output_tokens", "cost_per_1000_responses", "win_rate_decisive")],
-      row.names = FALSE)
+# =============================================================================
+# Parte 3. Top 3 por tarea dentro de cada presupuesto
+# =============================================================================
+# Cómo se arma (docs/12):
+#   - Las 48 regresiones de Jaime (R/02), con empates y both_bad a medio punto (decisión 1),
+#     ajustadas con TODOS los votos de abril a julio (decisión 4: la herramienta final
+#     usa todos). Sin ridge: el λ lo elige Mark con train y todavía no está.
+#   - Probabilidad de ganar en preguntas REALES de cada tarea (`ranking_real` de R/02):
+#     el promedio sobre todas las preguntas que tienen esa característica, porque una
+#     pregunta de código casi siempre es también de problem_solving, etc.
+#   - Solo modelos con 100 o más votos en julio (decisión 2) y con precio oficial
+#     (los 13 sin precio quedan fuera, ficha de Marco).
+#   - Presupuesto = precio de salida por millón de tokens: sin límite, hasta $10,
+#     hasta $2 y hasta $0.50 ("hasta" incluye el límite: un modelo de $10 entra en $10).
+# Cuando Jaime publique top3(..., precio_max), esta parte se cambia por esa función.
+
+options(correr_02 = FALSE)
+source("R/02_regresiones_por_modelo.R")
+
+base  <- cargar_base()
+datos <- preparar_respuesta(base, politica = "medio_punto", sin_revision = TRUE)
+ajustes <- ajustar_modelos(datos, rival = FALSE)
+cat("Parte 3: regresiones ajustadas:", length(ajustes), "| filas:", nrow(datos),
+    "| votos:", length(unique(datos$id)), "\n")
+
+votos_julio <- table(base$model[base$month == 7])
+votos_julio <- setNames(as.integer(votos_julio[names(ajustes)]), names(ajustes))
+votos_julio[is.na(votos_julio)] <- 0L
+
+tareas <- list(todas              = character(0),
+               codigo             = "is_code",
+               math               = "math",
+               escritura_creativa = "creative_writing")
+presupuestos <- c(sin_limite = Inf, hasta_10 = 10, hasta_2 = 2, hasta_0.50 = 0.5)
+
+precio <- v3[, c("modelo", "compania", "precio_entrada_usd_por_millon",
+                 "precio_salida_usd_por_millon", "razona")]
+
+top3 <- do.call(rbind, lapply(names(tareas), function(t) {
+  r <- ranking_real(tareas[[t]], ajustes, datos)
+  # Cuántas preguntas reales entran en el promedio (ranking_real no lo devuelve)
+  q <- datos[!duplicated(datos$id), predictores]
+  n_preguntas <- if (length(tareas[[t]]) == 0) nrow(q) else sum(apply(q[tareas[[t]]], 1, all))
+  r <- merge(r, precio, by = "modelo", all.x = TRUE)
+  r$votos_julio <- votos_julio[r$modelo]
+  r <- r[!is.na(r$precio_salida_usd_por_millon) & r$votos_julio >= 100, ]
+  r <- r[order(-r$prob_ganar), ]
+  do.call(rbind, lapply(names(presupuestos), function(p) {
+    d <- head(r[r$precio_salida_usd_por_millon <= presupuestos[[p]], ], 3)
+    data.frame(tarea                 = t,
+               preguntas_reales      = n_preguntas,
+               presupuesto           = p,
+               puesto                = seq_len(nrow(d)),
+               modelo                = d$modelo,
+               compania              = d$compania,
+               prob_ganar            = round(d$prob_ganar, 3),
+               precio_salida_usd_por_millon  = d$precio_salida_usd_por_millon,
+               precio_entrada_usd_por_millon = d$precio_entrada_usd_por_millon,
+               razona                = d$razona,
+               votos_julio           = d$votos_julio,
+               votos_total           = d$votos,
+               puesto_sin_limite     = match(d$modelo, r$modelo))
+  }))
+}))
+
+write.csv(top3, "R/resultados/top3_por_precio.csv", row.names = FALSE, na = "", fileEncoding = "UTF-8")
+cat("Parte 3: R/resultados/top3_por_precio.csv,", nrow(top3), "filas\n")
+for (t in names(tareas)) {
+  cat("\n", t, "\n", sep = "")
+  print(top3[top3$tarea == t, c("presupuesto", "puesto", "modelo", "prob_ganar",
+                                "precio_salida_usd_por_millon", "razona")], row.names = FALSE)
+}
