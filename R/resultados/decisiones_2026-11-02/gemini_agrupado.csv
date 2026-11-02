@@ -1,0 +1,3 @@
+"version","votos_test","modelos","aciertos_48","aciertos_base","logloss_48","logloss_base"
+"separadas",20416,44,65.16,64.51,0.6321,0.6378
+"agrupadas",20416,42,65.13,64.51,0.6327,0.6384

@@ -269,3 +269,19 @@ Fuentes oficiales:
 - https://arena.ai/blog/arena-leaderboard-dataset
 
 Código y documentación preparados con asistencia de ChatGPT (OpenAI).
+
+## Chequeo para cerrar las decisiones del 2/11 (`R/08_chequeo_decisiones.R`)
+
+Las 48 regresiones ajustadas solo con train (abril a junio, 44 modelos) y evaluadas sobre los mismos 20,416 votos decisivos de julio que la línea base de Mark. Resultados en `R/resultados/decisiones_2026-11-02/`. Las decisiones que salen de acá están en `docs/12-decisiones-2-11.md`. **No es la evaluación oficial**: esa la hace Mark en `R/03`.
+
+| Variante (julio) | Aciertos 48 | Aciertos base | Log-loss 48 | Log-loss base |
+|---|---|---|---|---|
+| Excluir empates | 65.15% | 64.47% | 0.6298 | 0.6340 |
+| Medio punto | 65.16% | 64.51% | 0.6321 | 0.6378 |
+| Medio punto + ridge λ=30 | 65.35% | 64.51% | 0.6321 | 0.6378 |
+
+- Las 48 le ganan a la línea base en julio por unos 0.7 puntos de aciertos, y tienen mejores probabilidades (log-loss más bajo).
+- Con una partición aleatoria 80/20 por sesión (5 semillas, los 48 modelos), en aciertos es un empate (de −0.70 a +0.30 puntos sin ridge, de −0.31 a +0.48 con ridge λ=30), pero el log-loss de las 48 es mejor en las 5.
+- Controlar por el rival no mejora los aciertos y empeora el log-loss. Agrupar las 3 versiones de Gemini 2.5 Pro da lo mismo (65.13% contra 65.16%).
+- Lectura: el modelo que es mejor en general gana casi siempre. Las características mejoran las probabilidades y cambian el orden debajo del 1º.
+- La tabla de ridge mira julio, así que no sirve para elegir λ. Eso se hace con train (`docs/tareas/mark.md`).
