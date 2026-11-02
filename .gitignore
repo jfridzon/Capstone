@@ -12,3 +12,6 @@ Thumbs.db
 # Secretos
 .env
 *.key
+.Ruserdata
+Rplots.pdf
+!Capstone.Rproj

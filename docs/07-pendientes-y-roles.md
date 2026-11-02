@@ -33,10 +33,18 @@ Cambio del 2/11 (noche): la tarea 1 pasó de Jaime a Nessim. Orden: Nessim hace 
 
 ## Decisiones abiertas
 
-- Qué hacer con los 13 modelos sin precio oficial (propuesta de Marco en el PR #9).
-- Precio de gemini-2.5-flash-preview-04-17 en el top 3: $0.60 (sin razonamiento) o $3.50 (con razonamiento, como responde por defecto). Ver `docs/11`, Parte 4.
-- Versión del ranking para el top 3 de la presentación: "preguntas reales" (`ranking_real`, la que usa Marco) o "solo esta característica" (`ranking`).
-- Cómo plantear la pregunta de costo: el profesor dijo que lo iba a pensar. Mientras tanto, va el top 3 por presupuesto.
+Ninguna por ahora. Cerradas el 2/11 (noche):
+- **Modelos sin precio oficial (13 de 48):** quedan fuera del top 3 por precio. En la tabla siguen, marcados "sin precio oficial". No se usan precios de otros proveedores.
+- **`disponible_gratis_en_app`:** se elimina de la tabla v3 (no hay fuente confiable de julio 2025).
+- **Pregunta de costo:** mientras el profesor no diga otra cosa, se responde con el top 3 por tarea dentro de cada presupuesto (Marco).
+
+## Fase 3 (desde el 18/11): quién hace qué
+
+Se detalla en las fichas cuando termine la fase 2. Por ahora:
+- **App** (18/11 a 30/11): una app Shiny donde eliges las características de tu pregunta y tu presupuesto, y te da el top 3. Mark (con `top3()` de Nessim) y Marco (precios).
+- **Dashboards** (2/12 y 7/12): Eli.
+- **Reporte en R Markdown** (40% de la nota): Nessim arma la base con su `reporte/01_regresiones_48.Rmd`; cada uno escribe la sección de su parte.
+- **Presentación** (30%): todos; cada uno presenta su parte.
 
 ## Fase 1 (hecha el 28/10)
 
@@ -50,9 +58,9 @@ Cambio del 2/11 (noche): la tarea 1 pasó de Jaime a Nessim. Orden: Nessim hace 
 
 ## Pendientes generales
 
-- [ ] Primer update individual (todos, lun 9/11).
+- [ ] Primer update individual (todos, lun 9/11): issue #22.
 - [x] PR #9 de Marco fusionado.
-- [ ] Aprobar el PR #20 de Mark (Jaime o Nessim).
+- [x] PR #20 de Mark fusionado.
 - [ ] Mark: archivar su repo viejo `markbzq/proyecto-capstone-DataAnalytics`.
 - [ ] Calendario: analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
 
@@ -92,8 +100,9 @@ conservando los resultados de Mark y el plan vigente del grupo.
 
 Rama `nessim/regresiones-48`: medio punto por defecto en `R/02`, ridge
 opcional sin elegir lambda y `top3()` con los filtros de julio y precio.
-Se regeneran coeficientes/rankings y se agrega el R Markdown y HTML para
-el profesor. Ver la seccion actualizada de las 48 en `docs/05`.
+Se regeneran coeficientes/rankings y se agrega el R Markdown para
+el reporte. Para demostrar el proyecto completo en vivo se agrega
+`Capstone.Rproj` y `R/00_demo_profesor.R` (guia en `docs/13`). Ver la seccion actualizada de las 48 en `docs/05`.
 
 La implementacion esta preparada para revision; no implica aprobacion ni
 reescribe decisiones del grupo. La eleccion de lambda y la evaluacion

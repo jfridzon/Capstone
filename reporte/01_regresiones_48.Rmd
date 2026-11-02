@@ -198,9 +198,8 @@ knitr::kable(tabla_top, row.names = FALSE)
 An optional budget filters **output price per million tokens**, not total
 cost per answer. Unknown prices are excluded only when a budget is supplied.
 The budget example uses Marco's v2 price table, as required by this task.
-The group is still reviewing the reasoning price of the Flash preview model
-and the ranking format for the final presentation. This example does not
-settle either question. For example:
+List prices do not measure the full cost of a reasoning response.
+For example:
 
 ```{r budget-code, echo=TRUE, eval=FALSE}
 top3("math", ajustes, precio_max = 2)

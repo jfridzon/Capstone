@@ -889,10 +889,8 @@ evaluation.</p>
 <p>An optional budget filters <strong>output price per million
 tokens</strong>, not total cost per answer. Unknown prices are excluded
 only when a budget is supplied. The budget example uses Marco’s v2 price
-table, as required by this task. The group is still reviewing the
-reasoning price of the Flash preview model and the ranking format for
-the final presentation. This example does not settle either question.
-For example:</p>
+table, as required by this task. List prices do not measure the full
+cost of a reasoning response. For example:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">top3</span>(<span class="st">&quot;math&quot;</span>, ajustes, <span class="at">precio_max =</span> <span class="dv">2</span>)</span></code></pre></div>
 </div>
 <div id="limits-and-next-step" class="section level2">

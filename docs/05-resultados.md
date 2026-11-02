@@ -328,9 +328,8 @@ combinaciones reales de caracteristicas. Solo recomienda modelos con al menos
 v2 de Marco; no es costo por respuesta. Sin presupuesto, se conservan modelos
 con precio desconocido; con presupuesto, no se pueden comparar y se excluyen.
 Puede devolver menos de tres si no hay candidatos suficientes. La funcion
-implementa las preguntas reales que pide la ficha; no cierra la decision sobre
-el ranking de la presentacion ni sobre el precio de razonamiento del Flash
-preview, que siguen abiertos en `docs/07`.
+implementa las preguntas reales que pide la ficha y usa las tarifas publicadas;
+no interpreta la tarifa por token como costo real de una respuesta.
 
 Top 3 del ajuste descriptivo, con el filtro de julio (puntajes, no precision):
 
@@ -492,3 +491,21 @@ Script: `R/06_costo_por_respuesta.R`. Detalle y cómo leerlo: `docs/11-precios-y
 - minimax-m1 es 3º en math antes de filtrar por precio, pero no tiene precio oficial y no entra.
 
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+
+## Demostracion en vivo del grupo en RStudio (2/11/2026)
+
+`R/00_demo_profesor.R` ajusta en memoria las 48 regresiones descriptivas,
+los modelos de train con y sin ridge, Bradley-Terry general y el porcentaje
+de victorias; evalua los mismos votos de julio con `R/03b_evaluar.R`.
+La comprobacion de la demostracion reproduce los aciertos y el log-loss
+guardados por Mark, incluidos los modelos con ridge. No modifica los datos
+ni los CSV de resultados.
+
+Muestra los coeficientes de todos los modelos, las predicciones individuales,
+graficos de evaluacion, top 3 por presupuesto con precios de Marco y contexto
+de largo de respuesta y ranking externo de Eli. No incluye como terminados
+Bradley-Terry con covariables, Shiny ni dashboards.
+
+Se abre con `Capstone.Rproj`; instrucciones en `docs/13-demostracion-rstudio.md`.
+Codigo y guia preparados con asistencia de ChatGPT/Codex.
