@@ -22,7 +22,7 @@
 
 ---
 
-## Fase 1 (hecha el 28/10, se deja como referencia)
+## Fase 1 (YA HECHA el 28/10). No la repitas: es solo historia
 
 **Para cuándo:** lunes 9/11. **Rama:** `marco/precios`. No depende de nadie y nadie depende de ella todavía: es para la pregunta de costo que el profesor va a plantear después.
 

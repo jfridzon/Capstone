@@ -2,21 +2,11 @@
 
 ## Fase 2 (desde el 2/11): lo que toca ahora
 
-**Fase 2, para el lunes 9/11. Rama:** `jaime/regresiones-v2`. Lee antes `docs/12-decisiones-2-11.md`.
+**La tarea de las 48 regresiones pasó a Nessim** (ver `docs/tareas/nessim.md`, tarea 1). Jaime:
 
-### Qué hay que hacer
-
-Actualizar `R/02_regresiones_por_modelo.R` a las decisiones del 2/11:
-
-1. **Medio punto por defecto:** `politica_empates <- "medio_punto"` (usa `won_medio_punto_escenario`, `glm` con `quasibinomial`). `"excluir"` sigue disponible como chequeo.
-2. **Opción ridge:** un argumento `lambda` en `ajustar_modelos()` (0 = el `glm` de siempre). Penaliza solo los 11 efectos, nunca el intercepto. Se puede copiar la función `ajustar()` de `R/08_chequeo_decisiones.R`. El λ lo elige Mark con train, no Jaime.
-3. **Herramienta `top3(caracteristicas, ajustes, precio_max = NULL)`:** devuelve los 3 modelos con mayor probabilidad de ganar en preguntas reales con esas características (usa `ranking_real()`), **solo entre modelos con 100 o más votos en julio** (`R/resultados/decisiones_2026-11-02/votos_por_mes.csv`). `precio_max` queda listo para cuando Marco tenga la tabla v3 (filtra por precio de salida).
-4. **Volver a generar** `coeficientes_por_modelo.csv` y `rankings_ejemplo.csv` con medio punto y todos los votos (abril a julio). Actualizar la sección de las 48 en `docs/05`.
-
-### No hagas
-
-- No elijas λ mirando julio.
-- No borres `con_rival`: queda en `FALSE` (decisión 5), pero sirve para el reporte.
+- Revisa y aprueba los PR de los demás (Jaime, Mark o Nessim aprueban; nadie se aprueba a sí mismo).
+- Coordina con el profesor: qué se le muestra y cuándo (con el R Markdown de Nessim).
+- Prepara su update individual sobre su parte de la fase 1 (las 48 regresiones originales) y las decisiones del 2/11 (`docs/12`).
 
 ## Todos: primer update individual (lunes 9/11)
 
@@ -24,7 +14,7 @@ Actualizar `R/02_regresiones_por_modelo.R` a las decisiones del 2/11:
 
 ---
 
-## Fase 1 (hecha el 28/10, se deja como referencia)
+## Fase 1 (YA HECHA el 28/10). No la repitas: es solo historia
 
 **Para cuándo:** lunes 9/11. **Rama:** `jaime/regresiones`. Usa la base larga de Nessim, `data/derivados/base_regresiones_2026-10-28_v2.csv.gz` (ver `docs/10`), y la partición de Mark, `R/resultados/split_train_test.csv`.
 

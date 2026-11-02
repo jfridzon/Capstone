@@ -15,7 +15,7 @@ Cómo se probó: las 48 regresiones de `R/02`, ajustadas solo con train (abril a
 | 3 | Variable `thinking` | **No se crea como predictor.** Marco agrega una columna `razona` (sí/no) a la tabla de precios |
 | 4 | Modelos que solo están en julio | Evaluación principal: **julio** (44 modelos). Chequeo extra: **partición aleatoria por sesión**, 5 semillas, con los 48 |
 | 5 | Controlar por el rival | **No** en las 48. La regresión combinada (Bradley-Terry) ya lo controla de forma exacta |
-| 6 | Si no le ganamos al ranking general | Le ganamos poco en aciertos y siempre en probabilidades. Se reporta tal cual y **el valor de la presentación va al top 3 por tarea + precio** |
+| 6 | Si no le ganamos al ranking general | Le ganamos poco en aciertos, y en probabilidades le ganamos al % de victorias (contra Bradley-Terry no es claro, ver abajo). Se reporta tal cual y **el valor de la presentación va al top 3 por tarea + precio** |
 | Nuevo | Ridge | Se agrega como variante: encoge los 11 efectos hacia 0 en los modelos con pocos votos. El λ se elige **solo con train** (validación cruzada), nunca mirando julio |
 
 ## 1. Empates y both_bad: medio punto
@@ -59,7 +59,7 @@ La evaluación principal sigue siendo la de julio (predecir el futuro con el pas
 | 4 | 64.11% | 64.26% | 64.31% | 0.6372 | 0.6430 |
 | 5 | 63.58% | 63.97% | 64.28% | 0.6400 | 0.6432 |
 
-En aciertos es un empate técnico. En log-loss las 48 ganan en las 5. **Esto es un hallazgo, no un problema:** el modelo que es mejor en general gana casi siempre, sin importar el tipo de pregunta. Las características sí cambian el orden debajo del 1º, y por eso importan cuando el mejor modelo es muy caro (decisión 6).
+En aciertos es un empate técnico. En log-loss las 48 le ganan al % de victorias en las 5 (contra Bradley-Terry no se midió acá). **Esto es un hallazgo, no un problema:** el modelo que es mejor en general gana casi siempre, sin importar el tipo de pregunta. Las características sí cambian el orden debajo del 1º, y por eso importan cuando el mejor modelo es muy caro (decisión 6).
 
 La herramienta final se ajusta con todos los votos (abril a julio), así que incluye a los 4 modelos de julio, marcados con su número de votos.
 
@@ -76,7 +76,8 @@ No mejora los aciertos y empeora las probabilidades. Además, el rival se asigna
 
 ## 6. Cómo se cuenta el resultado
 
-- **Para el profesor:** las 48 regresiones predicen julio mejor que el ranking general (65.2% contra 64.5% de aciertos, y mejores probabilidades). La mejora es chica porque Gemini 2.5 Pro es 1º en casi todo.
+- **Para el profesor:** las 48 regresiones predicen julio mejor que el ranking general (65.1% contra 64.5% de aciertos con medio punto, p < 0.01). La mejora es chica porque Gemini 2.5 Pro es 1º en casi todo.
+- **Corrección del 2/11 (de la evaluación de Mark, PR #20):** en log-loss, las 48 le ganan claramente al % de victorias (mejora de 0.0058, IC 0.0042 a 0.0074), pero contra Bradley-Terry sin características la mejora es 0.0019 y su IC llega a 0. Antes este doc decía "siempre en log-loss": eso solo vale contra el % de victorias. Para el profesor se dice así, sin exagerar.
 - **Para el negocio (presentación):** "si no quieres pagar el mejor, este es el mejor para tu tarea dentro de tu presupuesto". Ahí las características pesan, porque debajo del 1º el orden cambia mucho por tarea (por ejemplo MiniMax M1 en math). Esto une las 48 con la tabla de precios de Marco.
 
 ## Ridge
