@@ -77,3 +77,16 @@ sigue siendo la regresion combinada de fase 2, descrita arriba y en su ficha.
 
 Conflictos de documentacion combinados con asistencia de ChatGPT/Codex,
 conservando los resultados de Mark y el plan vigente del grupo.
+
+
+## Entrega propuesta de Nessim: tarea 1 de fase 2 (issue #17)
+
+Rama `nessim/regresiones-48`: medio punto por defecto en `R/02`, ridge
+opcional sin elegir lambda y `top3()` con los filtros de julio y precio.
+Se regeneran coeficientes/rankings y se agrega el R Markdown y HTML para
+el profesor. Ver la seccion actualizada de las 48 en `docs/05`.
+
+La implementacion esta preparada para revision; no implica aprobacion ni
+reescribe decisiones del grupo. La eleccion de lambda y la evaluacion
+siguen con Mark; el issue #14 (Bradley-Terry) queda para despues.
+Preparado con asistencia de ChatGPT/Codex.

@@ -1,18 +1,20 @@
 # The 48 regressions: 1 logistic regression per model
-# Task 2 in docs/07 (Jaime). Run from the repo root: source("R/02_regresiones_por_modelo.R")
+# Actualizado para Nessim (issue #17) con asistencia de ChatGPT/Codex, 2/11/2026.
+# Medio punto por defecto, ridge opcional (lambda=0 conserva glm) y top3().
+# Tarea 1 de Nessim, fase 2 (codigo original de Jaime). Desde la raiz: source("R/02_regresiones_por_modelo.R")
 #
 # The question: for a given type of question (code, math, creative writing...),
 # which model is most likely to win?
 #
 # For EACH model separately:
 #   Data:       every vote where that model appeared (1 row = 1 vote, from that model's side)
-#   Response:   won = 1 if the model won the vote, 0 if it lost
+#   Response:   y = 1 if it won, 0 if it lost, 0.5 for tie or both_bad
 #   Predictors: the 11 TRUE/FALSE characteristics of the question
 #               (all known BEFORE the model writes its answer)
 #
-#   glm(won ~ is_code + math + creative_writing + instruction_following + complexity +
+#   glm(y ~ is_code + math + creative_writing + instruction_following + complexity +
 #             creativity + domain_knowledge + problem_solving + real_world +
-#             specificity + technical_accuracy, family = binomial)
+#             specificity + technical_accuracy, family = quasibinomial)
 #
 # Then, for any combination of characteristics (for example code + math), each model's
 # regression gives its probability of winning, and sorting those gives the ranking.
@@ -36,14 +38,10 @@ predictores <- c("is_code", "math", "creative_writing", "instruction_following",
                  "complexity", "creativity", "domain_knowledge", "problem_solving",
                  "real_world", "specificity", "technical_accuracy")
 
-# OPEN DECISION #1 in docs/07 (the group decides): ties and both_bad.
-#   "excluir"     = only decisive votes, won is 1 or 0 (what has been used so far)
-#   "medio_punto" = tie and both_bad count as 0.5 (Nessim's column won_medio_punto_escenario)
-politica_empates <- "excluir"
+# Decisiones del 2/11, docs/12: medio punto por defecto. Excluir es sensibilidad.
+politica_empates <- "medio_punto"
 
-# OPEN DECISION #5 in docs/07: control for the rival's strength or not.
-# FALSE = the 11 characteristics only (what the task asks for first).
-# TRUE  = also adds fuerza_rival = the rival's overall win rate in the same data, as a check.
+# Sin rival en las 48. Se conserva la opcion para los chequeos de Mark.
 con_rival <- FALSE
 
 # Nessim flagged 28 votes for review (docs/10): 10 where a model played itself and
@@ -73,11 +71,56 @@ preparar_respuesta <- function(base, politica = politica_empates, sin_revision =
   base
 }
 
+# Ridge opcional: score quasibinomial logit, penalizacion L2 en los 11 efectos.
+# Minimiza sum(log(1 + exp(eta)) - y * eta) + lambda/2 * sum(beta_efectos^2).
+# El intercepto y un eventual control del rival NO se penalizan.
+# lambda lo elige Mark dentro de train; este archivo no lo selecciona.
+ajustar_ridge <- function(X, y, penalizar, lambda, max_iter = 100L,
+                          tolerancia = 1e-8) {
+  b <- rep(0, ncol(X))
+  pen <- lambda * penalizar
+  perdida <- function(beta) {
+    eta <- drop(X %*% beta)
+    sum(pmax(eta, 0) - y * eta + log1p(exp(-abs(eta)))) +
+      sum(pen * beta^2) / 2
+  }
+  valor <- perdida(b)
+  for (iter in seq_len(max_iter)) {
+    mu <- plogis(drop(X %*% b))
+    w <- pmax(mu * (1 - mu), 1e-12)
+    grad <- drop(crossprod(X, mu - y)) + pen * b
+    if (max(abs(grad)) / nrow(X) < tolerancia) break
+    h <- crossprod(X, X * w) + diag(pen, ncol(X))
+    paso <- drop(solve(h, grad))
+    escala <- 1
+    repeat {
+      candidato <- b - escala * paso
+      nuevo <- perdida(candidato)
+      if (is.finite(nuevo) && nuevo <= valor + 1e-9) break
+      escala <- escala / 2
+      if (escala < 2^-20) stop("Ridge no encuentra un paso descendente.")
+    }
+    b <- candidato
+    valor <- nuevo
+  }
+  grad <- drop(crossprod(X, plogis(drop(X %*% b)) - y)) + pen * b
+  if (max(abs(grad)) / nrow(X) >= tolerancia) stop("Ridge no convergio.")
+  list(coefficients = setNames(b, colnames(X)), converged = TRUE,
+       iteraciones = iter, gradiente = max(abs(grad)) / nrow(X))
+}
+
 # ---- 2. The 48 regressions -----------------------------------------------------
 
 # datos: rows from the long base (1 row per model per vote) with the response in y.
-# Returns a list with 1 fitted glm per model, named by model.
-ajustar_modelos <- function(datos, rival = con_rival, min_votos = 100) {
+# lambda = 0: una lista de glm. lambda > 0: ajustes ridge, sin inferencia glm.
+ajustar_modelos <- function(datos, rival = con_rival, min_votos = 100,
+                            lambda = 0) {
+  if (length(lambda) != 1L || !is.finite(lambda) || lambda < 0) {
+    stop("lambda debe ser un numero finito no negativo.")
+  }
+  if (!all(c("model", "y", predictores) %in% names(datos)) ||
+      anyNA(datos[c("model", "y", predictores)]) ||
+      !all(datos$y >= 0 & datos$y <= 1)) stop("Datos de ajuste invalidos.")
   formula <- reformulate(c(predictores, if (rival) "fuerza_rival"), response = "y")
 
   if (rival) {
@@ -93,11 +136,31 @@ ajustar_modelos <- function(datos, rival = con_rival, min_votos = 100) {
   for (m in modelos) {
     filas <- datos[datos$model == m, ]
     if (nrow(filas) < min_votos) next          # too few votes to estimate 11 effects
-    fit <- glm(formula, family = familia, data = filas)
+    if (lambda == 0) {
+      fit <- glm(formula, family = familia, data = filas)
+    } else {
+      X <- model.matrix(formula, filas)
+      efectos <- which(attr(terms(formula), "term.labels") %in% predictores)
+      penalizar <- as.numeric(attr(X, "assign") %in% efectos)
+      fit <- ajustar_ridge(X, filas$y, penalizar, lambda)
+      fit$formula <- formula
+      fit$terms <- terms(formula)
+      fit$familia <- familia$family
+      fit$lambda <- lambda
+      class(fit) <- "ridge_48"
+    }
     if (!fit$converged) warning("Regression did not converge for ", m)
     fit$n_votos <- nrow(filas)
     ajustes[[m]] <- fit
   }
+  # Distribucion de preguntas usada por el ajuste: train si Mark pasa train.
+  columnas <- c(intersect("id", names(datos)), predictores)
+  preguntas <- datos[, columnas, drop = FALSE]
+  if ("id" %in% names(preguntas)) {
+    preguntas <- preguntas[!duplicated(preguntas$id), , drop = FALSE]
+  }
+  attr(ajustes, "preguntas") <- preguntas
+  attr(ajustes, "lambda") <- lambda
   ajustes
 }
 
@@ -120,7 +183,13 @@ probabilidad <- function(ajustes, modelos, x) {
   p <- rep(NA_real_, length(modelos))
   for (m in intersect(unique(modelos), names(ajustes))) {
     i <- which(modelos == m)
-    p[i] <- predict(ajustes[[m]], newdata = x[i, , drop = FALSE], type = "response")
+    fit <- ajustes[[m]]
+    if (inherits(fit, "ridge_48")) {
+      X <- model.matrix(delete.response(fit$terms), x[i, , drop = FALSE])
+      p[i] <- plogis(drop(X %*% fit$coefficients))
+    } else {
+      p[i] <- predict(fit, newdata = x[i, , drop = FALSE], type = "response")
+    }
   }
   p
 }
@@ -147,13 +216,18 @@ ranking <- function(caracteristicas = character(0), ajustes) {
 # ranks models on the questions people actually ask, not on a made-up "code only" one.
 ranking_real <- function(caracteristicas = character(0), ajustes, preguntas) {
   stopifnot(all(caracteristicas %in% predictores))
-  q <- preguntas[!duplicated(preguntas$id), predictores]
+  if (!length(ajustes)) stop("No hay modelos ajustados.")
+  if (!all(predictores %in% names(preguntas))) stop("Faltan caracteristicas.")
+  usar <- if ("id" %in% names(preguntas)) !duplicated(preguntas$id) else
+    rep(TRUE, nrow(preguntas))
+  q <- preguntas[usar, predictores, drop = FALSE]
   if (length(caracteristicas) > 0) q <- q[apply(q[caracteristicas], 1, all), , drop = FALSE]
+  if (!nrow(q)) stop("No hay preguntas reales con esas caracteristicas.")
   if ("fuerza_rival" %in% all.vars(formula(ajustes[[1]]))) q$fuerza_rival <- 0.5
   modelos <- names(ajustes)
   out <- data.frame(modelo     = modelos,
-                    prob_ganar = sapply(modelos, function(m)
-                      mean(predict(ajustes[[m]], newdata = q, type = "response"))),
+                    prob_ganar = vapply(modelos, function(m)
+                      mean(probabilidad(ajustes, rep(m, nrow(q)), q)), numeric(1)),
                     votos      = sapply(ajustes, `[[`, "n_votos"),
                     row.names  = NULL)
   out <- out[order(-out$prob_ganar), ]
@@ -162,9 +236,48 @@ ranking_real <- function(caracteristicas = character(0), ajustes, preguntas) {
   out[, c("rank", "modelo", "prob_ganar", "votos")]
 }
 
+# Top 3 para la herramienta: preguntas reales, vigencia en julio y presupuesto.
+# precio_max es USD por millon de tokens DE SALIDA, no costo por respuesta.
+top3 <- function(caracteristicas, ajustes, precio_max = NULL,
+                 preguntas = attr(ajustes, "preguntas"),
+                 archivo_meses = "R/resultados/decisiones_2026-11-02/votos_por_mes.csv",
+                 archivo_precios = "data/derivados/precios_modelos_2026-10-28_v2.csv") {
+  if (!is.null(precio_max) && (length(precio_max) != 1L ||
+      !is.numeric(precio_max) || !is.finite(precio_max) || precio_max < 0)) {
+    stop("precio_max debe ser NULL o un presupuesto no negativo.")
+  }
+  if (is.null(preguntas)) preguntas <- cargar_base()
+  meses <- read.csv(archivo_meses, stringsAsFactors = FALSE)
+  precios <- read.csv(archivo_precios, stringsAsFactors = FALSE)
+  precio_col <- "precio_salida_usd_por_millon"
+  if (!all(c("modelo", "mes_7") %in% names(meses)) ||
+      !all(c("modelo", precio_col) %in% names(precios)) ||
+      anyDuplicated(meses$modelo) || anyDuplicated(precios$modelo)) {
+    stop("Tablas de julio o precios incompatibles.")
+  }
+  r <- ranking_real(caracteristicas, ajustes, preguntas)
+  r$votos_julio <- meses$mes_7[match(r$modelo, meses$modelo)]
+  r[[precio_col]] <- precios[[precio_col]][match(r$modelo, precios$modelo)]
+  r <- r[!is.na(r$votos_julio) & r$votos_julio >= 100, , drop = FALSE]
+  if (!is.null(precio_max)) {
+    r <- r[is.finite(r[[precio_col]]) & r[[precio_col]] >= 0 &
+             r[[precio_col]] <= precio_max, , drop = FALSE]
+  }
+  r <- r[order(-r$prob_ganar, r$modelo), , drop = FALSE]
+  r$rank <- seq_len(nrow(r))
+  rownames(r) <- NULL
+  head(r, 3L) # Puede devolver menos de 3 si el presupuesto no alcanza.
+}
+
 # Coefficient table: 1 row per model per term
 tabla_coeficientes <- function(ajustes) {
   filas <- lapply(names(ajustes), function(m) {
+    if (inherits(ajustes[[m]], "ridge_48")) {
+      return(data.frame(modelo = m,
+        termino = names(ajustes[[m]]$coefficients),
+        estimado = unname(ajustes[[m]]$coefficients),
+        error_estandar = NA_real_, p_valor = NA_real_))
+    }
     s <- coef(summary(ajustes[[m]]))
     data.frame(modelo = m, termino = rownames(s),
                estimado = s[, 1], error_estandar = s[, 2], p_valor = s[, 4],

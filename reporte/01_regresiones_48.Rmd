@@ -1,0 +1,211 @@
+---
+title: "Which AI model fits each task?"
+subtitle: "48 regressions — individual progress report"
+author: "Nessim Betesh · IDS 3000"
+date: "November 2, 2026"
+output:
+  html_document:
+    self_contained: true
+    theme: readable
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                     fig.align = "center", dpi = 120)
+raiz <- normalizePath(if (file.exists("R/02_regresiones_por_modelo.R")) "." else "..")
+knitr::opts_knit$set(root.dir = raiz)
+e <- new.env(parent = globalenv())
+op <- options(correr_02 = FALSE)
+tryCatch(sys.source(file.path(raiz, "R/02_regresiones_por_modelo.R"), envir = e),
+         finally = options(op))
+base <- e$cargar_base(file.path(raiz, e$in_file))
+datos <- e$preparar_respuesta(base, politica = "medio_punto")
+ajustes <- e$ajustar_modelos(datos, lambda = 0)
+coeficientes <- e$tabla_coeficientes(ajustes)
+eval <- read.csv(file.path(raiz, "R/resultados/evaluacion.csv"))
+principal <- eval[eval$method == "regressions_48_half_point", ]
+baseline_bt <- eval[eval$method == "general_bradley_terry", ]
+baseline_wr <- eval[eval$method == "general_win_rate_half_point", ]
+stopifnot(nrow(principal) == 1L, nrow(baseline_bt) == 1L,
+          nrow(baseline_wr) == 1L, length(ajustes) == 48L)
+chico <- names(ajustes)[which.min(vapply(ajustes, function(x) x$n_votos, numeric(1)))]
+escenarios <- list(Code = "is_code", Math = "math",
+  `Creative writing` = "creative_writing",
+  Instructions = "instruction_following", `Code + math` = c("is_code", "math"),
+  `All questions` = character())
+```
+
+<style>
+body { color: #172b4d; }
+h1, h2 { color: #173c62; }
+pre { font-size: 12px; }
+details { margin: 16px 0; padding: 12px; border: 1px solid #dce4ec; border-radius: 6px; }
+summary { cursor: pointer; font-weight: 600; }
+table { font-size: 13px; }
+</style>
+
+## What I did
+
+I updated Jaime's existing regressions to use the group's November 2 decisions.
+Each AI model has one regression. A question can have several features at once.
+The model estimates an **expected preference score**: win = 1, loss = 0,
+and tie or both bad = 0.5. With half points, this score is not simply the
+probability of winning a decisive vote.
+
+The descriptive fit below uses **`r format(nrow(datos)/2, big.mark=",")` votes**
+from April through July, represented by two model-side rows per vote.
+There are `r length(ajustes)` fitted models. As in Jaime's original code,
+flagged review cases are excluded from the fit. The original data are unchanged.
+
+## Response and predictors
+
+The response is the model's score for that vote. These are the only predictors;
+all describe the question, before the AI writes an answer.
+
+```{r features}
+knitr::kable(data.frame(
+  Feature = e$predictores,
+  Meaning = c("The question involves programming.",
+    "The question involves mathematics.",
+    "The question asks for creative writing.",
+    "The question contains specific instructions.",
+    "The question is complex.",
+    "The task needs creative thinking.",
+    "The task needs subject knowledge.",
+    "The task needs problem-solving steps.",
+    "The task has a practical, real-world use.",
+    "The task is specific and well defined.",
+    "The task needs technical accuracy.")), row.names = FALSE)
+```
+
+Response length, formatting, price and tokens are **not** predictors.
+The opponent is not a predictor in these separate regressions (group decision 5).
+
+This is the actual regression specification:
+
+```{r glm-visible, echo=TRUE, eval=FALSE}
+glm(y ~ is_code + math + creative_writing + instruction_following +
+      complexity + creativity + domain_knowledge + problem_solving +
+      real_world + specificity + technical_accuracy,
+    family = quasibinomial(), data = votes_for_one_model)
+```
+
+The default uses `lambda = 0`, so these are ordinary `glm()` fits. The updated
+function also accepts ridge: `ajustar_modelos(datos, lambda = ...)`. It shrinks
+only the 11 feature effects, never the intercept. **Mark will choose lambda
+using train only**; this report does not choose it by looking at July.
+
+## The regressions: full R output
+
+A positive `math` coefficient means a higher fitted preference score on math
+questions, holding the other features fixed. It is a change in log-odds, not a
+percentage-point change or a causal effect. For example, Gemini's math
+coefficient is **`r round(coef(ajustes[["gemini-2.5-pro"]])["mathTRUE"], 3)`**.
+P-values below are nominal: the rows are not independent across models.
+
+Open each example to see its **complete `summary()` output**, including
+coefficients, dispersion and convergence information. The third example has
+the fewest votes in this descriptive fit.
+
+```{r summaries, results='asis'}
+for (modelo in c("gemini-2.5-pro", "claude-opus-4-20250514", chico)) {
+  cat(sprintf("<details><summary>%s — %s votes</summary>\n", modelo,
+              format(ajustes[[modelo]]$n_votos, big.mark = ",")))
+  cat(sprintf('<p><code>summary(ajustes[["%s"]])</code></p>\n', modelo))
+  texto <- paste(capture.output(print(summary(ajustes[[modelo]]))), collapse = "\n")
+  cat("<pre>", htmltools::htmlEscape(texto), "</pre></details>\n")
+}
+```
+
+## Feature effects for all 48 models
+
+Blue means a higher preference score when a feature is present; red means a
+lower score. These are **log-odds coefficients**, with the other features held
+fixed. The intercept is omitted from this chart. Full values, including all
+intercepts, are in `R/resultados/coeficientes_por_modelo.csv`.
+
+```{r heatmap, fig.width=11, fig.height=12, out.width='100%', fig.cap='Descriptive fit: all April–July votes, half points, no ridge.'}
+mapa <- coeficientes[coeficientes$termino != "(Intercept)", ]
+mapa$feature <- sub("TRUE$", "", mapa$termino)
+mapa$feature <- factor(mapa$feature, levels = e$predictores)
+mapa$modelo <- factor(mapa$modelo, levels = rev(sort(unique(mapa$modelo))))
+ggplot2::ggplot(mapa, ggplot2::aes(feature, modelo, fill = estimado)) +
+  ggplot2::geom_tile(color = "white", linewidth = 0.1) +
+  ggplot2::scale_fill_gradient2(low = "#b64c3c", mid = "#f7f9fb",
+                               high = "#22679c", midpoint = 0) +
+  ggplot2::labs(x = NULL, y = NULL, fill = "Log-odds") +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(panel.grid = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+    axis.text.y = ggplot2::element_text(size = 8))
+```
+
+## Does it predict unseen votes?
+
+The descriptive fit above uses all months and is **not** a test result.
+The table below comes directly from **Mark's saved evaluation**. Mark fits
+on April–June only and evaluates decisive July votes where both models were
+seen in train. Ties and both bad affect the half-point training fit but are
+not scored as winners in the test.
+
+```{r evaluation}
+comparacion <- rbind(baseline_bt, baseline_wr, principal)
+knitr::kable(data.frame(
+  Method = c("General Bradley–Terry ranking (decisive train votes)",
+    "General win rate (half points in train)",
+    "Separate regressions (half points in train)"),
+  `July votes` = comparacion$test_votes_evaluated,
+  Correct = comparacion$correct,
+  `Accuracy (%)` = comparacion$accuracy_percent,
+  `Log-loss (lower is better)` = comparacion$logloss,
+  check.names = FALSE), row.names = FALSE, digits = 4)
+```
+
+The separate regressions gain **`r round(100 * (principal$correct - baseline_bt$correct) / principal$test_votes_evaluated, 2)`
+percentage points** in accuracy over the general Bradley–Terry ranking: a small
+improvement. Their log-loss is clearly better than the general win rate.
+Against Bradley–Terry, the log-loss difference is small and Mark's interval
+reaches zero; we cannot claim a clear improvement in probability quality.
+These statements follow the correction in `docs/12-decisiones-2-11.md`.
+
+## Top 3 by task
+
+`top3()` averages fitted scores over **real questions** with each feature,
+allowing the other features to vary. Here the descriptive fit uses all months.
+Only models with **at least 100 votes in July** can be recommended. Versions
+remain separate. These are task recommendations, not a new test evaluation.
+
+```{r recommendations}
+tabla_top <- do.call(rbind, lapply(names(escenarios), function(nombre) {
+  t <- e$top3(escenarios[[nombre]], ajustes)
+  data.frame(Task = nombre, Rank = t$rank, Model = t$modelo,
+             `Preference score` = round(t$prob_ganar, 3),
+             check.names = FALSE)
+}))
+knitr::kable(tabla_top, row.names = FALSE)
+```
+
+An optional budget filters **output price per million tokens**, not total
+cost per answer. Unknown prices are excluded only when a budget is supplied.
+For example:
+
+```{r budget-code, echo=TRUE, eval=FALSE}
+top3("math", ajustes, precio_max = 2)
+```
+
+## Limits and next step
+
+- Each vote contributes two model-side rows; the separate fits are dependent.
+- The main test is one time split, April–June versus July.
+- Four models appear only in July and cannot be tested with that training set.
+
+The combined Bradley–Terry model is a separate next task. It will use one row
+per vote and account directly for the opponent. This report does not include it.
+
+*Prepared by Nessim Betesh with assistance from ChatGPT/Codex. Existing model
+code by Jaime and held-out evaluation by Mark. AI-generated code and text were
+checked against the repository's data, saved outputs and rules.*
