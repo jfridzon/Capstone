@@ -89,7 +89,43 @@ Las dos líneas base se evalúan sobre los mismos 20,416 votos de julio:
 | Bradley-Terry (sin características) | 13,164 | 64.5% | 63.8% a 65.1% |
 | % de victorias | 13,162 | 64.5% | 63.8% a 65.1% |
 
-Dan prácticamente lo mismo: solo se separan en 210 de los 20,416 votos. Para comparar las 48 regresiones basta usar cualquiera de las dos como línea base. `evaluacion.csv` tiene una fila por método; las 48 regresiones y la regresión combinada se agregan ahí cuando existan.
+Dan prácticamente lo mismo: solo se separan en 210 de los 20,416 votos. Para comparar las 48 regresiones basta usar cualquiera de las dos como línea base. `evaluacion.csv` tiene una fila por método; la regresión combinada se agrega ahí cuando exista.
+
+### Las 48 regresiones contra las líneas base (julio)
+
+Es la evaluación de "nuestro método" que pide la ficha de Mark. `R/03_evaluacion.R` carga las funciones de `R/02_regresiones_por_modelo.R` (Jaime), ajusta las regresiones **solo con train** y, en cada voto de julio, calcula la probabilidad de ganar de `model_a` y de `model_b` con las 11 características de esa pregunta. Se predice que gana el de mayor probabilidad. Los modelos entrenados son 44 (los 4 que solo aparecen en julio no tienen regresión) y los votos evaluados son los mismos 20,416 de las líneas base. Las 44 regresiones convergen y la más chica usa 523 votos. Usan 52,194 votos de train, 14 menos que las líneas base: son votos de sesiones con varios "primeros votos" que Nessim marcó para revisión y que `R/02` deja fuera (todos están en train, así que julio no cambia).
+
+| Método | Aciertos | % | IC 95% |
+|---|---|---|---|
+| Línea base: Bradley-Terry | 13,164 | 64.5% | 63.8% a 65.1% |
+| Línea base: % de victorias | 13,162 | 64.5% | 63.8% a 65.1% |
+| **48 regresiones (11 características)** | **13,303** | **65.2%** | 64.5% a 65.8% |
+| 48 regresiones + fuerza del rival (chequeo) | 13,302 | 65.2% | 64.5% a 65.8% |
+
+Los intervalos se traslapan porque se evalúan los mismos votos, así que se comparan voto por voto (`R/resultados/evaluacion_pareada.csv`). Contra el % de victorias hay 1,226 votos que solo acierta la regresión y 1,085 que solo acierta el % de victorias: **+0.69 puntos** (IC 95%: +0.23 a +1.15; p = 0.0036). Contra Bradley-Terry: +0.68 puntos (IC 95%: +0.22 a +1.14; p = 0.0042). Como el % de victorias es lo mismo que una regresión sin características, esa diferencia es lo que aportan las 11 características.
+
+**Cómo leerlo:**
+- La mejora es **pequeña**: unos 140 votos más acertados de 20,416 (1 de cada 145). Va en la dirección que esperaba el método, pero la precisión sigue cerca de 65%: gemini-2.5-pro sale 1º o 2º en casi todos los tipos de pregunta (`docs/01`), así que el orden de los modelos cambia poco de una tarea a otra.
+- Los p-valores y los intervalos son nominales: no corrigen que los mismos modelos se repiten en muchos votos ni que cada voto se usa 2 veces al ajustar (el profesor lo sabe, `docs/04`).
+- Es 1 sola partición (entrenar con abril a junio, evaluar en julio) y julio no incluye grok-4, kimi-k2, mistral-small-2506 ni grok-3-mini-high (decisión abierta #4 de `docs/07`). Los 5,233 votos de julio que los incluyen quedan fuera de todas las comparaciones.
+- **Fuerza del rival (decisión abierta #5, sigue abierta):** agregar el % de victorias general del rival como 12º predictor, calculado solo con train, no cambia nada: 13,302 contra 13,303 aciertos, y se reparten 582 contra 583 votos de diferencia. Es información para el grupo, no una decisión.
+- **Por tipo de pregunta** (`R/resultados/evaluacion_por_tarea.csv`, descriptivo; las etiquetas se solapan y son 4 grupos, así que uno puede salir mejor por azar):
+
+| Grupo (votos de julio) | Bradley-Terry | % de victorias | 48 regresiones |
+|---|---|---|---|
+| Todos (20,416) | 64.5% | 64.5% | 65.2% |
+| Código (5,502) | 63.2% | 63.0% | 64.1% |
+| Math (1,409) | 65.9% | 65.6% | 66.7% |
+| Escritura creativa (1,621) | 61.2% | 61.1% | 63.0% |
+| Seguir instrucciones (3,215) | 62.9% | 62.6% | 64.9% |
+
+Las regresiones quedan arriba en los 4 grupos, con más diferencia en escritura creativa (+1.9 puntos contra el % de victorias) y seguir instrucciones (+2.3) que en código y math (+1.1 en ambos). Con 1,409 a 1,621 votos en math y escritura creativa, esas diferencias por grupo no son concluyentes por sí solas.
+
+Para la decisión abierta #6 de `docs/07` (qué hacer si no le ganamos al ranking general): en esta prueba sí le ganamos, por poco.
+
+Con las 10 cajas (ya descartadas) la diferencia era 64.7% contra 64.5%. Ese número viene de un análisis que todavía no está en `R/`, así que no lo reproduje y no lo comparo directamente con estos.
+
+Pendiente: la regresión combinada (Bradley-Terry con covariables, `docs/04`) como comparación, evaluada igual sobre julio.
 
 ## Top 3 por tipo de tarea (Bradley-Terry, 10 cajas, 1er voto, 48 modelos, votos decisivos)
 
@@ -281,3 +317,19 @@ Fuentes oficiales:
 - https://arena.ai/blog/arena-leaderboard-dataset
 
 Código y documentación preparados con asistencia de ChatGPT (OpenAI).
+
+## Chequeo para cerrar las decisiones del 2/11 (`R/08_chequeo_decisiones.R`)
+
+Las 48 regresiones ajustadas solo con train (abril a junio, 44 modelos) y evaluadas sobre los mismos 20,416 votos decisivos de julio que la línea base de Mark. Resultados en `R/resultados/decisiones_2026-11-02/`. Las decisiones que salen de acá están en `docs/12-decisiones-2-11.md`. **No es la evaluación oficial**: esa la hace Mark en `R/03`.
+
+| Variante (julio) | Aciertos 48 | Aciertos base | Log-loss 48 | Log-loss base |
+|---|---|---|---|---|
+| Excluir empates | 65.15% | 64.47% | 0.6298 | 0.6340 |
+| Medio punto | 65.16% | 64.51% | 0.6321 | 0.6378 |
+| Medio punto + ridge λ=30 | 65.35% | 64.51% | 0.6321 | 0.6378 |
+
+- Las 48 le ganan a la línea base en julio por unos 0.7 puntos de aciertos, y tienen mejores probabilidades (log-loss más bajo).
+- Con una partición aleatoria 80/20 por sesión (5 semillas, los 48 modelos), en aciertos es un empate (de −0.70 a +0.30 puntos sin ridge, de −0.31 a +0.48 con ridge λ=30), pero el log-loss de las 48 es mejor en las 5.
+- Controlar por el rival no mejora los aciertos y empeora el log-loss. Agrupar las 3 versiones de Gemini 2.5 Pro da lo mismo (65.13% contra 65.16%).
+- Lectura: el modelo que es mejor en general gana casi siempre. Las características mejoran las probabilidades y cambian el orden debajo del 1º.
+- La tabla de ridge mira julio, así que no sirve para elegir λ. Eso se hace con train (`docs/tareas/mark.md`).
