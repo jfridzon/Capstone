@@ -3,9 +3,12 @@
 #
 # Este script hace 3 cosas, en orden:
 #
-#   Parte 1. Tabla de precios v3 = la v2 + la columna `razona` (decisión 3 de docs/12).
-#            Resultado: data/derivados/precios_modelos_2026-11-02_v3.csv
-#            (en data/ no se sobrescribe nada, por eso es un archivo nuevo)
+#   Parte 1. Tabla de precios v4 = la v2 + la columna `razona` (decisión 3 de docs/12)
+#            y sin `disponible_gratis_en_app` (decisión de Jaime en el issue #15: no hay
+#            fuente confiable de julio 2025).
+#            Resultado: data/derivados/precios_modelos_2026-11-02_v4.csv
+#            (en data/ no se sobrescribe nada, por eso es un archivo nuevo. La v3 del
+#            PR #25 es igual pero todavía con esa columna vacía; se deja como estaba)
 #
 #   Parte 2. PRUEBA de costo por respuesta de cada modelo (la de la fase 1, sin cambios).
 #            Resultado: R/resultados/costo_por_modelo.csv
@@ -31,7 +34,7 @@ if (!l10n_info()$`UTF-8`) stop("Este script necesita UTF-8. En Linux: Sys.setloc
 dir.create("R/resultados", showWarnings = FALSE)
 
 # =============================================================================
-# Parte 1. Columna `razona` -> tabla de precios v3
+# Parte 1. Columna `razona` -> tabla de precios v4
 # =============================================================================
 # razona = "si" si el modelo piensa (escribe un razonamiento) antes de responder,
 #          "no" si responde directo, y vacío si no hay una fuente clara.
@@ -141,17 +144,20 @@ texto  <- ifelse(v3$razona == "", paste0("razona: vacío. ", v3$nota),
 v3$notas <- ifelse(v3$notas == "", texto, paste0(v3$notas, " | ", texto))
 v3$nota <- NULL
 
-# `razona` va justo después de `disponible_gratis_en_app`
+# `razona` toma el lugar de `disponible_gratis_en_app`, que se elimina (issue #15).
+# Los 13 sin precio se quedan en la tabla con tiene_precio_oficial = "no" (issue #15).
 cols <- names(v2)
-cols <- append(cols, "razona", after = match("disponible_gratis_en_app", cols))
+cols[cols == "disponible_gratis_en_app"] <- "razona"
 v3 <- v3[, cols]
+stopifnot(!"disponible_gratis_en_app" %in% names(v3),
+          all((v3$tiene_precio_oficial == "no") == is.na(v3$precio_salida_usd_por_millon)))
 stopifnot(nrow(v3) == 48, all(v3$razona %in% c("si", "no", "")))
 
 # Los textos de este script están en UTF-8: se marcan así para que los acentos salgan
 # bien en cualquier compu (Windows, Mac o Linux).
 v3[] <- lapply(v3, function(col) { if (is.character(col)) Encoding(col) <- "UTF-8"; col })
 
-archivo_v3 <- "data/derivados/precios_modelos_2026-11-02_v3.csv"
+archivo_v3 <- "data/derivados/precios_modelos_2026-11-02_v4.csv"
 write.csv(v3, archivo_v3, row.names = FALSE, na = "", fileEncoding = "UTF-8")
 cat("Parte 1:", archivo_v3, "| razona: si =", sum(v3$razona == "si"),
     "| no =", sum(v3$razona == "no"), "| vacío =", sum(v3$razona == ""), "\n")

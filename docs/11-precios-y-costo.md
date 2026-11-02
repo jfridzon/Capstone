@@ -17,7 +17,8 @@ Este documento es para que cualquiera del grupo pueda **explicar en persona** qu
 | Archivo | Qué es |
 |---|---|
 | `R/05_precios_modelos.R` | Script que arma la tabla de precios |
-| `data/derivados/precios_modelos_2026-11-02_v3.csv` | **La tabla que se usa desde el 2/11**: la v2 + la columna `razona` |
+| `data/derivados/precios_modelos_2026-11-02_v4.csv` | **La tabla que se usa**: la v2 + la columna `razona`, sin `disponible_gratis_en_app` (issue #15) |
+| `data/derivados/precios_modelos_2026-11-02_v3.csv` | Versión 3 (PR #25): igual a la v4 pero todavía con `disponible_gratis_en_app` vacía. Se deja porque en `data/` no se sobrescribe nada |
 | `data/derivados/precios_modelos_2026-10-28_v2.csv` | Versión 2 (PR #9), formato de la ficha. Mismos precios que la v3 |
 | `data/derivados/precios_modelos.csv` | Versión 1 (PR #4), mismos precios con columnas en inglés. Se deja porque en `data/` no se sobrescribe nada |
 | `R/06_costo_por_respuesta.R` | Script de la v3 (`razona`), la prueba de costo y el top 3 por presupuesto |
@@ -31,7 +32,7 @@ source("R/05_precios_modelos.R")     # necesita internet y el paquete jsonlite
 source("R/06_costo_por_respuesta.R") # solo R base, usa las funciones de R/02 (unos 20 segundos)
 ```
 
-`R/05` se detiene si la tabla v2 ya existe, para no sobrescribirla. Si hay que rehacerla, se cambia el nombre del archivo (por ejemplo `_v3`).
+`R/05` se detiene si la tabla v2 ya existe, para no sobrescribirla. `R/06` arma la v4 a partir de la v2.
 
 ## Parte 1: la tabla de precios
 
@@ -47,7 +48,7 @@ Un token es un pedazo de texto, más o menos 3/4 de una palabra en inglés. Las 
 | `compania` | Dueño del modelo |
 | `precio_entrada_usd_por_millon` | Dólares por 1 millón de tokens de entrada |
 | `precio_salida_usd_por_millon` | Dólares por 1 millón de tokens de salida |
-| `disponible_gratis_en_app` | **Vacía por ahora** (ver "Lo que falta") |
+| `disponible_gratis_en_app` | Solo en v2 y v3, vacía. **Se eliminó en la v4** (issue #15: no hay fuente confiable de julio 2025). En su lugar va `razona` |
 | `fuente_url` | Página oficial de precios de la compañía |
 | `fecha_consulta` | Cuándo armamos la tabla (28/10/2026) |
 | `notas` | Aclaraciones, o por qué un modelo no tiene precio |
@@ -76,7 +77,7 @@ Cómo decirlo en inglés: *"We used each company's official list price from July
 | Experimentales | llama-4-maverick-03-26-experimental, amazon-nova-experimental | Solo existieron en LMArena |
 | Otros | minimax-m1, hunyuan-turbos | Solo hay precios en páginas de terceros sin fecha, o en yuanes sin fuente clara |
 
-**No inventamos ni estimamos ningún precio.** Lo que se puede hacer con estos 13 lo decide el grupo (ver "Decisiones").
+**No inventamos ni estimamos ningún precio.** Decidido el 2/11 (issue #15): los 13 se quedan en la tabla con `tiene_precio_oficial = no`, quedan fuera del top 3 por precio, y no se usan precios de otros proveedores.
 
 ### Cosas a saber de algunos precios
 
@@ -186,8 +187,8 @@ Cada celda: modelo (probabilidad de ganar contra un rival al azar, precio de sal
 
 ## Decisiones para el grupo (no las tomó Marco ni la IA)
 
-1. **Modelos sin precio:** (a) dejarlos fuera del análisis de costo, o (b) ponerles el precio de un proveedor fijo, por ejemplo AWS Bedrock en julio 2025 (llama-3.3: 0.72 / 0.72, maverick: 0.24 / 0.97, scout: 0.17 / 0.66, sacado del mismo archivo de LiteLLM). Con (b), 3 modelos más tendrían precio. Si se elige, hay que agregarlo al script y marcarlo como "precio de proveedor", no oficial.
-2. **`disponible_gratis_en_app`:** ¿qué quiere decir exactamente (la app de chat de la compañía, gratis con límites)? No encontramos una fuente fiable de cómo estaba cada app en julio 2025, así que quedó vacía para no inventar.
+1. ~~**Modelos sin precio**~~: decidido el 2/11 (issue #15). Se quedan en la tabla marcados `tiene_precio_oficial = no` y quedan fuera del top 3. No se usan precios de otros proveedores.
+2. ~~**`disponible_gratis_en_app`**~~: decidido el 2/11 (issue #15). Se elimina de la tabla (v4): no hay fuente confiable de julio 2025.
 3. ~~**Cómo usar el costo**~~: decidido el 2/11 (decisión 6 de `docs/12`): top 3 por tarea dentro de cada presupuesto (Parte 4).
 4. **Precio de gemini-2.5-flash-preview-04-17 en el top 3** (nuevo, 2/11): usar $0.60 (sin razonamiento, lo que hay hoy) o $3.50 (con razonamiento, que es como responde por defecto). Con $3.50 sale de "hasta $2" y entra el siguiente.
 5. **Versión del ranking para la presentación** (nuevo, 2/11): "preguntas reales" (la que se usa aquí) o "solo esta característica".
