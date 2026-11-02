@@ -7,11 +7,19 @@
 #      de LiteLLM (github.com/BerriAI/litellm, model_prices_and_context_window.json),
 #      en una versión fija (commit) para que cualquiera obtenga los mismos números.
 #      Se usa la versión del 24/7/2025, el último día de nuestros datos.
-#   3. Guarda data/derivados/precios_modelos.csv
+#   3. Guarda data/derivados/precios_modelos_2026-10-28_v2.csv con las columnas
+#      que pide la ficha docs/tareas/marco.md (más 4 columnas de apoyo al final).
+#
+# Versiones:
+#   - v1 (PR #4): data/derivados/precios_modelos.csv, columnas en inglés. Se deja
+#     como está porque no se sobrescribe nada en data/ (AGENTS.md, regla 2).
+#   - v2 (este script): mismos precios, columnas de la ficha. Es la que se usa.
 #
 # Precio = dólares por 1 millón de tokens, de la API del dueño del modelo
 # (Anthropic, OpenAI, Google, etc.), tarifa estándar, sin descuentos por caché o batch.
-# Los modelos sin precio oficial quedan vacíos (NA) con la razón en "nota".
+# Los modelos sin precio oficial quedan vacíos con la razón en "notas".
+# Los precios coinciden con las páginas oficiales de cada compañía (fuente_url);
+# se toman de LiteLLM porque esas páginas ya no muestran los precios de julio 2025.
 # Qué hacer con ellos es una decisión abierta del grupo (ver el pull request).
 #
 # Paquetes: jsonlite. Necesita internet para bajar el archivo de LiteLLM.
@@ -123,25 +131,37 @@ get_price <- function(key, version, field) {
   round(entry[[field]] * 1e6, 4)   # de dólares por token a dólares por 1M tokens
 }
 
+has_price <- !is.na(map$litellm_key)
+
 out <- data.frame(
-  model                = map$model,
-  company              = map$company,
-  votes_1st            = as.integer(n_votes[map$model]),
-  input_usd_per_1m     = mapply(get_price, map$litellm_key, map$version, "input_cost_per_token"),
-  output_usd_per_1m    = mapply(get_price, map$litellm_key, map$version, "output_cost_per_token"),
-  has_official_price   = !is.na(map$litellm_key),
-  price_date           = ifelse(is.na(map$litellm_key), NA, dates[map$version]),
-  official_page        = ifelse(is.na(map$official_page), NA, pages[map$official_page]),
-  source               = ifelse(is.na(map$litellm_key), NA,
-                                paste0("LiteLLM model_prices_and_context_window.json, commit ",
-                                       substr(commits[map$version], 1, 7), ", clave ", map$litellm_key)),
-  nota                 = ifelse(map$nota == "", NA, map$nota),
+  # --- columnas de la ficha docs/tareas/marco.md ---
+  modelo                        = map$model,
+  compania                      = map$company,
+  precio_entrada_usd_por_millon = mapply(get_price, map$litellm_key, map$version, "input_cost_per_token"),
+  precio_salida_usd_por_millon  = mapply(get_price, map$litellm_key, map$version, "output_cost_per_token"),
+  disponible_gratis_en_app      = NA,   # sin verificar: falta fuente de julio 2025 (ver docs/11)
+  fuente_url                    = ifelse(is.na(map$official_page), NA, pages[map$official_page]),
+  fecha_consulta                = "2026-10-28",
+  notas                         = ifelse(map$nota == "", NA, map$nota),
+  # --- columnas de apoyo ---
+  tiene_precio_oficial          = ifelse(has_price, "si", "no"),
+  fecha_del_precio              = ifelse(has_price, dates[map$version], NA),
+  fuente_datos                  = ifelse(has_price,
+                                    paste0("LiteLLM model_prices_and_context_window.json, commit ",
+                                           substr(commits[map$version], 1, 7), ", clave ", map$litellm_key),
+                                    NA),
+  votos_1er_voto                = as.integer(n_votes[map$model]),
   row.names = NULL
 )
-out <- out[order(out$company, out$model), ]
+out <- out[order(out$compania, out$modelo), ]
 
-dir.create("data/derivados", showWarnings = FALSE)
-write.csv(out, "data/derivados/precios_modelos.csv", row.names = FALSE, na = "")
+# Chequeos de la ficha: 48 filas, sin nombres repetidos, cada precio con su fuente
+stopifnot(nrow(out) == 48, !anyDuplicated(out$modelo),
+          all(!is.na(out$fuente_url[!is.na(out$precio_entrada_usd_por_millon)])))
 
-cat("Modelos:", nrow(out), "| con precio oficial:", sum(out$has_official_price),
-    "| sin precio:", sum(!out$has_official_price), "\n")
+archivo <- "data/derivados/precios_modelos_2026-10-28_v2.csv"
+if (file.exists(archivo)) stop("Ya existe ", archivo, ". Usa un nombre nuevo, no se sobrescribe.")
+write.csv(out, archivo, row.names = FALSE, na = "")
+
+cat("Modelos:", nrow(out), "| con precio oficial:", sum(has_price),
+    "| sin precio:", sum(!has_price), "\n")

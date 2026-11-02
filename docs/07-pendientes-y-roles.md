@@ -50,3 +50,12 @@ Orden: Jaime (1) y Mark (2) van en paralelo: Mark ya puede llamar `ajustar_model
 - [ ] Aprobar el PR #9 de Marco (Mark o Nessim).
 - [ ] Mark: archivar su repo viejo `markbzq/proyecto-capstone-DataAnalytics`.
 - [ ] Calendario: analytics 4/11 a 16/11, app 18/11 a 30/11, dashboards 2/12 y 7/12, reporte y presentación 9/12 a 23/12.
+
+## Avance de Marco (PR #9, tarea 4 de la fase 1)
+
+La tabla de precios v2 está en `data/derivados/precios_modelos_2026-10-28_v2.csv` (formato de la ficha), generada por `R/05_precios_modelos.R`. Además hay una **prueba** de costo por respuesta en `R/06_costo_por_respuesta.R`. Todo está explicado en `docs/11-precios-y-costo.md`.
+
+Sigue abierto (el grupo decide):
+
+- **`disponible_gratis_en_app`:** definir qué significa. Quedó vacía porque no hay una fuente fiable de julio 2025.
+- **Modelos sin precio (13 de 48):** ver "Decisiones abiertas" arriba. Para el top 3 por presupuesto quedan fuera (ficha de Marco, fase 2).
