@@ -1,3 +1,7 @@
+# Eli, fase 2 (issue #16). Asistencia de ChatGPT/OpenAI.
+# Desde la raiz: source("R/04_contexto_y_graficos.R")
+# La fase 1 queda disponible como ejecutar_contexto_fase1(), sin repetirla.
+ejecutar_contexto_fase1 <- function() {
 # Eli: contexto y graficos. Ejecutar desde la raiz:
 # source("R/04_contexto_y_graficos.R")
 # R base; preparado con asistencia de ChatGPT (OpenAI), 28/10/2026.
@@ -172,3 +176,102 @@ writeLines(c("Asociacion descriptiva; no causal. Largo no es predictor.",
 capture.output(sessionInfo(),file=file.path(out,"sessionInfo.txt"))
 print(read.csv(file.path(out,"correlacion_rangos.csv")))
 cat("Resultados:",out,"\nGraficos:",graphs,"\n")
+
+}
+
+ejecutar_graficos_fase2 <- function(carpeta = file.path("R/resultados/graficos", paste0("eli_fase2_", Sys.Date()))) {
+  dir.create(carpeta, recursive = TRUE, showWarnings = FALSE)
+  e <- read.csv("R/resultados/evaluacion.csv", stringsAsFactors = FALSE)
+  stopifnot(all(c("method", "test_votes_evaluated", "accuracy_percent", "logloss") %in% names(e)),
+            !anyDuplicated(e$method))
+  # Versiones principales con medio punto; Bradley-Terry general es su referencia publicada.
+  methods <- c("general_win_rate_half_point", "general_bradley_terry",
+               "regressions_48_half_point", "regressions_48_ridge_half_point",
+               "combined_bradley_terry")
+  titles <- c("Overall win rate", "Overall Bradley-Terry", "Task regressions",
+              "Task regressions + ridge", "Combined regression")
+  d <- e[match(methods[methods %in% e$method], e$method), ]
+  stopifnot(nrow(d) >= 3, all(is.finite(d$accuracy_percent)),
+    all(is.finite(d$logloss)), length(unique(d$test_votes_evaluated)) == 1)
+  d$label <- titles[match(d$method, methods)]
+  write.csv(d, file.path(carpeta, "evaluacion_graficada.csv"), row.names = FALSE)
+  pending <- if (!"combined_bradley_terry" %in% d$method)
+    "Combined regression: pending, no result supplied." else "Combined regression included."
+  draw <- function(metric, title, xlab, digits) {
+    png(file.path(carpeta, paste0(metric, ".png")), 1800, 1050, res = 160)
+    par(mar = c(7, 15, 6, 3), bg = "white", fg = "#14243A", col.axis = "#14243A")
+    y <- rev(seq_len(nrow(d))); x <- d[[metric]]
+    xr <- range(x); pad <- max(diff(xr)*.65, if (metric == "logloss") .002 else .5)
+    plot(x, y, xlim = xr + c(-pad, pad), ylim = c(.5, length(y)+.5),
+      yaxt = "n", pch = 19, cex = 1.5, col = "#167A83", xlab = xlab,
+      ylab = "", main = "", bty = "n")
+    title(main = title, line = 4)
+    axis(2, at = y, labels = d$label, las = 1, tick = FALSE, cex.axis = .9)
+    text(x, y, labels = formatC(x, format = "f", digits = digits), pos = 3, cex = 1)
+    mtext(paste(format(unique(d$test_votes_evaluated), big.mark = ","),
+      "decisive July votes. Same test votes for all methods."), 3, line = .6, cex = .8)
+    mtext(pending, 1, line = 5.5, cex = .75)
+    dev.off()
+  }
+  draw("accuracy_percent", "Task features bring a small gain in accuracy", "Correct predictions (%) - higher is better", 1)
+  draw("logloss", "Probability quality varies across methods", "Log-loss - lower is better (axis zoomed)", 4)
+  # Carga funciones sin ejecutar ni sobrescribir los archivos de Nessim/Mark.
+  env <- new.env(parent = globalenv())
+  prior <- getOption("correr_02"); options(correr_02 = FALSE)
+  on.exit(options(correr_02 = prior), add = TRUE)
+  sys.source("R/02_regresiones_por_modelo.R", envir = env)
+  base <- env$cargar_base()
+  datos <- env$preparar_respuesta(base, politica = "medio_punto", sin_revision = TRUE)
+  ajustes <- env$ajustar_modelos(datos)
+  co <- env$tabla_coeficientes(ajustes)
+  # Cuenta julio en la misma base y con la misma exclusion de revision del ajuste.
+  # Si la base usa 'mes' en vez de timestamp, se deriva de los datos originales por id.
+  raw <- read.csv("data/lmarena_votes.csv", stringsAsFactors = FALSE)
+  july_ids <- raw$id[substr(raw$timestamp, 1, 7) == "2025-07"]
+  july <- datos[datos$id %in% july_ids, ]
+  counts <- table(july$model)
+  eligible <- sort(names(counts[counts >= 100]))
+  features <- env$predictores
+  co$feature <- sub("TRUE$", "", co$termino)
+  co <- co[co$modelo %in% eligible & co$feature %in% features, ]
+  stopifnot(!anyDuplicated(co[c("modelo", "feature")]), all(is.finite(co$estimado)))
+  mat <- matrix(NA_real_, length(eligible), length(features), dimnames = list(eligible, features))
+  mat[cbind(match(co$modelo, eligible), match(co$feature, features))] <- co$estimado
+  stopifnot(!anyNA(mat), all(counts[eligible] >= 100))
+  write.csv(co, file.path(carpeta, "coeficientes_medio_punto.csv"), row.names = FALSE)
+  write.csv(data.frame(modelo = names(counts), votos_julio = as.integer(counts),
+    incluido = counts >= 100), file.path(carpeta, "modelos_julio.csv"), row.names = FALSE)
+  write.csv(data.frame(modelo = rownames(mat), mat, check.names = FALSE),
+    file.path(carpeta, "matriz_heatmap.csv"), row.names = FALSE)
+  palette <- colorRampPalette(c("#B04B3D", "#FFFFFF", "#167A83"))(101)
+  limit <- max(abs(mat)); n <- nrow(mat)
+  png(file.path(carpeta, "heatmap_medio_punto_julio.png"), 2500, max(1600, 45*n + 650), res = 170)
+  layout(matrix(c(1,2), nrow=1), widths=c(9,1))
+  par(mar=c(12,23,6,1))
+  image(seq_along(features), seq_len(n), t(mat[rev(seq_len(n)), , drop=FALSE]),
+    axes=FALSE, xlab="", ylab="", col=palette, zlim=c(-limit,limit),
+    main="")
+  title(main="How question features relate to model preference", line=4.3)
+  axis(1, at=seq_along(features), labels=c("Code", "Math", "Creative writing", "Instructions",
+    "Complexity", "Creativity", "Domain knowledge", "Problem solving", "Real world",
+    "Specificity", "Technical accuracy"), las=2, cex.axis=.85)
+  axis(2, at=seq_len(n), labels=rev(eligible), las=1, cex.axis=.75)
+  mtext("Green: higher preference score. Red: lower. Each feature holds the others constant.",3,line=2.5,cex=.8)
+  mtext(paste(n,"models with 100+ July votes. All-data fit, ties/both-bad = 0.5. Descriptive effects."),3,line=.5,cex=.75)
+  par(mar=c(12,1,6,5))
+  image(1, seq(-limit,limit,length.out=101), matrix(seq(-limit,limit,length.out=101),nrow=1),
+    axes=FALSE,xlab="",ylab="",col=palette,zlim=c(-limit,limit))
+  axis(4,las=1);mtext("Coefficient (log-odds)",4,line=3)
+  dev.off()
+  writeLines(c(pending, "Accuracy/log-loss use the supplied evaluation.csv without refitting Mark's evaluation.",
+    "Win-rate and task models fit ties/both-bad as 0.5. Published overall BT excludes ties.",
+    "Accuracy is rounded in the input CSV. Log-loss uses the precision supplied by Mark.",
+    "Heatmap refits R/02 functions on all data with half points, no ridge, revision flags excluded.",
+    "July appearances use the same cleaned long base. Heatmap is descriptive, not causal or a test result.",
+    paste("MD5 evaluacion:", unname(tools::md5sum("R/resultados/evaluacion.csv"))),
+    paste("MD5 R/02:", unname(tools::md5sum("R/02_regresiones_por_modelo.R")))),
+    file.path(carpeta,"notas.txt"))
+  capture.output(sessionInfo(), file=file.path(carpeta,"sessionInfo.txt"))
+  print(d);cat("Heatmap:",n,"models\n"); invisible(carpeta)
+}
+if (isTRUE(getOption("correr_04", TRUE))) ejecutar_graficos_fase2()

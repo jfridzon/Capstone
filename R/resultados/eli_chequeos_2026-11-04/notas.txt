@@ -1,0 +1,7 @@
+Cada cohorte aplica su propio umbral de 1,000 participaciones por modelo.
+Proporcion total: votos, sin filtro de modelos. Extremos: modelos con 1,000+ participaciones.
+Las etiquetas se solapan. Cobertura: las 11 etiquetas originales, sin hard.
+Son chequeos descriptivos: no prueban asignacion aleatoria ni causalidad.
+No se reproduce la afirmacion historica 1.2-2.7 veces el azar: no habia definicion ni codigo.
+No se cambian las reglas de limpieza ni se ajustan modelos.
+MD5 de datos: e3b177ac1693c99e939d1343b4a5f0c5
