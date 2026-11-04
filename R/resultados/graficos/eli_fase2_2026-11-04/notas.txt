@@ -1,0 +1,8 @@
+Combined regression: pending, no result supplied.
+Accuracy/log-loss use the supplied evaluation.csv without refitting Mark's evaluation.
+Win-rate and task models fit ties/both-bad as 0.5. Published overall BT excludes ties.
+Accuracy is rounded in the input CSV. Log-loss uses the precision supplied by Mark.
+Heatmap refits R/02 functions on all data with half points, no ridge, revision flags excluded.
+July appearances use the same cleaned long base. Heatmap is descriptive, not causal or a test result.
+MD5 evaluacion: 86fda719042dca156f29bdf18f7c0dea
+MD5 R/02: 5321535fff208c26e417bf21923d4f76

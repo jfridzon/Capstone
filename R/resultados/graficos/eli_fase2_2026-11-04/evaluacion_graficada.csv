@@ -1,0 +1,5 @@
+"method","tie_handling","test_votes_evaluated","correct","accuracy_percent","ci95_low_percent","ci95_high_percent","logloss","label"
+"general_win_rate_half_point","half",20416,13171,64.5,63.9,65.2,0.6378,"Overall win rate"
+"general_bradley_terry","exclude",20416,13164,64.5,63.8,65.1,0.634,"Overall Bradley-Terry"
+"regressions_48_half_point","half",20416,13298,65.1,64.5,65.8,0.6321,"Task regressions"
+"regressions_48_ridge_half_point","half",20416,13340,65.3,64.7,66,0.6321,"Task regressions + ridge"

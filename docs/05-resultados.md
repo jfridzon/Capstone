@@ -28,21 +28,30 @@ Cada voto se parte en 2 filas, y `won` = 1 si ese modelo ganó (empate y both_ba
 
 De 98,097 votos con ganador y respuestas de distinto largo, **la más larga ganó el 61.8%** (IC 95%: 61.5% a 62.1%). El largo no puede ser predictor (se conoce después), pero hay que tomarlo en cuenta al explicar los resultados.
 
-## Chequeo de asignación aleatoria (para la pregunta del profesor del 19/10)
+## Chequeo de asignación y cobertura (reproducido en R, 4/11/2026)
 
-Para cada modelo, qué % de sus votos tuvo cada tipo de pregunta. Modelos con 1,000 o más votos.
+Generador: `R/09_chequeos_datos.R`. Resultados: `R/resultados/eli_chequeos_2026-11-04/`.
+Usa todos los votos para reproducir el chequeo histórico. Para cada modelo, cuenta una participación por lado y calcula qué proporción tiene cada característica. Solo los modelos con 1,000 o más participaciones en la cohorte entran a los extremos (48 modelos en todos los votos). El total se calcula sobre los votos completos, sin filtrar modelos. Las etiquetas se solapan.
 
 | Tipo de pregunta | Total | Mínimo por modelo | Máximo por modelo |
-|---|---|---|---|
-| Código | 29.0% | 26.4% (claude-3-7-sonnet-thinking) | 35.2% (o3) |
-| Math | 8.0% | 5.2% (magistral-medium) | 11.2% (gemini-2.5-pro-preview-03-25) |
-| Escritura creativa | 8.5% | 7.8% | 10.9% (grok-4) |
-| Seguir instrucciones | 18.2% | 16.2% | 21.9% |
-| Difícil (6+ de 7 criterios) | 37.5% | 33.0% (deepseek-r1) | 43.1% (magistral-medium) |
+|---|---:|---:|---:|
+| Código | 29.0% | 26.4% (claude-3-7-sonnet-20250219-thinking-32k) | 35.2% (o3-2025-04-16) |
+| Math | 8.0% | 5.2% (magistral-medium-2506) | 11.2% (gemini-2.5-pro-preview-03-25) |
+| Escritura creativa | 8.5% | 7.8% (claude-sonnet-4-20250514-thinking-32k) | 10.9% (grok-4-0709) |
+| Seguir instrucciones | 18.2% | 16.2% (claude-3-7-sonnet-20250219-thinking-32k) | 21.9% (gemini-2.5-pro-preview-03-25) |
+| Difícil (6+ de 7 criterios, solo histórico) | 37.5% | 33.0% (deepseek-r1-0528) | 43.1% (magistral-medium-2506) |
 
-La variación entre modelos es entre 1.2 y 2.7 veces lo que daría el puro azar, según el tipo de pregunta, y se mantiene mirando solo junio. Es un desbalance real pero moderado, y por eso las características entran como predictores.
+Los porcentajes históricos coinciden al redondear. El CSV incluye las 11 características, el indicador histórico `hard`, los extremos, sus modelos y el detalle por modelo. `hard` solo reproduce la tabla anterior y no se agrega como predictor.
 
-Cobertura: de 2,048 combinaciones posibles de las 11 etiquetas, aparecen 843, y 120 cubren el 90% de los votos. Agrupando en 10 tipos de tarea, los 48 modelos con 1,000 o más votos tienen votos en los 10. El caso más flojo es hunyuan-turbos, con 16 votos en un tipo.
+| Cohorte | Votos | Combinaciones posibles | Observadas | Mínimo que cubre el 90% |
+|---|---:|---:|---:|---:|
+| Todos | 135,634 | 2,048 | 843 | 120 |
+| Primer voto | 108,315 | 2,048 | 794 | 115 |
+| Junio | 53,447 | 2,048 | 696 | 120 |
+
+Se reproducen las **843** combinaciones y las **120** que cubren el 90% del chequeo original. Se guardan las 2,048 combinaciones, incluso las de cero votos, y sus frecuencias para cada cohorte. El script verifica sumas, ausencia de faltantes y el umbral mínimo del 90%.
+
+**Límite:** estos porcentajes son descriptivos y no prueban asignación aleatoria ni un sesgo causal. La afirmación anterior de que la variación era «1.2 a 2.7 veces el puro azar» no tenía definición o código reproducible y se retira de esta sección, sin sustituirla por una prueba inventada. La cobertura histórica de las 10 cajas pertenece al método descartado y no se vuelve a calcular aquí. No se cambian reglas de limpieza ni decisiones del grupo.
 
 ## Prueba de julio con la versión de 10 cajas (21/10)
 
@@ -509,3 +518,15 @@ Bradley-Terry con covariables, Shiny ni dashboards.
 
 Se abre con `Capstone.Rproj`; instrucciones en `docs/13-demostracion-rstudio.md`.
 Codigo y guia preparados con asistencia de ChatGPT/Codex.
+
+## Eli, fase 2: gráficos actualizados (4/11/2026)
+
+`R/04_contexto_y_graficos.R` ejecuta ahora la fase 2 por defecto; la fase 1 permanece como `ejecutar_contexto_fase1()` sin repetirla. Carpeta: `R/resultados/graficos/eli_fase2_2026-11-04/`.
+
+- Aciertos y log-loss: lee `R/resultados/evaluacion.csv` de Mark, sobre los mismos 20,416 votos decisivos de julio. Grafica las dos líneas base, las regresiones con medio punto y ridge. Los aciertos publicados son 64.5%, 64.5%, 65.1% y 65.3%; el log-loss es 0.6378, 0.6340, 0.6321 y 0.6321, respectivamente. No reentrena ni reemplaza la evaluación.
+- La regresión combinada no tiene fila en esa evaluación todavía. Se muestra como pendiente y se incorporará cuando exista `combined_bradley_terry`, sin inventar resultados.
+- Heatmap: usa las funciones actuales de `R/02`, medio punto, sin ridge y excluyendo los casos marcados para revisión. Se ajusta con todos los votos limpios de abril a julio. Incluye **46 modelos con 100 o más participaciones en julio**, contadas en la misma base larga del ajuste. Exporta coeficientes, matriz y auditoría de inclusión. No sobreescribe archivos de Nessim ni Mark. Colores: verde = mayor puntaje de preferencia, rojo = menor, manteniendo las otras características constantes. Coeficientes en log-odds, descriptivos, sin inferencia causal.
+- Las métricas comparan las mismas observaciones; el Bradley-Terry general publicado excluye empates en el ajuste, mientras las variantes principales de regresiones y porcentaje de victorias usan medio punto. La mejora en aciertos es pequeña y no se exagera la evidencia en log-loss contra Bradley-Terry.
+
+Update individual de 3 slides en inglés: `reporte/eli_update_2026-11-09.pptx`. Guía en español: `docs/avance-eli-fase2-2026-11-04.md`.
+Código, gráficos, documentación y slides preparados con asistencia de ChatGPT (OpenAI).
