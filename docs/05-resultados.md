@@ -713,3 +713,89 @@ puesto en matemáticas: MiniMax M1 entró en lugar de Gemini 2.5 Flash.
 Para reproducir, desde la raíz se ejecutan `Rscript R/07_bradley_terry_covariables.R`
 (requiere Matrix, glmnet y pROC) y `Rscript R/10_demo_clase_48.R`.
 Código y documentación preparados con asistencia de ChatGPT/Codex.
+
+
+## Eli, fase 2b: sensibilidad de coeficientes, AUC y ROC (C1/C1b/C2, 9/11/2026)
+
+Generador completo: `Rscript R/12_sensibilidad.R`. La sección de AUC/ROC
+también puede correrse sola: `Rscript R/13_sensibilidad_auc_roc.R`. Requiere
+MASS y pROC. Se conserva C1 del PR #36 (cerrado sin fusionar) y se completa
+el issue #33. No se modifican R/02, R/11, sus resultados ni las decisiones del grupo.
+
+### C1: coeficientes
+
+Los 48 modelos usan las mismas 11 características, sin rival ni ridge.
+Binomial usa 77,843 votos decisivos; quasibinomial y ordinal incluyen
+28,759 no decisivos, para un total de 106,602 votos tras excluir los mismos
+28 casos marcados de R/02. Empate y both_bad se agrupan como empate en ordinal.
+Los 144 ajustes descriptivos convergen. Resultados en
+`R/resultados/sensibilidad_2026-11-09/`: coeficientes, interceptos/umbrales,
+correlaciones por modelo y controles.
+
+| Comparación (11 efectos por modelo) | Modelos | Pearson mín. | Mediana | Máx. | Spearman mediana | Signos iguales |
+|---|---:|---:|---:|---:|---:|---:|
+| binomial_vs_quasibinomial | 48 | 0.9188 | 0.9974 | 0.9997 | 0.9909 | 508/528 |
+| binomial_vs_ordinal | 48 | 0.8443 | 0.9938 | 0.9992 | 0.9818 | 500/528 |
+| quasibinomial_vs_ordinal | 48 | 0.9870 | 0.9992 | 0.9999 | 0.9955 | 520/528 |
+
+Las correlaciones comparan los 11 efectos dentro de cada modelo.
+Los interceptos y umbrales ordinales no son equivalentes y se exportan aparte.
+Correlación alta no implica igualdad de coeficientes ni equivalencia predictiva.
+
+### C1b: AUC con los folds oficiales de Mark
+
+Se lee `R/resultados/auc/folds_5.csv` sin modificarlo ni generar folds nuevos.
+Se verifica una asignación por voto y sesión; cada fold se evalúa sin usar
+sus votos ni sus sesiones en entrenamiento. Quasibinomial y ordinal usan los
+empates de los cuatro folds de entrenamiento; los tres métodos se evalúan
+sobre las mismas filas decisivas del fold excluido. Primero se ajusta/mide
+con todos los datos y después se hace la CV. Los 864 ajustes de esta sección
+convergen (48 modelos × 3 métodos × 6 escenarios de ajuste).
+
+**AUC por voto:**
+
+| Método | Todos (ajuste) | Fold 1 | Fold 2 | Fold 3 | Fold 4 | Fold 5 | Media CV |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| binomial | 0.7005 | 0.6902 | 0.6921 | 0.6954 | 0.6779 | 0.6912 | 0.6894 |
+| quasibinomial | 0.7004 | 0.6900 | 0.6923 | 0.6955 | 0.6780 | 0.6917 | 0.6895 |
+| ordinal | 0.7002 | 0.6898 | 0.6924 | 0.6954 | 0.6779 | 0.6917 | 0.6895 |
+| general_ranking | 0.6854 | 0.6844 | 0.6873 | 0.6908 | 0.6735 | 0.6857 | 0.6843 |
+
+Por modelo, el promedio de sus cinco AUC y después de los 48 modelos es
+0.5387 (binomial), 0.5390 (quasibinomial) y 0.5391 (ordinal). Se exportan
+720 AUC de modelo/fold (48 × 3 × 5); **ningún caso NA por una sola clase**
+en esta base. El código deja NA si no hay dos clases y cuenta los casos.
+La línea base solo se compara por voto; sus tasas se calculan con entrenamiento.
+
+**Cómo se obtiene el puntaje ordinal:** se calcula
+`P(mejor) + 0.5 * P(empate)` con las probabilidades de polr y se toma su logit.
+Es una extensión explícita del puntaje de medio punto, no el predictor lineal
+de polr ni una probabilidad pura de victoria decisiva. Dentro de cada modelo
+es monótono en el predictor latente y conserva su AUC. Por voto se aplica
+`plogis(puntaje_A - puntaje_B)`, como para las otras variantes; esta comparación
+ordinal depende de la conversión documentada. No se cambia binomial como principal.
+
+Las diferencias de AUC medio entre las tres variantes son menores que 0.0002.
+Es un chequeo de sensibilidad descriptivo: no demuestra equivalencia estadística
+ni justifica cambiar la decisión del grupo. Todos los datos es evaluación dentro
+de muestra; la media CV usa cinco AUC de votos no vistos en su ajuste.
+No se repite julio ni se agregan p-valores.
+
+Salidas de C1b/C2: `R/resultados/sensibilidad_auc_2026-11-09/`.
+Incluye AUC por voto, por modelo/fold y promedios, convergencia, tabla y versiones.
+Cada AUC se verifica contra la fórmula de rangos; binomial/base y los AUC
+binomiales por modelo reproducen los CSV de Mark dentro del redondeo publicado.
+
+### C2: gráfico para la presentación
+
+`roc_presentacion.pdf` es una figura vectorial en inglés simple. Redibuja los
+puntos oficiales `curva_roc_cv5.csv` y comprueba esos puntos contra las
+predicciones binomiales fuera de fold. Las curvas casi se superponen:
+AUC agrupado 0.6893 (características) y 0.6843 (ranking general). Se distingue
+este AUC agrupado de la media de los cinco folds (0.6894 y 0.6843).
+Los ejes explican qué se detecta y qué es una falsa alarma; se aclara que AUC
+no es porcentaje de aciertos. PDF revisado visualmente.
+
+Ejecución completa con R 4.3.3, MASS 7.3-60 y pROC 1.18.5. Los hashes de
+data/, entregas/ y todas las salidas de Mark (incluidos los folds) no cambian.
+Código, gráfico y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
