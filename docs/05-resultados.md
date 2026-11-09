@@ -530,3 +530,41 @@ Codigo y guia preparados con asistencia de ChatGPT/Codex.
 
 Update individual de 3 slides en inglés: `reporte/eli_update_2026-11-09.pptx`. Guía en español: `docs/avance-eli-fase2-2026-11-04.md`.
 Código, gráficos, documentación y slides preparados con asistencia de ChatGPT (OpenAI).
+
+
+## Eli, fase 2b C1: sensibilidad de coeficientes (9/11/2026)
+
+Generador: `R/12_sensibilidad.R`, ejecutado de punta a punta con R 4.3.3 y
+MASS 7.3-60. Resultados: `R/resultados/sensibilidad_2026-11-09/`.
+
+Ajuste **descriptivo** de abril a julio: 106,602 votos (77,843 decisivos y
+28,759 no decisivos), tras excluir los mismos 28 casos marcados que R/02.
+Se ajustan los 48 modelos con las mismas 11 características, sin rival ni ridge.
+Binomial usa solo victorias/derrotas; quasibinomial agrega empate/both_bad como
+0.5; ordinal (`MASS::polr`, enlace logístico) usa peor < empate < mejor,
+agrupando both_bad con empate. Los 144 ajustes convergen.
+
+| Comparación (11 efectos por modelo) | Modelos | Pearson mín. | Mediana | Máx. | Spearman mediana | Signos iguales |
+|---|---:|---:|---:|---:|---:|---:|
+| binomial_vs_quasibinomial | 48 | 0.9188 | 0.9974 | 0.9997 | 0.9909 | 508/528 |
+| binomial_vs_ordinal | 48 | 0.8443 | 0.9938 | 0.9992 | 0.9818 | 500/528 |
+| quasibinomial_vs_ordinal | 48 | 0.9870 | 0.9992 | 0.9999 | 0.9955 | 520/528 |
+
+La correlación se calcula entre los **11 efectos dentro de cada modelo**;
+la tabla resume las 48 correlaciones de cada comparación. En general los
+efectos son parecidos, pero hay diferencias: no se afirma equivalencia.
+Las respuestas y escalas no son idénticas. En polr un coeficiente positivo
+apunta hacia mejor (`logit P(Y <= k) = umbral_k - X beta`). Interceptos y
+umbrales se exportan aparte y no se incluyen en las correlaciones.
+
+`coeficientes.csv` contiene los 528 efectos en los tres métodos;
+`correlaciones_por_modelo.csv` conserva las 144 comparaciones individuales,
+Pearson, Spearman y acuerdo de signos. `ajustes.csv` registra filas, categorías
+y convergencia por modelo; `controles.csv` y `sessionInfo.txt` documentan la ejecución.
+
+No es una evaluación predictiva ni un AUC; se usan todos los meses para
+estudiar sensibilidad. No se cambia el modelo principal binomial del plan
+`docs/14-fase-2b.md` (PR #30). C2, el gráfico ROC, espera la tarea B de Mark
+(issue #32) fusionada en main. Se conserva el issue #33 abierto mientras falte C2.
+
+Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
