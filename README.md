@@ -1,21 +1,103 @@
-# Capstone: ¿qué modelo de IA es mejor para cada tipo de tarea?
+# Which AI model is best for each type of task?
 
-Repo de contexto compartido para el equipo (5 integrantes) y para las IAs (Claude, ChatGPT, etc.) que cada uno use mientras avanza en el proyecto. La idea: en vez de que cada persona tenga su propio hilo de conversación con su IA sin visibilidad de lo que hicieron los demás, este repo es la fuente única de verdad. Cualquier IA puede leerlo y partir de ahí.
+**A team data project in R that uses 135,634 human votes from [LMArena](https://lmarena.ai) to rank AI models by task type, and to recommend the best model for a given question and budget.**
 
-**Curso:** IDS 3000 Business Intelligence Capstone (Yeshiva University, Sy Syms, Prof. Avi Giloni).
-**Grupo:** Nessim Betesh, Marco Fnounou, Mark Benzaquen, Eli Wulfsohn y Jaime Fridzon.
+[Project page](https://jfridzon.github.io/Capstone/) · [Technical report](reporte/01_regresiones_48.html) · [Results log](docs/05-resultados.md) · [Method](docs/04-metodo.md)
 
-## Estado actual (26 oct 2026)
+Business Intelligence Capstone (IDS 3000), Yeshiva University, Sy Syms School of Business. Fall 2026.
 
-**El proyecto: ¿qué modelo de IA es mejor para cada tipo de tarea?**
+---
 
-- Las empresas pagan por IA y casi siempre eligen 1 solo modelo (ChatGPT, Claude, Gemini, etc.) para todo, pero cada modelo es mejor en cosas distintas.
-- Usamos 135,634 votos reales de LMArena, donde una persona hace una pregunta, 2 modelos anónimos responden y la persona vota cuál respuesta es mejor.
-- Con una regresión logística estimamos qué tan fuerte es cada modelo según las características de la pregunta (código, math, escritura creativa, dificultad, etc.) y sacamos un ranking de modelos para cada tipo de tarea.
+## The question
 
-**Ya entregado:** Phase 0 y Phase 1 (7/10), Individual Work (12/10), data dictionary (14/10), updated data dictionary (19/10), explicación del método (21/10) y los datos con los tests (22/10). Todo está en `entregas/`.
+Most companies pick one AI model and use it for everything. But models differ: one is stronger at code, another at creative writing, and prices vary a lot. A single general leaderboard hides that.
 
-**En discusión ahora:** el profesor quiere ver exactamente cómo se hace la predicción con regresión logística. Ver `docs/04-metodo.md` y las decisiones abiertas en `docs/07-pendientes-y-roles.md`.
+We use real human judgments to estimate which model is most likely to win on each kind of question, then turn that into a ranking per task and a top 3 within a budget.
+
+## The data
+
+[LMArena](https://huggingface.co/datasets/lmarena-ai/arena-human-preference-140k) shows a person two anonymous AI answers to the same question and asks which is better. The two models are paired at random and their names are hidden until after the vote, so every model sees a similar mix of questions, much like a randomized experiment.
+
+| | |
+|---|---|
+| Votes | 135,634 (April to July 2025) |
+| Models used | 48 (those with 1,000+ votes) |
+| Question features | 11 yes/no labels: code, math, creative writing, instruction following, complexity, creativity, domain knowledge, problem solving, real world, specificity, technical accuracy |
+| Votes with a clear winner | 77,863 (ties and "both bad" are handled separately) |
+
+The CSV has no conversation text, only vote metadata. See [`data/README.md`](data/README.md) and [`docs/03-datos.md`](docs/03-datos.md).
+
+## Method
+
+1. **One logistic regression per model (48 in total).** For each model, the response is whether it won, and the predictors are the 11 question features. Only information known *before* a model answers is used, so answer length or formatting is never a predictor.
+2. **Rank by task.** For any combination of features (for example code + math), order the models by their predicted probability of winning.
+3. **Compare with a single general ranking** that ignores the task, which is what a standard leaderboard does.
+4. **Check with a combined Bradley-Terry model**, the standard model for paired comparisons, with question features as covariates.
+
+Details and the reasoning behind each decision: [`docs/04-metodo.md`](docs/04-metodo.md) and [`docs/12-decisiones-2-11.md`](docs/12-decisiones-2-11.md).
+
+## Results so far
+
+Evaluated with AUC (computed with the `pROC` package), per vote, against the general ranking:
+
+| Evaluation | Task-aware regressions | General ranking | Difference |
+|---|---|---|---|
+| All data (77,843 votes with a winner) | 0.7005 | 0.6854 | +0.0151 |
+| 5-fold cross-validation, mean (folds split by session) | 0.6894 | 0.6843 | +0.0050 |
+
+The task-aware regressions beat the general ranking in every fold, by a small margin. On the held-out month of July, they also pick the winner slightly more often (65.1% against 64.5%, 20,416 votes). The gain is modest because a few top models do well on almost every task, which is why the second deliverable matters: a top 3 per task that also accounts for price.
+
+![ROC curve, 5-fold cross-validation](R/resultados/auc/curva_roc_cv5.png)
+
+Full tables, caveats and per-model results: [`docs/05-resultados.md`](docs/05-resultados.md). Known limits: voters are the general public and not company employees, the data ends in July 2025, and people tend to prefer longer answers (61.8% of decisive votes).
+
+## Status
+
+- [x] Data cleaning and the 48 per-model regressions
+- [x] Evaluation: train/test, random 5-fold cross-validation and AUC with `pROC`
+- [x] Price table and top 3 per task within a budget
+- [x] First version of the interactive app ([`app/app.R`](app/app.R), Shiny)
+- [ ] Combined Bradley-Terry comparison
+- [ ] Final app, dashboards, report and presentation (November and December 2026)
+
+## Repository layout
+
+```
+R/            analysis scripts, run from the repo root; outputs in R/resultados/
+app/          Shiny app: pick a task and a budget, get the top 3 models
+data/         lmarena_votes.csv (135,634 votes) and its description
+docs/         project documentation (in Spanish, see below)
+reporte/      technical report in R Markdown, with a rendered HTML version
+entregas/     deliverables already submitted, kept as sent
+projects/     summary of the project proposal
+```
+
+## Reproduce it
+
+Requires R and RStudio (open `Capstone.Rproj`). The raw data is downloaded from Hugging Face and turned into `data/lmarena_votes.csv` by `R/lmarena_tests.R`; the CSV is already in the repo.
+
+```r
+source("R/02_regresiones_por_modelo.R")   # the 48 regressions and top-3 ranking function
+source("R/11_auc_proc.R")                 # AUC with pROC, all data and 5-fold CV (needs pROC)
+```
+
+## Team
+
+| | |
+|---|---|
+| [Jaime Fridzon](https://github.com/jfridzon) | Project lead and coordination |
+| [Mark Benzaquen](https://github.com/markbzq) | Evaluation and AUC |
+| [Nessim Betesh](https://github.com/NDB13) | Data preparation and regressions |
+| [Marco Fnounou](https://github.com/marcofnounou-bit) | Prices, budget top 3 and the app |
+| [Eli Wulfsohn](https://github.com/eliwulfsohn03) | Context checks and charts |
+
+Data: LMArena `arena-human-preference-140k`, prompts under CC-BY-4.0. Parts of the analysis code were written with AI assistance and are labeled as such in the scripts.
+
+---
+
+# Guía del equipo (en español)
+
+Este repo es el contexto compartido del equipo (5 integrantes) y de las IAs que cada uno use (Claude, ChatGPT, etc.). Es la fuente única de verdad: cualquier IA puede leerlo y partir de ahí. **Curso:** IDS 3000 Business Intelligence Capstone, Prof. Avi Giloni.
 
 ## Por dónde empezar
 
@@ -33,16 +115,7 @@ Si eres una persona o una IA que llega nueva al proyecto, lee en este orden:
 | 7 | [`docs/07-pendientes-y-roles.md`](docs/07-pendientes-y-roles.md) | Quién hace qué y qué falta decidir |
 | 8 | [`docs/08-como-trabajar-en-el-repo.md`](docs/08-como-trabajar-en-el-repo.md) | Ramas, pull requests, permisos |
 
-## Estructura
-
-```
-AGENTS.md    → reglas para las IAs (CLAUDE.md y .github/copilot-instructions.md apuntan aquí)
-docs/        → contexto, datos, método, resultados, historial, pendientes (01 a 08) + el texto original de Phase 0 y Phase 1
-data/        → lmarena_votes.csv (los 135,634 votos) y su descripción
-R/           → código en R y sus resultados (R/resultados/)
-entregas/    → lo que ya se le mandó al profesor, con fecha (no se edita)
-projects/    → resumen de Phase 0 y Phase 1 del proyecto
-```
+Los documentos más recientes (decisiones del 2/11, fase 2b) están en `docs/12` a `docs/14`.
 
 ## Cómo usar este repo (humanos e IA)
 
