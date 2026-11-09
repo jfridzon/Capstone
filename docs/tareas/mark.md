@@ -4,14 +4,16 @@
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).
 
-**Tarea B (puede empezar ya, en paralelo con Nessim):** `R/11_auc_proc.R`. Con `glm(..., family = binomial)`, votos decisivos y la misma fórmula de 11 predictores (no necesitas esperar a Nessim):
-1. **AUC por modelo:** el AUC de cada regresión con sus propias filas (48 filas).
-2. **AUC por voto:** P(gana A) = `plogis(score_A - score_B)` contra si A ganó.
-3. Los 2 en **3 escenarios**: todos los datos (abril a julio), train/test (abril a junio / julio) y 5-fold CV por sesión (AUC de cada fold + promedio). Con la línea base (ranking general) en los 3.
-4. Todo con `pROC::roc()` y `pROC::auc()`.
-5. Salida en `R/resultados/auc/` (`por_modelo.csv`, `por_voto.csv`, `folds.csv`) y 1 curva ROC de julio (48 regresiones vs línea base). Actualizar `docs/05`.
+**Tarea B (empieza ya, es la más importante de la fase 2b):** `R/11_auc_proc.R`. Con `glm(..., family = binomial)`, votos decisivos y la misma fórmula de 11 predictores (no necesitas esperar a Nessim). Detalle en `docs/14`.
+1. **Crea los folds 1 sola vez:** 5 folds al azar por sesión (`evaluation_session_id`), `set.seed(2026)`, y guárdalos en `R/resultados/auc/folds_5.csv` (`id`, `fold`). Es lo primero que subes (puedes hacer un PR chico solo con eso): Nessim y Eli lo usan.
+2. **AUC por modelo:** el AUC de cada regresión con sus propias filas (48 filas).
+3. **AUC por voto:** P(gana A) = `plogis(score_A - score_B)` contra si A ganó. La línea base (ranking general por % de victorias, calculado solo con los folds de entrenamiento) va solo aquí.
+4. Los 2 en **2 escenarios**: **todos los datos**, y **5-fold CV** (AUC de cada fold + promedio y desviación).
+5. Todo con `pROC::roc()` y `pROC::auc()`. Si un modelo tiene 1 sola clase en un fold, deja `NA` y cuéntalos.
+6. Salida en `R/resultados/auc/` (`por_modelo.csv`, `por_voto.csv`, `folds.csv`, `folds_5.csv`) y 1 curva ROC (48 regresiones vs línea base, con los datos de todos los folds). Actualizar `docs/05`.
+7. Julio (`R/03`) no se repite: queda como resultado histórico.
 
-**Hoy en clase:** explica tu parte (issue #22).
+**Hoy en clase (9/11):** se presenta el proyecto en general (qué es, datos, resultados, decisiones). Explica la parte que hiciste (issue #22). El AUC y la 5-fold todavía no están: se dice que vienen.
 
 ## Fase 2 (HECHA). No la repitas
 

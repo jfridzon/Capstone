@@ -4,11 +4,11 @@
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).
 
-**Tarea A (puede empezar ya):** pasar a `glm(..., family = binomial)` como modelo principal, solo con votos decisivos (y = 1/0), en `R/02_regresiones_por_modelo.R`, `reporte/01_regresiones_48.Rmd` y la demo `R/10_demo_clase_48.R`. Dejar `quasibinomial` como opción, no como principal. Regenerar coeficientes y `top3()`. Cuando esté el AUC de Mark (tarea B) en `main`, agregar a la demo una sección que lo muestre.
+**Tarea A (puede empezar ya):** pasar a `glm(..., family = binomial)` como modelo principal, solo con votos decisivos (y = 1/0), en `R/02_regresiones_por_modelo.R`, `reporte/01_regresiones_48.Rmd` y la demo `R/10_demo_clase_48.R`. Dejar `quasibinomial` como opción, no como principal. Regenerar coeficientes y `top3()`. Esta tarea no espera a nadie. **Tarea A2 (cuando A y B estén en `main`):** agregar a la demo `R/10` una sección que muestre la tabla de AUC de Mark.
 
-**Tarea E (después de A):** Bradley-Terry con covariables (issue #14, ver abajo en Fase 2), evaluado con AUC por pROC igual que Mark.
+**Tarea E (después de A y B):** Bradley-Terry con covariables (issue #14, ver abajo en Fase 2), evaluado con AUC por pROC igual que Mark y **con los mismos folds** (`R/resultados/auc/folds_5.csv`, no hagas folds propios). Ya no se evalúa con julio como examen principal.
 
-**Hoy en clase:** explica tu parte (issue #22).
+**Hoy en clase (9/11):** se presenta el proyecto en general (qué es, datos, resultados, decisiones). Explica la parte que hiciste (issue #22). El AUC y la 5-fold todavía no están: se dice que vienen.
 
 ## Fase 2 (HECHA). No la repitas, salvo Bradley-Terry (tarea E)
 

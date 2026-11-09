@@ -6,9 +6,11 @@ Lee primero `docs/14-fase-2b.md` (decisiones y orden).
 
 **Tarea C1 (puede empezar ya):** `R/12_sensibilidad.R`: para los 48 modelos, comparar los coeficientes de `binomial` (votos decisivos), `quasibinomial` (empates = 0.5) y ordinal (`MASS::polr`, peor < empate < mejor). Una tabla y la correlación por modelo. Va al apéndice.
 
+**Tarea C1b (cuando esté la tarea B de Mark en `main`):** a la tabla de C1 agrega el AUC por fold de `quasibinomial` y del ordinal, con los mismos folds (`R/resultados/auc/folds_5.csv`). Así se mide si dan lo mismo que `binomial`, en vez de suponerlo.
+
 **Tarea C2 (cuando esté la tarea B de Mark en `main`):** 1 gráfico simple de las curvas ROC para la presentación, que lo entienda gente de negocios.
 
-**Hoy en clase:** explica tu parte (issue #22).
+**Hoy en clase (9/11):** se presenta el proyecto en general (qué es, datos, resultados, decisiones). Explica la parte que hiciste (issue #22). El AUC y la 5-fold todavía no están: se dice que vienen.
 
 ## Fase 2 (HECHA). No la repitas
 

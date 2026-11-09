@@ -8,7 +8,7 @@ Lee primero `docs/14-fase-2b.md` (decisiones y orden).
 
 **Tarea D2 (cuando esté D1 en `main`):** esqueleto de la app Shiny: eliges las características de tu pregunta y tu presupuesto, y te da el top 3. Usa `top3()` de `R/02`.
 
-**Hoy en clase:** explica tu parte (issue #22).
+**Hoy en clase (9/11):** se presenta el proyecto en general (qué es, datos, resultados, decisiones). Explica la parte que hiciste (issue #22). El AUC y la 5-fold todavía no están: se dice que vienen.
 
 ## Fase 2 (HECHA). No la repitas
 

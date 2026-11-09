@@ -2,7 +2,7 @@
 
 ## AHORA: fase 2b (desde el 9/11)
 
-Ver **`docs/14-fase-2b.md`**: decisiones (modelo `binomial`, AUC con pROC en 3 escenarios), orden de las tareas y quién espera a quién. Sin fechas límite: se avanza en el orden de la tabla.
+Ver **`docs/14-fase-2b.md`**: decisiones (modelo `binomial`, AUC con pROC y 5-fold CV aleatorio), orden de las tareas y quién espera a quién. Sin fechas límite: se avanza en el orden de la tabla.
 
 ## Fase 2: análisis (HECHA, salvo Bradley-Terry #14)
 
@@ -26,6 +26,7 @@ Cambio del 2/11 (noche): la tarea 1 pasó de Jaime a Nessim. Orden: Nessim hace 
 - **Método (26/10):** primero las 48 regresiones, después la combinada como comparación. Ver `docs/04`.
 - **Características:** entran las 11 directo como predictores. Ya no se usan las 10 cajas ni la regla de "difícil".
 - **Tokens y precio:** fuera de las regresiones. El precio entra después, en el top 3 por presupuesto.
+- **9/11, ver `docs/14`:** modelo principal `binomial` (votos decisivos). Se calcula primero el AUC con pROC (todos los datos) y la 5-fold CV con folds aleatorios por sesión, no con julio. Reemplaza la decisión 4 del 2/11. Los folds los crea Mark en `R/resultados/auc/folds_5.csv` y todos los usan.
 - **2/11, ver `docs/12`:**
   1. Empates y both_bad: medio punto en el ajuste. Evaluación sobre votos decisivos. Excluir queda como chequeo.
   2. Gemini 2.5 Pro: no se agrupa. La herramienta solo recomienda modelos con 100 o más votos en julio.
