@@ -23,6 +23,7 @@ Este documento es para que cualquiera del grupo pueda **explicar en persona** qu
 | `data/derivados/precios_modelos.csv` | Versión 1 (PR #4), mismos precios con columnas en inglés. Se deja porque en `data/` no se sobrescribe nada |
 | `R/06_costo_por_respuesta.R` | Script de la v4 (`razona`) y la prueba de costo |
 | `R/12_top3_por_precio.R` | Script del top 3 por presupuesto (fase 2b, binomial) |
+| `app/app.R` | Esqueleto de la app Shiny (fase 2b, D2): características + presupuesto → top 3 |
 | `R/resultados/costo_por_modelo.csv` | Resultado de la prueba: costo por 1,000 respuestas de cada modelo |
 | `R/resultados/top3_por_precio.csv` | Top 3 por tarea dentro de cada presupuesto (binomial, 9/11) |
 | `R/resultados/top3_por_precio_2026-11-02_medio_punto.csv` | Versión anterior, con medio punto (2/11) |
@@ -195,6 +196,19 @@ Cada celda: modelo (probabilidad de ganar contra un rival al azar, precio de sal
 1. Es el **precio por token**, no el costo por respuesta. Un modelo que razona gasta más tokens.
 2. Las probabilidades no tienen ridge, y los modelos con pocos votos (grok-4: 931 votos con ganador) tienen más ruido.
 3. Es la versión de "preguntas reales". La de "solo esta característica" (`ranking`, también en `R/02`) puede dar otro orden.
+
+## Parte 5 (fase 2b, D2): esqueleto de la app Shiny
+
+**Archivo:** `app/app.R`. **Cómo abrirla**, desde la raíz del repo en RStudio: `shiny::runApp("app")` (necesita el paquete `shiny`).
+
+**Qué hace:**
+1. Al abrir, ajusta las 48 regresiones de `R/02` igual que `R/12` (binomial, votos con ganador de abril a julio). Tarda unos segundos, 1 sola vez.
+2. Marcas las características de tu pregunta (las 11) y eliges un presupuesto (sin límite, $10, $2 o $0.50 por millón de tokens de salida).
+3. Llama a `top3()` de `R/02` y muestra los 3 modelos con mayor probabilidad de ganar, con su compañía, precio de salida y de entrada, y si razona. Abajo dice sobre cuántas preguntas reales se promedió.
+
+**No calcula nada nuevo:** con 1 sola característica (o ninguna) da exactamente lo mismo que `R/resultados/top3_por_precio.csv`. Se comprobó en las 16 combinaciones (4 tareas × 4 presupuestos). Con varias características, promedia las preguntas reales que tienen **todas** las marcadas. Si no hay ninguna, la app lo dice.
+
+**Es un esqueleto:** el texto de la app está en inglés (es para mostrar al profesor). El diseño, gráficos y opciones extra quedan para la fase de la app (18/11 a 30/11). Captura: `app/captura_esqueleto.png`.
 
 ## Decisiones para el grupo (no las tomó Marco ni la IA)
 
