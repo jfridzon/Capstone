@@ -1,6 +1,14 @@
 # Tarea de Jaime
 
-## Fase 2 (desde el 2/11): lo que toca ahora
+## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
+
+Lee primero `docs/14-fase-2b.md` (decisiones y orden).
+
+Revisar y aprobar los PR, coordinar con el profesor y presentar el proyecto en clase.
+
+**Hoy en clase:** explica tu parte (issue #22).
+
+## Fase 2 (HECHA). No la repitas
 
 **La tarea de las 48 regresiones pasó a Nessim** (ver `docs/tareas/nessim.md`, tarea 1). Jaime:
 

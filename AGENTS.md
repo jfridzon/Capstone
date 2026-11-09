@@ -6,7 +6,7 @@ Este archivo es para cualquier asistente de IA (Claude, ChatGPT, Copilot, Cursor
 
 1. Lee `README.md` y `docs/01-contexto.md` completos.
 2. Lee el documento de `docs/` que tenga que ver con tu tarea. Si es de datos, `docs/03-datos.md`. Si es de modelos, `docs/04-metodo.md`. Si vas a usar un número, `docs/05-resultados.md`.
-3. Lee la ficha de tu persona en `docs/tareas/` (por ejemplo `docs/tareas/marco.md`): ahí está exactamente qué hacer, qué entregar y qué no tocar. Revisa también `docs/07-pendientes-y-roles.md` para ver qué decisiones siguen abiertas. **No tomes por tu cuenta una decisión que está marcada como abierta.** Propónla en el pull request y que el grupo decida.
+3. Lee la ficha de tu persona en `docs/tareas/` (por ejemplo `docs/tareas/marco.md`): ahí está exactamente qué hacer, qué entregar y qué no tocar. Revisa también `docs/14-fase-2b.md` (lo que toca ahora) y `docs/07-pendientes-y-roles.md` para ver qué decisiones siguen abiertas. **No tomes por tu cuenta una decisión que está marcada como abierta.** Propónla en el pull request y que el grupo decida.
 
 ## Reglas que no se rompen
 
@@ -18,6 +18,11 @@ Este archivo es para cualquier asistente de IA (Claude, ChatGPT, Copilot, Cursor
 6. **El repo es público.** No subas correos, notas personales, calificaciones, teléfonos, contraseñas, tokens ni API keys.
 7. **Quédate en tu tarea.** No "arregles" ni reorganices cosas que no te pidieron. Si ves un problema, descríbelo en el pull request o en un issue.
 8. **Si no estás seguro, pregúntale a tu persona** antes de actuar.
+
+## Orden y entregas (desde el 9/11)
+
+- **Antes de empezar**, revisa la tabla "Orden" de `docs/14-fase-2b.md`. Si tu tarea espera a otra y esa todavía no está en `main`, no empieces: dile a tu persona a quién está esperando.
+- **Todo pull request** tiene que: (1) correr el script de punta a punta, (2) pegar en la descripción la tabla de resultados principal, (3) traer 3 líneas en inglés simple bajo el título "For the professor", y (4) decir `Closes #N` con el número de su issue. Sin eso no se revisa.
 
 ## Cómo trabajamos
 

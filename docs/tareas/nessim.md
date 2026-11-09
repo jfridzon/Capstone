@@ -1,6 +1,16 @@
 # Tarea de Nessim
 
-## Fase 2 (desde el 2/11): lo que toca ahora
+## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
+
+Lee primero `docs/14-fase-2b.md` (decisiones y orden).
+
+**Tarea A (puede empezar ya):** pasar a `glm(..., family = binomial)` como modelo principal, solo con votos decisivos (y = 1/0), en `R/02_regresiones_por_modelo.R`, `reporte/01_regresiones_48.Rmd` y la demo `R/10_demo_clase_48.R`. Dejar `quasibinomial` como opción, no como principal. Regenerar coeficientes y `top3()`. Cuando esté el AUC de Mark (tarea B) en `main`, agregar a la demo una sección que lo muestre.
+
+**Tarea E (después de A):** Bradley-Terry con covariables (issue #14, ver abajo en Fase 2), evaluado con AUC por pROC igual que Mark.
+
+**Hoy en clase:** explica tu parte (issue #22).
+
+## Fase 2 (HECHA). No la repitas, salvo Bradley-Terry (tarea E)
 
 Tienes 2 tareas, en este orden. **La 1 es nueva** (era de Jaime y pasó a ti el 2/11 en la noche). Lee antes `docs/12-decisiones-2-11.md`.
 
