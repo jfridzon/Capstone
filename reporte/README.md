@@ -7,7 +7,8 @@ RStudio ni ejecutar codigo para verlo. El HTML contiene el grafico y las tablas.
 En "The regressions: full R output", abre los tres desplegables para ver
 los `summary()` completos.
 
-El ajuste descriptivo usa todos los meses. La seccion de evaluacion lee los
+El ajuste binomial descriptivo usa los votos decisivos de abril a julio.
+La seccion de evaluacion lee los
 resultados de train/test de Mark; no los calcula con el ajuste descriptivo.
 
 ## Para revisar el codigo en RStudio
@@ -30,7 +31,7 @@ No ejecuta la fase 1 ni `R/03`. Las pruebas del codigo estan en
 `R/probar_regresiones_48.R`. El reporte es para revision del grupo; crearlo no
 significa que se haya enviado al profesor.
 
-R documenta la respuesta fraccional y la familia quasibinomial aqui:
+R documenta las familias binomial (principal) y quasibinomial (opcional) aqui:
 https://stat.ethz.ch/R-manual/R-devel/library/stats/html/family.html
 
-Preparado con asistencia de ChatGPT/Codex para Nessim (issue #17).
+Preparado con asistencia de ChatGPT/Codex para Nessim (issues #17 y #31).

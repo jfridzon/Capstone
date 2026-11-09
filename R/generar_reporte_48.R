@@ -1,7 +1,7 @@
-# Regenera la tarea 1 de Nessim, sin rehacer datos ni ejecutar R/03.
+# Regenera los resultados y el reporte binomial de la fase 2b.
 # Rscript R/generar_reporte_48.R
 # Requiere rmarkdown, knitr, htmltools, ggplot2 y Pandoc para el HTML.
-# Asistencia: ChatGPT/Codex, 2/11/2026.
+# Asistencia: ChatGPT/Codex, 9/11/2026.
 protegidos <- c("data/lmarena_votes.csv",
   "data/derivados/base_regresiones_2026-10-28_v2.csv.gz",
   "data/derivados/precios_modelos_2026-10-28_v2.csv",
@@ -13,12 +13,14 @@ regenerar_48 <- function() {
   op <- options(correr_02 = TRUE)
   tryCatch(sys.source("R/02_regresiones_por_modelo.R", envir = e),
            finally = options(op))
-  salida <- "R/resultados/regresiones_48_2026-11-02"
+  salida <- "R/resultados/regresiones_48_2026-11-09"
   dir.create(salida, recursive = TRUE, showWarnings = FALSE)
   guardar <- function(x, archivo) write.csv(x, file.path(salida, archivo),
                                            row.names = FALSE)
   modelos <- names(e$ajustes)
   n <- vapply(e$ajustes, function(x) x$n_votos, numeric(1))
+  stopifnot(length(modelos) == 48L, all(vapply(e$ajustes, function(x)
+    x$converged && x$family$family == "binomial", logical(1))))
   guardar(data.frame(modelo = modelos, votos = unname(n),
     convergio = vapply(e$ajustes, function(x) x$converged, logical(1))),
     "ajustes.csv")
