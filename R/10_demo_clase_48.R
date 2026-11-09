@@ -30,7 +30,24 @@ print(summary(fits_all[["minimax-m1"]]))
 print(head(models$tabla_coeficientes(fits_all)))
 print(models$top3("math", fits_all))
 
-# ---- 3. Refit on April-June and predict the same July votes as Mark -----------
+# ---- 3. AUC per vote on all data and Mark's five shared folds -----------------
+# The main evaluation holds out sessions at random.
+# AUC measures how well the scores separate wins from losses (0.5 is chance).
+# Read Mark's saved pROC results. Each fold was predicted without its sessions.
+auc_votes <- read.csv("R/resultados/auc/por_voto.csv")
+auc_votes <- auc_votes[match(c("all", as.character(1:5), "mean"), auc_votes$fold), ]
+stopifnot(!anyNA(auc_votes$auc_regression), !anyNA(auc_votes$auc_baseline))
+auc_table <- data.frame(
+  evaluation = c("All data (in sample)", paste("Held-out fold", 1:5), "Mean of held-out folds"),
+  votes = auc_votes$n_votes,
+  regressions_auc = auc_votes$auc_regression,
+  general_ranking_auc = auc_votes$auc_baseline
+)
+cat("\nAUC per vote (pROC)\n")
+print(auc_table, row.names = FALSE)
+
+# ---- 4. Historical check: train on April-June and test on July --------------
+cat("\nHistorical July test\n")
 train <- votes[votes$split == "train", ]
 fits_train <- models$ajustar_modelos(train)
 july <- read.csv("R/resultados/test_julio_votos.csv")
@@ -49,7 +66,7 @@ baseline <- saved[saved$method == "general_bradley_terry", ]
 print(rbind(baseline, results)[, c("method", "test_votes_evaluated", "correct",
                                   "accuracy_percent", "logloss")], row.names = FALSE)
 
-# ---- 4. Show a real July comparison -----------------------------------------
+# ---- 5. Show a real July comparison -----------------------------------------
 example <- which(questions$math & july$model_a != july$model_b &
   (p_model_a > 0.5) == (july$winner == "model_a"))[1L]
 prediction <- ifelse(p_model_a[example] > 0.5, "model_a", "model_b")
