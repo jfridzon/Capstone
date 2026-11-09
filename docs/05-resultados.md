@@ -648,3 +648,9 @@ Las 48 regresiones de `R/02` con el modelo principal de la fase 2b (`glm(..., fa
 - **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas. Su $0.60 es sin razonamiento (con razonamiento, $3.50): sigue abierto en `docs/07`.
 
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+## Fase 2b, tarea D2 de Marco: esqueleto de la app Shiny (9/11/2026)
+
+`app/app.R`, se abre con `shiny::runApp("app")` desde la raíz. Eliges las características de la pregunta y el presupuesto, y muestra el top 3 con `top3()` de `R/02` (binomial, mismos ajustes que `R/12`). No agrega números nuevos: en las 16 combinaciones de `R/resultados/top3_por_precio.csv` (4 tareas × 4 presupuestos) da los mismos modelos y probabilidades. Detalle en `docs/11`, Parte 5.
+
+Código y documentación preparados con asistencia de Claude (Anthropic).
