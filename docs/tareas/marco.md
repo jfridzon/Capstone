@@ -1,6 +1,16 @@
 # Tarea de Marco
 
-## Fase 2 (desde el 2/11): lo que toca ahora
+## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
+
+Lee primero `docs/14-fase-2b.md` (decisiones y orden).
+
+**Tarea D1 (cuando esté la tarea A de Nessim en `main`):** regenerar `R/resultados/top3_por_precio.csv` con los coeficientes `binomial`.
+
+**Tarea D2 (cuando esté D1 en `main`):** esqueleto de la app Shiny: eliges las características de tu pregunta y tu presupuesto, y te da el top 3. Usa `top3()` de `R/02`.
+
+**Hoy en clase:** explica tu parte (issue #22).
+
+## Fase 2 (HECHA). No la repitas
 
 **Fase 2, para el lunes 16/11. Rama:** `marco/precios-v3`. Lee antes `docs/12-decisiones-2-11.md` (decisiones 3 y 6).
 

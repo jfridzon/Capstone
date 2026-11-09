@@ -1,6 +1,16 @@
 # Tarea de Eli
 
-## Fase 2 (desde el 2/11): lo que toca ahora
+## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
+
+Lee primero `docs/14-fase-2b.md` (decisiones y orden).
+
+**Tarea C1 (puede empezar ya):** `R/12_sensibilidad.R`: para los 48 modelos, comparar los coeficientes de `binomial` (votos decisivos), `quasibinomial` (empates = 0.5) y ordinal (`MASS::polr`, peor < empate < mejor). Una tabla y la correlación por modelo. Va al apéndice.
+
+**Tarea C2 (cuando esté la tarea B de Mark en `main`):** 1 gráfico simple de las curvas ROC para la presentación, que lo entienda gente de negocios.
+
+**Hoy en clase:** explica tu parte (issue #22).
+
+## Fase 2 (HECHA). No la repitas
 
 **Fase 2, para el lunes 16/11. Rama:** `eli/chequeos-y-graficos`. Lee antes `docs/12-decisiones-2-11.md`.
 

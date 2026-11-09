@@ -1,6 +1,19 @@
 # Tarea de Mark
 
-## Fase 2 (desde el 2/11): lo que toca ahora
+## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
+
+Lee primero `docs/14-fase-2b.md` (decisiones y orden).
+
+**Tarea B (puede empezar ya, en paralelo con Nessim):** `R/11_auc_proc.R`. Con `glm(..., family = binomial)`, votos decisivos y la misma fórmula de 11 predictores (no necesitas esperar a Nessim):
+1. **AUC por modelo:** el AUC de cada regresión con sus propias filas (48 filas).
+2. **AUC por voto:** P(gana A) = `plogis(score_A - score_B)` contra si A ganó.
+3. Los 2 en **3 escenarios**: todos los datos (abril a julio), train/test (abril a junio / julio) y 5-fold CV por sesión (AUC de cada fold + promedio). Con la línea base (ranking general) en los 3.
+4. Todo con `pROC::roc()` y `pROC::auc()`.
+5. Salida en `R/resultados/auc/` (`por_modelo.csv`, `por_voto.csv`, `folds.csv`) y 1 curva ROC de julio (48 regresiones vs línea base). Actualizar `docs/05`.
+
+**Hoy en clase:** explica tu parte (issue #22).
+
+## Fase 2 (HECHA). No la repitas
 
 **Fase 2. Rama:** `mark/evaluacion-48`. Lee antes `docs/12-decisiones-2-11.md`. **Esta es la tarea que más falta: hoy nadie ha evaluado las 48 regresiones en R.**
 
