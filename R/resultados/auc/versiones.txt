@@ -1,0 +1,3 @@
+R version 4.3.3 (2024-02-29)
+pROC 1.18.5
+set.seed( 2026 ) for folds_5.csv; k = 5
