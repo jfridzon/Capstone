@@ -82,7 +82,7 @@ Sigue abierto (el grupo decide):
 ### Fase 2 (2/11, rama `marco/precios-v3`)
 
 - **`razona`** (PR #25): la v2 + la columna `razona` (22 si, 24 no, 2 vacíos), con la fuente en `notas`. También arregla los acentos que la v2 tenía dañados (`versi<c3><b3>n`). La tabla que se usa es `data/derivados/precios_modelos_2026-11-02_v4.csv`: la misma, sin `disponible_gratis_en_app`.
-- **Top 3 por presupuesto:** `R/resultados/top3_por_precio.csv`, desde `R/06_costo_por_respuesta.R`. Usa las funciones de `R/02` con medio punto y todos los votos, sin esperar los coeficientes nuevos de Jaime. Cuando esté `top3(..., precio_max)`, se cambia por esa función. Detalle en `docs/11`, Partes 3 y 4.
+- **Top 3 por presupuesto:** `R/resultados/top3_por_precio.csv`, desde `R/12_top3_por_precio.R` (fase 2b, 9/11): regresiones `binomial` y `top3()` de `R/02`. El orden no cambió contra la versión con medio punto del 2/11. Detalle en `docs/11`, Parte 4.
 
 ## Complemento de la entrega de Nessim: fase 1 (PR #19)
 

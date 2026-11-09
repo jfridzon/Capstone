@@ -21,15 +21,18 @@ Este documento es para que cualquiera del grupo pueda **explicar en persona** qu
 | `data/derivados/precios_modelos_2026-11-02_v3.csv` | Versión 3 (PR #25): igual a la v4 pero todavía con `disponible_gratis_en_app` vacía. Se deja porque en `data/` no se sobrescribe nada |
 | `data/derivados/precios_modelos_2026-10-28_v2.csv` | Versión 2 (PR #9), formato de la ficha. Mismos precios que la v3 |
 | `data/derivados/precios_modelos.csv` | Versión 1 (PR #4), mismos precios con columnas en inglés. Se deja porque en `data/` no se sobrescribe nada |
-| `R/06_costo_por_respuesta.R` | Script de la v3 (`razona`), la prueba de costo y el top 3 por presupuesto |
+| `R/06_costo_por_respuesta.R` | Script de la v4 (`razona`) y la prueba de costo |
+| `R/12_top3_por_precio.R` | Script del top 3 por presupuesto (fase 2b, binomial) |
 | `R/resultados/costo_por_modelo.csv` | Resultado de la prueba: costo por 1,000 respuestas de cada modelo |
-| `R/resultados/top3_por_precio.csv` | Top 3 por tarea dentro de cada presupuesto |
+| `R/resultados/top3_por_precio.csv` | Top 3 por tarea dentro de cada presupuesto (binomial, 9/11) |
+| `R/resultados/top3_por_precio_2026-11-02_medio_punto.csv` | Versión anterior, con medio punto (2/11) |
 
 Para correrlos, desde la raíz del repo, en orden:
 
 ```r
 source("R/05_precios_modelos.R")     # necesita internet y el paquete jsonlite
 source("R/06_costo_por_respuesta.R") # solo R base, usa las funciones de R/02 (unos 20 segundos)
+source("R/12_top3_por_precio.R")      # solo R base, top 3 por presupuesto con binomial (unos 30 segundos)
 ```
 
 `R/05` se detiene si la tabla v2 ya existe, para no sobrescribirla. `R/06` arma la v4 a partir de la v2.
@@ -137,14 +140,16 @@ Todos los modelos están en `R/resultados/costo_por_modelo.csv`.
   - **grok-3-preview-02-24:** es Grok 3 normal, sin "Think". Quedó como "no".
   - Los "no" de Llama, Gemma, Command A y Nova Pro se apoyan en que la compañía no los presenta como modelos de razonamiento (Cohere y Amazon sacaron versiones que razonan después, como modelos aparte).
 
-## Parte 4 (fase 2): top 3 por tarea dentro de cada presupuesto
+## Parte 4: top 3 por tarea dentro de cada presupuesto (actualizada en la fase 2b, 9/11)
 
 **La pregunta del cliente:** "si no quiero pagar el mejor, ¿cuál es el mejor para mi tarea dentro de mi presupuesto?"
 
+**Script:** `R/12_top3_por_precio.R` → `R/resultados/top3_por_precio.csv` (tarea D1, issue #34). La versión del 2/11, con medio punto, quedó guardada en `R/resultados/top3_por_precio_2026-11-02_medio_punto.csv`.
+
 ### Cómo se arma
 
-1. Las **48 regresiones de Jaime** (`R/02`), con empates y both_bad a **medio punto** (decisión 1), ajustadas con **todos los votos de abril a julio** (decisión 4: la herramienta final usa todos). Sin ridge: el λ lo elige Mark con train y todavía no está.
-2. Para cada tarea, la **probabilidad de ganar promedio sobre las preguntas reales** que tienen esa característica (`ranking_real` de `R/02`). Por ejemplo, para código se promedian las 29,149 preguntas con `is_code = TRUE`. "Todas" promedia las 106,602.
+1. Las **48 regresiones de `R/02`** con el modelo principal de la fase 2b: **`glm(..., family = binomial)`**, solo votos con ganador (ganó = 1, perdió = 0), sin los 28 votos marcados para revisión, sin ridge. Se ajustan con **todos los votos de abril a julio** (decisión 4: la herramienta final usa todos): 77,843 votos.
+2. Para cada tarea, la **probabilidad de ganar promedio sobre las preguntas reales** que tienen esa característica. Lo hace `top3()` de `R/02`. Por ejemplo, para código se promedian las 21,048 preguntas con `is_code = TRUE`.
 3. Solo modelos con **100 o más votos en julio** (decisión 2) y **con precio oficial** (los 13 sin precio quedan fuera).
 4. Presupuesto = **precio de lista por millón de tokens de salida**: sin límite, hasta $10, hasta $2 y hasta $0.50. "Hasta" incluye el límite: gemini-2.5-pro ($10) entra en "hasta $10".
 
@@ -154,35 +159,41 @@ Cada celda: modelo (probabilidad de ganar contra un rival al azar, precio de sal
 
 | Tarea (preguntas) | Presupuesto | 1º | 2º | 3º |
 |---|---|---|---|---|
-| Todas (106,602) | Sin límite | gemini-2.5-pro (68.4%, $10) | grok-4-0709 (64.1%, $15) | o3-2025-04-16 (61.9%, $8) |
-|  | Hasta $10 | gemini-2.5-pro (68.4%, $10) | o3-2025-04-16 (61.9%, $8) | deepseek-r1-0528 (60.5%, $2.19) |
-|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (55.7%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (53.5%, $0.4) | deepseek-v3-0324 (53.2%, $1.1) |
-|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (53.5%, $0.4) | grok-3-mini-beta (50.7%, $0.5) | grok-3-mini-high (50.5%, $0.5) |
-| Código (29,149) | Sin límite | gemini-2.5-pro (66.5%, $10) | grok-4-0709 (61.5%, $15) | o3-2025-04-16 (61.4%, $8) |
-|  | Hasta $10 | gemini-2.5-pro (66.5%, $10) | o3-2025-04-16 (61.4%, $8) | deepseek-r1-0528 (59.7%, $2.19) |
-|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (53.4%, $0.6) | deepseek-v3-0324 (51.8%, $1.1) | grok-3-mini-high (51.5%, $0.5) |
-|  | Hasta $0.50 | grok-3-mini-high (51.5%, $0.5) | grok-3-mini-beta (50.9%, $0.5) | gemini-2.5-flash-lite-preview-06-17-thinking (50.3%, $0.4) |
-| Math (8,687) | Sin límite | gemini-2.5-pro (69.4%, $10) | grok-4-0709 (67.3%, $15) | gemini-2.5-flash (61.8%, $2.5) |
-|  | Hasta $10 | gemini-2.5-pro (69.4%, $10) | gemini-2.5-flash (61.8%, $2.5) | o3-2025-04-16 (58.9%, $8) |
-|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (57.4%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (53.9%, $0.4) | grok-3-mini-high (51.1%, $0.5) |
-|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (53.9%, $0.4) | grok-3-mini-high (51.1%, $0.5) | grok-3-mini-beta (49.1%, $0.5) |
-| Escritura creativa (8,902) | Sin límite | gemini-2.5-pro (69.8%, $10) | grok-3-preview-02-24 (62.3%, $15) | grok-4-0709 (61.5%, $15) |
-|  | Hasta $10 | gemini-2.5-pro (69.8%, $10) | deepseek-r1-0528 (59.8%, $2.19) | gemini-2.5-flash (58.7%, $2.5) |
-|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (57.3%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (55.9%, $0.4) | deepseek-v3-0324 (55.5%, $1.1) |
-|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (55.9%, $0.4) | gemini-2.0-flash-001 (51.3%, $0.4) | grok-3-mini-high (48.6%, $0.5) |
+| Todas (77,843) | Sin límite | gemini-2.5-pro (74.2%, $10) | grok-4-0709 (68.8%, $15) | o3-2025-04-16 (65.8%, $8) |
+|  | Hasta $10 | gemini-2.5-pro (74.2%, $10) | o3-2025-04-16 (65.8%, $8) | deepseek-r1-0528 (64.4%, $2.19) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (57.7%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (54.9%, $0.4) | deepseek-v3-0324 (54.6%, $1.1) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (54.9%, $0.4) | grok-3-mini-beta (50.9%, $0.5) | grok-3-mini-high (50.7%, $0.5) |
+| Código (21,048) | Sin límite | gemini-2.5-pro (72.2%, $10) | grok-4-0709 (65.1%, $15) | o3-2025-04-16 (65.0%, $8) |
+|  | Hasta $10 | gemini-2.5-pro (72.2%, $10) | o3-2025-04-16 (65.0%, $8) | deepseek-r1-0528 (63.7%, $2.19) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (54.5%, $0.6) | deepseek-v3-0324 (52.5%, $1.1) | grok-3-mini-high (51.9%, $0.5) |
+|  | Hasta $0.50 | grok-3-mini-high (51.9%, $0.5) | grok-3-mini-beta (51.2%, $0.5) | gemini-2.5-flash-lite-preview-06-17-thinking (50.3%, $0.4) |
+| Math (5,945) | Sin límite | gemini-2.5-pro (76.9%, $10) | grok-4-0709 (73.5%, $15) | gemini-2.5-flash (67.5%, $2.5) |
+|  | Hasta $10 | gemini-2.5-pro (76.9%, $10) | gemini-2.5-flash (67.5%, $2.5) | o3-2025-04-16 (62.6%, $8) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (60.5%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (55.6%, $0.4) | grok-3-mini-high (51.6%, $0.5) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (55.6%, $0.4) | grok-3-mini-high (51.6%, $0.5) | grok-3-mini-beta (48.6%, $0.5) |
+| Escritura creativa (6,514) | Sin límite | gemini-2.5-pro (75.7%, $10) | grok-3-preview-02-24 (66.3%, $15) | grok-4-0709 (63.9%, $15) |
+|  | Hasta $10 | gemini-2.5-pro (75.7%, $10) | deepseek-r1-0528 (62.9%, $2.19) | gemini-2.5-flash (62.1%, $2.5) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (59.9%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (58.7%, $0.4) | deepseek-v3-0324 (57.5%, $1.1) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (58.7%, $0.4) | gemini-2.0-flash-001 (51.8%, $0.4) | grok-3-mini-high (47.7%, $0.5) |
+
+### Qué cambió contra la versión del 2/11 (medio punto)
+
+- **El orden es el mismo en los 48 puestos** (4 tareas × 4 presupuestos × 3). El script lo compara solo.
+- **Las probabilidades suben** (gemini-2.5-pro en todas: de 68.4% a 74.2%). No es que los modelos mejoraron: antes un empate contaba como medio punto y ahora los empates no entran, así que la probabilidad es "de ganar cuando hay un ganador".
+- El número de preguntas baja (todas: de 106,602 a 77,843) por la misma razón.
 
 ### Cómo leerlo
 
-- **gemini-2.5-pro es 1º en todo** cuando el presupuesto lo permite (lo mismo que dice `docs/12`). Las características pesan **debajo del 1º y en los presupuestos bajos**.
+- **gemini-2.5-pro es 1º en todo** cuando el presupuesto lo permite. Las características pesan **debajo del 1º y en los presupuestos bajos**.
 - **Por $2 o menos**, gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas. **Ojo:** $0.60 es su precio **sin** razonamiento. Con razonamiento costaba $3.50 (Parte 1, "Cosas a saber"), y el modelo razona por defecto. Con $3.50 no entraría en "hasta $2" (ver "Decisiones").
-- **deepseek-r1** ($2.19) queda a 1.4 puntos de o3 ($8) en todas las preguntas (60.5% contra 61.9%) y a 1.7 en código (59.7% contra 61.4%), por casi 4 veces menos. Es el ejemplo más claro de "casi lo mismo por mucho menos".
-- **minimax-m1** es 3º en math en este mismo ranking (antes de filtrar por precio), pero no tiene precio oficial, así que no aparece aquí. Se dice en el reporte.
+- **deepseek-r1** ($2.19) queda a 1.4 puntos de o3 ($8) en todas las preguntas (64.4% contra 65.8%) y a 1.3 en código (63.7% contra 65.0%), por casi 4 veces menos. Es el ejemplo más claro de "casi lo mismo por mucho menos".
+- En math, **qwen3-235b-a22b** es 5º antes de filtrar por precio, pero no tiene precio oficial, así que no aparece. gemini-2.5-pro-preview-03-25 es 3º, pero no tiene votos en julio. Se dice en el reporte.
 - Casi todos los modelos del top 3 **razonan**. Su costo real por respuesta es más alto de lo que dice el precio por token.
 
 ### Límites (decirlos siempre)
 
 1. Es el **precio por token**, no el costo por respuesta. Un modelo que razona gasta más tokens.
-2. Las probabilidades no tienen ridge todavía, y los modelos con pocos votos (grok-4: 1,249) tienen más ruido.
+2. Las probabilidades no tienen ridge, y los modelos con pocos votos (grok-4: 931 votos con ganador) tienen más ruido.
 3. Es la versión de "preguntas reales". La de "solo esta característica" (`ranking`, también en `R/02`) puede dar otro orden.
 
 ## Decisiones para el grupo (no las tomó Marco ni la IA)
