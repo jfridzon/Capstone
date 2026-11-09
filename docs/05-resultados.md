@@ -561,3 +561,58 @@ Para regenerar: `Rscript R/generar_reporte_48.R`. Para probar y mostrar:
 `Rscript R/probar_regresiones_48.R` y `Rscript R/10_demo_clase_48.R`.
 El AUC con pROC corresponde a la tarea B de Mark (#32). Código y reporte
 actualizados con asistencia de ChatGPT/Codex.
+
+## Fase 2b, tarea B de Mark: AUC con pROC (9/11/2026)
+
+Script: `R/11_auc_proc.R`. Resultados: `R/resultados/auc/` (`por_voto.csv`, `por_modelo.csv`, `folds.csv` y la curva `curva_roc_julio.png`, con sus puntos en `curva_roc_julio.csv`). Todo el AUC se calcula con `pROC::roc()` y `pROC::auc()` (intervalos y prueba pareada de DeLong con `pROC::ci.auc()` y `pROC::roc.test()`).
+
+**Qué se mide.** El AUC dice qué tan bien un puntaje separa los votos que se ganan de los que se pierden: es la probabilidad de que, tomando 1 voto ganado y 1 perdido al azar, el ganado tenga el puntaje más alto. 0.5 es tirar una moneda y 1 es perfecto. Las regresiones son las 48 de `R/02` (1 por modelo, `glm(..., family = binomial)`, las 11 características) con los votos decisivos: 77,843 votos (155,686 filas), sin los 28 marcados para revisión. Hay 2 tipos de AUC:
+
+- **Por voto:** P(gana model_a) = `plogis(puntaje_A - puntaje_B)`, donde cada puntaje es la regresión de ese modelo evaluada con las características de la pregunta, contra si model_a ganó de verdad.
+- **Por modelo:** el AUC de cada regresión con sus propias filas (ese modelo ganó 1 / perdió 0), con el P(gana) de su propia regresión.
+
+**Línea base: el ranking general** = % de victorias de cada modelo (votos ganados ÷ votos jugados, todos los tipos de pregunta juntos), calculado con las mismas filas con las que se ajustan las regresiones. Por voto es `plogis(logit(%_A) - logit(%_B))`, la misma línea base de `R/03`. Por modelo, el puntaje de cada fila es `logit(% del modelo) - logit(% del rival)` (ver el límite de abajo).
+
+**3 escenarios.** (1) todos los datos, abril a julio, ajustando y midiendo en los mismos votos; (2) train (abril a junio) y test (julio), con la misma partición y los mismos 20,416 votos de julio de `R/03`; (3) validación cruzada de 5 grupos sobre todos los datos, armada por sesión (una sesión nunca queda partida, mismo método y semilla que el ridge de `R/03`), midiendo cada grupo con regresiones y línea base ajustadas con los otros 4.
+
+### AUC por voto
+
+| Escenario | Votos | AUC 48 regresiones (IC 95%) | AUC ranking general (IC 95%) | Diferencia | p (DeLong, pareada) |
+|---|---:|---|---|---:|---:|
+| 1. Todos los datos | 77,843 | 0.7005 (0.6969 a 0.7042) | 0.6854 (0.6817 a 0.6891) | +0.0151 | < 0.0001 |
+| 2. Train (abril a junio), en train | 52,194 | 0.6998 (0.6954 a 0.7042) | 0.6834 (0.6789 a 0.6879) | +0.0164 | < 0.0001 |
+| **2. Test (julio), nunca visto** | **20,416** | **0.7016 (0.6945 a 0.7087)** | 0.6952 (0.6881 a 0.7024) | **+0.0063** | 0.00007 |
+| 3. Validación cruzada, grupo 1 | 15,569 | 0.6894 | 0.6853 | +0.0041 | 0.030 |
+| 3. Grupo 2 | 15,569 | 0.6866 | 0.6859 | +0.0007 | 0.70 |
+| 3. Grupo 3 | 15,569 | 0.6861 | 0.6787 | +0.0074 | < 0.0001 |
+| 3. Grupo 4 | 15,568 | 0.6908 | 0.6852 | +0.0056 | 0.0019 |
+| 3. Grupo 5 | 15,568 | 0.6950 | 0.6869 | +0.0081 | < 0.0001 |
+| **3. Promedio de los 5 grupos** (desv. estándar) | 77,843 | **0.6896** (0.0036) | 0.6844 (0.0033) | +0.0052 | |
+
+**Cómo leerlo:**
+- **El AUC da parecido en los 3 escenarios:** 0.700 con todos los datos, 0.700 en train y 0.702 en julio (que el modelo nunca vio). Julio no sale peor que train, así que no hay señal de sobreajuste. En la validación cruzada es un poco más bajo (promedio 0.690, entre 0.686 y 0.695 en los 5 grupos).
+- **Las 48 regresiones le ganan al ranking general en AUC en los 3 escenarios, pero por poco:** +0.006 en julio y +0.005 en promedio en la validación cruzada. Está en la misma línea que en aciertos (65.2% contra 64.5%). En julio los 2 intervalos se traslapan, y la prueba pareada (que compara los mismos votos) da p = 0.00007; en el grupo 2 de la validación cruzada no hay diferencia (p = 0.70). Con un AUC de 0.70, ambos métodos separan ganadores de perdedores bastante mejor que una moneda, pero lejos de perfecto.
+- Los p-valores y los intervalos son nominales: no corrigen que los mismos modelos se repiten en muchos votos ni que cada voto se usa 2 veces al ajustar (el profesor lo sabe, `docs/04`).
+- En julio se evalúan 20,416 de los 25,649 votos decisivos: 5,233 quedan fuera porque incluyen un modelo sin regresión en train (los 4 que solo aparecen en julio, `docs/12`, decisión 4).
+- **Verificación:** con los mismos 20,416 votos de julio, el script reproduce los aciertos de `R/resultados/evaluacion.csv`: 13,303 de las regresiones (excluir) y 13,162 del % de victorias. El AUC de 0.702 en julio coincide con el que `docs/14` cita para quasibinomial y ordinal.
+
+### AUC por modelo (cada una de las 48 regresiones con sus propias filas)
+
+Detalle de cada modelo en `R/resultados/auc/por_modelo.csv`. Resumen (promedio simple entre modelos):
+
+| Escenario | Modelos con AUC | AUC medio regresión | AUC medio ranking general | Modelos donde la regresión supera al ranking |
+|---|---:|---:|---:|---:|
+| 1. Todos los datos | 48 | 0.562 | 0.630 | 1 |
+| 2. Train, en train | 44 | 0.566 | 0.629 | 1 |
+| 2. Test (julio) | 42 | 0.540 | 0.639 | 0 |
+| 3. Validación cruzada (promedio de los 5 grupos) | 48 | 0.539 | 0.629 | 0 |
+
+- Las regresiones por sí solas separan poco: 0.56 en los mismos datos y 0.54 en julio y en la validación cruzada. En julio, 39 de los 42 modelos quedan arriba de 0.5 (rango 0.447 a 0.588) y en la validación cruzada 46 de 48. Las 11 características de la pregunta cambian la probabilidad de ganar de un modelo, pero no mucho.
+- **Límite de esta comparación, no es pareja:** en el AUC por modelo, el ranking general usa **el % de victorias del rival** de cada fila y la regresión no (decisión 5 de `docs/12`: las 48 no controlan por el rival). Un % de victorias propio constante daría 0.5 por construcción, así que se escogió la versión con rival, que es la más exigente. Por eso aquí el ranking gana casi siempre. **La comparación pareja con la línea base es la del AUC por voto**, donde ambos métodos usan a los 2 modelos. Cómo comparar el AUC por modelo queda como propuesta para el grupo.
+- En julio hay AUC para 42 de 48 modelos: los 4 que solo aparecen en julio no tienen regresión, `gemini-2.5-pro-preview-03-25` no tiene votos en julio y `gemini-2.5-pro-preview-05-06` tiene 1. Los demás tienen 272 filas o más.
+
+### Curva ROC de julio
+
+`R/resultados/auc/curva_roc_julio.png`: curva por voto de las 48 regresiones (AUC 0.702) contra el ranking general (0.695), sobre los 20,416 votos de julio. Las 2 curvas casi se superponen. Los puntos de las curvas están en `curva_roc_julio.csv`.
+
+Para regenerar (necesita el paquete `pROC`): `source("R/11_auc_proc.R")` desde la raíz del repo (~20 segundos). Script y documentación preparados con asistencia de Claude (Anthropic).
