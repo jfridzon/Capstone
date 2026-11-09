@@ -493,7 +493,7 @@ Codigo y documentacion preparados con asistencia de ChatGPT/Codex.
 Script: `R/06_costo_por_respuesta.R`. Detalle y cómo leerlo: `docs/11-precios-y-costo.md`, Partes 3 y 4.
 
 - **`razona`** (`data/derivados/precios_modelos_2026-11-02_v4.csv`, igual a la v3 pero sin `disponible_gratis_en_app`, issue #15): 22 modelos razonan, 24 no y 2 quedan vacíos (los experimentales). Entre los 35 con precio: 17 si y 18 no. Fuente de cada uno en `notas`.
-- **Top 3 por tarea y presupuesto** (`R/resultados/top3_por_precio.csv`): las 48 regresiones de `R/02` con medio punto y todos los votos (106,602), probabilidad promedio sobre las preguntas reales de cada tarea, solo modelos con 100 o más votos en julio y con precio oficial. Presupuesto = precio de salida por millón: sin límite, hasta $10, $2 y $0.50.
+- **Top 3 por tarea y presupuesto** (versión del 2/11, reemplazada el 9/11 por la de abajo con binomial; guardada en `R/resultados/top3_por_precio_2026-11-02_medio_punto.csv`): las 48 regresiones de `R/02` con medio punto y todos los votos (106,602), probabilidad promedio sobre las preguntas reales de cada tarea, solo modelos con 100 o más votos en julio y con precio oficial. Presupuesto = precio de salida por millón: sin límite, hasta $10, $2 y $0.50.
 - **gemini-2.5-pro es 1º en las 4 tareas** cuando entra en el presupuesto (68.4% en todas, $10).
 - **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas (55.7% en todas). Su precio de $0.60 es sin razonamiento (con razonamiento era $3.50): decisión abierta en `docs/07`.
 - **Hasta $10:** deepseek-r1-0528 ($2.19) queda a 1.4 puntos de o3 ($8) en todas las preguntas (60.5% contra 61.9%).
@@ -616,3 +616,35 @@ Detalle de cada modelo en `R/resultados/auc/por_modelo.csv`. Resumen (promedio s
 `R/resultados/auc/curva_roc_julio.png`: curva por voto de las 48 regresiones (AUC 0.702) contra el ranking general (0.695), sobre los 20,416 votos de julio. Las 2 curvas casi se superponen. Los puntos de las curvas están en `curva_roc_julio.csv`.
 
 Para regenerar (necesita el paquete `pROC`): `source("R/11_auc_proc.R")` desde la raíz del repo (~20 segundos). Script y documentación preparados con asistencia de Claude (Anthropic).
+
+## Fase 2b, tarea D1 de Marco: top 3 por presupuesto con binomial (9/11/2026)
+
+Script: `R/12_top3_por_precio.R` → `R/resultados/top3_por_precio.csv` (issue #34). Detalle y cómo leerlo: `docs/11-precios-y-costo.md`, Parte 4.
+
+Las 48 regresiones de `R/02` con el modelo principal de la fase 2b (`glm(..., family = binomial)`, votos con ganador, sin los 28 de revisión, sin ridge), ajustadas con todos los votos de abril a julio (77,843). El top 3 sale de `top3()` de `R/02`: probabilidad de ganar promedio sobre las preguntas reales de cada tarea, solo modelos con 100 o más votos en julio y con precio oficial. Presupuesto = precio de lista por millón de tokens de salida (julio 2025). No es una evaluación, así que no usa los folds.
+
+| Tarea (preguntas) | Presupuesto | 1º | 2º | 3º |
+|---|---|---|---|---|
+| Todas (77,843) | Sin límite | gemini-2.5-pro (74.2%, $10) | grok-4-0709 (68.8%, $15) | o3-2025-04-16 (65.8%, $8) |
+|  | Hasta $10 | gemini-2.5-pro (74.2%, $10) | o3-2025-04-16 (65.8%, $8) | deepseek-r1-0528 (64.4%, $2.19) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (57.7%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (54.9%, $0.4) | deepseek-v3-0324 (54.6%, $1.1) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (54.9%, $0.4) | grok-3-mini-beta (50.9%, $0.5) | grok-3-mini-high (50.7%, $0.5) |
+| Código (21,048) | Sin límite | gemini-2.5-pro (72.2%, $10) | grok-4-0709 (65.1%, $15) | o3-2025-04-16 (65.0%, $8) |
+|  | Hasta $10 | gemini-2.5-pro (72.2%, $10) | o3-2025-04-16 (65.0%, $8) | deepseek-r1-0528 (63.7%, $2.19) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (54.5%, $0.6) | deepseek-v3-0324 (52.5%, $1.1) | grok-3-mini-high (51.9%, $0.5) |
+|  | Hasta $0.50 | grok-3-mini-high (51.9%, $0.5) | grok-3-mini-beta (51.2%, $0.5) | gemini-2.5-flash-lite-preview-06-17-thinking (50.3%, $0.4) |
+| Math (5,945) | Sin límite | gemini-2.5-pro (76.9%, $10) | grok-4-0709 (73.5%, $15) | gemini-2.5-flash (67.5%, $2.5) |
+|  | Hasta $10 | gemini-2.5-pro (76.9%, $10) | gemini-2.5-flash (67.5%, $2.5) | o3-2025-04-16 (62.6%, $8) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (60.5%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (55.6%, $0.4) | grok-3-mini-high (51.6%, $0.5) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (55.6%, $0.4) | grok-3-mini-high (51.6%, $0.5) | grok-3-mini-beta (48.6%, $0.5) |
+| Escritura creativa (6,514) | Sin límite | gemini-2.5-pro (75.7%, $10) | grok-3-preview-02-24 (66.3%, $15) | grok-4-0709 (63.9%, $15) |
+|  | Hasta $10 | gemini-2.5-pro (75.7%, $10) | deepseek-r1-0528 (62.9%, $2.19) | gemini-2.5-flash (62.1%, $2.5) |
+|  | Hasta $2 | gemini-2.5-flash-preview-04-17 (59.9%, $0.6) | gemini-2.5-flash-lite-preview-06-17-thinking (58.7%, $0.4) | deepseek-v3-0324 (57.5%, $1.1) |
+|  | Hasta $0.50 | gemini-2.5-flash-lite-preview-06-17-thinking (58.7%, $0.4) | gemini-2.0-flash-001 (51.8%, $0.4) | grok-3-mini-high (47.7%, $0.5) |
+
+- **El orden es el mismo que con medio punto (2/11) en los 48 puestos.** Las probabilidades suben porque ahora los empates no cuentan (por ejemplo, gemini-2.5-pro en todas: 68.4% → 74.2%).
+- **gemini-2.5-pro es 1º en las 4 tareas** cuando entra en el presupuesto.
+- **Hasta $10:** deepseek-r1-0528 ($2.19) queda a 1.4 puntos de o3 ($8) en todas las preguntas (64.4% contra 65.8%).
+- **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas. Su $0.60 es sin razonamiento (con razonamiento, $3.50): sigue abierto en `docs/07`.
+
+Código y documentación preparados con asistencia de Claude (Anthropic).

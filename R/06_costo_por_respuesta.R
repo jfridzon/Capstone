@@ -13,8 +13,7 @@
 #   Parte 2. PRUEBA de costo por respuesta de cada modelo (la de la fase 1, sin cambios).
 #            Resultado: R/resultados/costo_por_modelo.csv
 #
-#   Parte 3. Top 3 por tarea dentro de cada presupuesto (decisión 6 de docs/12).
-#            Resultado: R/resultados/top3_por_precio.csv
+#   Parte 3. (Se movió a R/12_top3_por_precio.R en la fase 2b, con binomial.)
 #
 # Necesita: data/derivados/precios_modelos_2026-10-28_v2.csv (R/05_precios_modelos.R),
 #           data/lmarena_votes.csv, la base larga de Nessim y las funciones de R/02 (Jaime).
@@ -212,74 +211,8 @@ cat("Parte 2: votos usados (1er voto, 48 modelos, 1 turno, modelos distintos):",
     "| modelos con costo:", sum(!is.na(summ$cost_per_1000_responses)), "de", nrow(summ), "\n")
 
 # =============================================================================
-# Parte 3. Top 3 por tarea dentro de cada presupuesto
+# Parte 3. Top 3 por tarea dentro de cada presupuesto -> se movió a R/12_top3_por_precio.R
 # =============================================================================
-# Cómo se arma (docs/12):
-#   - Las 48 regresiones de Jaime (R/02), con empates y both_bad a medio punto (decisión 1),
-#     ajustadas con TODOS los votos de abril a julio (decisión 4: la herramienta final
-#     usa todos). Sin ridge: el λ lo elige Mark con train y todavía no está.
-#   - Probabilidad de ganar en preguntas REALES de cada tarea (`ranking_real` de R/02):
-#     el promedio sobre todas las preguntas que tienen esa característica, porque una
-#     pregunta de código casi siempre es también de problem_solving, etc.
-#   - Solo modelos con 100 o más votos en julio (decisión 2) y con precio oficial
-#     (los 13 sin precio quedan fuera, ficha de Marco).
-#   - Presupuesto = precio de salida por millón de tokens: sin límite, hasta $10,
-#     hasta $2 y hasta $0.50 ("hasta" incluye el límite: un modelo de $10 entra en $10).
-# Cuando Jaime publique top3(..., precio_max), esta parte se cambia por esa función.
-
-options(correr_02 = FALSE)
-source("R/02_regresiones_por_modelo.R")
-
-base  <- cargar_base()
-datos <- preparar_respuesta(base, politica = "medio_punto", sin_revision = TRUE)
-ajustes <- ajustar_modelos(datos, rival = FALSE)
-cat("Parte 3: regresiones ajustadas:", length(ajustes), "| filas:", nrow(datos),
-    "| votos:", length(unique(datos$id)), "\n")
-
-votos_julio <- table(base$model[base$month == 7])
-votos_julio <- setNames(as.integer(votos_julio[names(ajustes)]), names(ajustes))
-votos_julio[is.na(votos_julio)] <- 0L
-
-tareas <- list(todas              = character(0),
-               codigo             = "is_code",
-               math               = "math",
-               escritura_creativa = "creative_writing")
-presupuestos <- c(sin_limite = Inf, hasta_10 = 10, hasta_2 = 2, hasta_0.50 = 0.5)
-
-precio <- v3[, c("modelo", "compania", "precio_entrada_usd_por_millon",
-                 "precio_salida_usd_por_millon", "razona")]
-
-top3 <- do.call(rbind, lapply(names(tareas), function(t) {
-  r <- ranking_real(tareas[[t]], ajustes, datos)
-  # Cuántas preguntas reales entran en el promedio (ranking_real no lo devuelve)
-  q <- datos[!duplicated(datos$id), predictores]
-  n_preguntas <- if (length(tareas[[t]]) == 0) nrow(q) else sum(apply(q[tareas[[t]]], 1, all))
-  r <- merge(r, precio, by = "modelo", all.x = TRUE)
-  r$votos_julio <- votos_julio[r$modelo]
-  r <- r[!is.na(r$precio_salida_usd_por_millon) & r$votos_julio >= 100, ]
-  r <- r[order(-r$prob_ganar), ]
-  do.call(rbind, lapply(names(presupuestos), function(p) {
-    d <- head(r[r$precio_salida_usd_por_millon <= presupuestos[[p]], ], 3)
-    data.frame(tarea                 = t,
-               preguntas_reales      = n_preguntas,
-               presupuesto           = p,
-               puesto                = seq_len(nrow(d)),
-               modelo                = d$modelo,
-               compania              = d$compania,
-               prob_ganar            = round(d$prob_ganar, 3),
-               precio_salida_usd_por_millon  = d$precio_salida_usd_por_millon,
-               precio_entrada_usd_por_millon = d$precio_entrada_usd_por_millon,
-               razona                = d$razona,
-               votos_julio           = d$votos_julio,
-               votos_total           = d$votos,
-               puesto_sin_limite     = match(d$modelo, r$modelo))
-  }))
-}))
-
-write.csv(top3, "R/resultados/top3_por_precio.csv", row.names = FALSE, na = "", fileEncoding = "UTF-8")
-cat("Parte 3: R/resultados/top3_por_precio.csv,", nrow(top3), "filas\n")
-for (t in names(tareas)) {
-  cat("\n", t, "\n", sep = "")
-  print(top3[top3$tarea == t, c("presupuesto", "puesto", "modelo", "prob_ganar",
-                                "precio_salida_usd_por_millon", "razona")], row.names = FALSE)
-}
+# Desde la fase 2b (9/11, docs/14) el top 3 se hace con las regresiones binomial en
+# R/12_top3_por_precio.R. La versión del 2/11 (medio punto) quedó guardada en
+# R/resultados/top3_por_precio_2026-11-02_medio_punto.csv.
