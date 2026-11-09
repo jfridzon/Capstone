@@ -652,3 +652,58 @@ Las 48 regresiones de `R/02` con el modelo principal de la fase 2b (`glm(..., fa
 - **Hasta $2:** gemini-2.5-flash-preview-04-17 es 1º en las 4 tareas. Su $0.60 es sin razonamiento (con razonamiento, $3.50): sigue abierto en `docs/07`.
 
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+## Fase 2b, tareas A2 y E de Nessim: AUC en la demo y Bradley–Terry con covariables
+
+La demo `R/10_demo_clase_48.R` lee la tabla por voto de Mark en
+`R/resultados/auc/por_voto.csv`. Muestra el ajuste con todos los datos, el AUC
+de cada fold reservado y su promedio. La prueba de julio aparece como
+resultado histórico.
+
+`R/07_bradley_terry_covariables.R` ajusta una regresión con una fila por voto.
+Cada modelo tiene una fuerza base y un ajuste por cada una de las 11
+características de la pregunta. La diferencia de fuerzas entre A y B
+determina la predicción, así que el ajuste toma en cuenta al rival de ese
+voto. Claude Opus 4 es la referencia y el modelo se ajusta sin intercepto.
+
+Para el ajuste, una victoria de A vale 1, una de B vale 0 y un empate o
+`both_bad` vale 0.5, como pide la ficha para esta regresión combinada.
+`glmnet` recibe esos resultados como dos proporciones por voto. Ridge
+penaliza las interacciones con las características y deja libres las fuerzas
+base. Se elige λ por log-loss de votos decisivos, usando solo los folds de
+entrenamiento en cada vuelta externa. Todas las particiones provienen de
+`R/resultados/auc/folds_5.csv`.
+
+El AUC de `pROC` usa los mismos votos decisivos por fold que Mark. La
+comparación es entre dos procedimientos completos, pues las 48 regresiones
+se ajustan solo con decisivos y Bradley–Terry incluye medios puntos. El AUC
+con todos los datos es descriptivo. El promedio de los folds mide el
+desempeño en sesiones reservadas. Los resultados se guardan en
+`R/resultados/bradley_terry/por_voto.csv`, con aciertos y log-loss para
+Bradley–Terry. La tabla histórica de julio sigue en su propio CSV.
+
+| Evaluación | Votos | AUC Bradley–Terry | AUC 48 regresiones | AUC ranking general |
+|---|---:|---:|---:|---:|
+| Todos los datos (descriptivo) | 77,843 | 0.7002 | 0.7005 | 0.6854 |
+| Fold 1 | 15,569 | 0.6914 | 0.6902 | 0.6844 |
+| Fold 2 | 15,560 | 0.6935 | 0.6921 | 0.6873 |
+| Fold 3 | 15,475 | 0.6973 | 0.6954 | 0.6908 |
+| Fold 4 | 15,679 | 0.6788 | 0.6779 | 0.6735 |
+| Fold 5 | 15,560 | 0.6934 | 0.6912 | 0.6857 |
+| Promedio de los cinco folds | 77,843 | 0.6909 | 0.6894 | 0.6843 |
+
+La mejora media frente a las 48 regresiones fue de 0.0015 de AUC. En los
+folds reservados, Bradley–Terry acertó 49,870 de 77,843 votos (64.06%) y
+obtuvo un log-loss de 0.6390.
+
+`R/resultados/bradley_terry/top3_por_tarea.csv` compara ambos rankings sobre
+las mismas preguntas decisivas y con la misma regla de elegibilidad de
+`top3()`. El puntaje de Bradley–Terry promedia su predicción frente a Claude
+Opus 4 para todas las preguntas de cada tarea. Es un puntaje esperado con
+medio punto para empates. Gemini 2.5 Pro quedó primero en los seis
+escenarios con ambos métodos. El único cambio en el top 3 fue el tercer
+puesto en matemáticas: MiniMax M1 entró en lugar de Gemini 2.5 Flash.
+
+Para reproducir, desde la raíz se ejecutan `Rscript R/07_bradley_terry_covariables.R`
+(requiere Matrix, glmnet y pROC) y `Rscript R/10_demo_clase_48.R`.
+Código y documentación preparados con asistencia de ChatGPT/Codex.
