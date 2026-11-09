@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which AI model is best for each task? | LMArena Capstone</title>
+<meta name="description" content="A team project that uses 135,634 human votes from LMArena to rank AI models by task type, built with logistic regression in R.">
+<style>
+:root{--bg:#fafaf7;--fg:#16181d;--mute:#5b6270;--line:#e4e4de;--accent:#1f4fd8;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#eceef2;--mute:#9aa1ae;--line:#242833;--accent:#7da2ff;--card:#161a22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:0 24px 80px}
+header{padding:88px 0 40px}
+.tag{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-size:clamp(34px,6vw,54px);line-height:1.1;margin:14px 0 18px;letter-spacing:-.02em}
+.lead{font-size:20px;color:var(--mute);max-width:640px;margin:0 0 28px}
+.btn{display:inline-block;padding:11px 20px;border-radius:10px;border:1px solid var(--line);text-decoration:none;color:var(--fg);font-weight:600;font-size:15px;margin:0 8px 8px 0}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-size:26px;margin:0 0 14px;letter-spacing:-.01em}
+p{margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:6px 0 4px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stat b{display:block;font-size:30px;letter-spacing:-.02em}
+.stat span{color:var(--mute);font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;counter-reset:s;padding:0;list-style:none;margin:0}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;counter-increment:s}
+.steps li:before{content:counter(s);display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;margin-bottom:8px}
+.steps strong{display:block;margin-bottom:4px}
+.steps span{color:var(--mute);font-size:15px}
+code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.9em}
+.note{color:var(--mute);font-size:14px}
+ul.team{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:10px}
+ul.team a{display:inline-block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--fg);font-size:15px;background:var(--card)}
+a{color:var(--accent)}
+footer{color:var(--mute);font-size:14px;padding-top:28px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="tag">Business Intelligence Capstone · Yeshiva University</div>
+  <h1>Which AI model is best for each type of task?</h1>
+  <p class="lead">Most companies pick one AI model and use it for everything. We use real human votes to estimate which model wins on which kind of question, and turn that into a simple ranking per task.</p>
+  <a class="btn primary" href="https://github.com/jfridzon/Capstone">View the repository</a>
+  <a class="btn" href="https://huggingface.co/datasets/lmarena-ai/arena-human-preference-140k">The dataset</a>
+</header>
+
+<section>
+  <h2>The data</h2>
+  <p>LMArena shows a person two anonymous AI answers to the same question and asks which is better. Models are paired at random and names are hidden until after the vote, so the setup works like a randomized experiment.</p>
+  <div class="stats">
+    <div class="stat"><b>135,634</b><span>human votes (Apr to Jul 2025)</span></div>
+    <div class="stat"><b>48</b><span>models with 1,000+ votes</span></div>
+    <div class="stat"><b>11</b><span>question characteristics</span></div>
+    <div class="stat"><b>R</b><span>all analysis is reproducible</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>The method</h2>
+  <ol class="steps">
+    <li><strong>Describe the question</strong><span>Eleven yes/no labels, such as code, math, creative writing and complexity.</span></li>
+    <li><strong>One regression per model</strong><span>For each of the 48 models, a logistic regression predicts whether it wins, given those labels.</span></li>
+    <li><strong>Rank by task</strong><span>For any mix of labels, order the models by predicted win probability.</span></li>
+    <li><strong>Test on a month it never saw</strong><span>Train on April to June, then compare against a single general ranking on July.</span></li>
+  </ol>
+  <p class="note" style="margin-top:14px">Next to the 48 regressions, we also fit a Bradley-Terry model with question covariates as a comparison.</p>
+</section>
+
+<section>
+  <h2>Early result</h2>
+  <p>On 20,416 decisive votes from July that the models never saw, the task-aware regressions picked the winner <strong>65.1%</strong> of the time, against <strong>64.5%</strong> for one general ranking. The margin is modest, which is itself useful: it shows how much of the gap between models depends on the task.</p>
+  <p class="note">Work in progress. Numbers come from <code>R/</code> and <code>docs/</code> in the repository and may change as we add cross-validation and AUC.</p>
+</section>
+
+<section>
+  <h2>What is next</h2>
+  <p>AUC with 5-fold cross-validation, a price table for each model, a top 3 per task that also considers cost, and a small Shiny app where you pick a task and see the recommended models.</p>
+</section>
+
+<section>
+  <h2>Team</h2>
+  <ul class="team">
+    <li><a href="https://github.com/jfridzon">Jaime Fridzon</a></li>
+    <li><a href="https://github.com/markbzq">Mark Benzaquen</a></li>
+    <li><a href="https://github.com/NDB13">Nessim Betesh</a></li>
+    <li><a href="https://github.com/marcofnounou-bit">Marco Fnounou</a></li>
+    <li><a href="https://github.com/eliwulfsohn03">Eli Wulfsohn</a></li>
+  </ul>
+</section>
+
+<footer>
+  Built with R. Data: LMArena arena-human-preference-140k, prompts under CC-BY-4.0. The repository's internal documentation is written in Spanish for the team.
+</footer>
+</main>
+</body>
+</html>
