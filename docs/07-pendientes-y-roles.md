@@ -1,6 +1,10 @@
 # 07. Roles, pendientes y decisiones
 
-## Fase 2: análisis (desde el 2/11)
+## AHORA: fase 2b (desde el 9/11)
+
+Ver **`docs/14-fase-2b.md`**: decisiones (modelo `binomial`, AUC con pROC en 3 escenarios), orden de las tareas y quién espera a quién. Sin fechas límite: se avanza en el orden de la tabla.
+
+## Fase 2: análisis (HECHA, salvo Bradley-Terry #14)
 
 La fase 1 está hecha (ver abajo). Las decisiones abiertas se cerraron el 2/11: ver `docs/12-decisiones-2-11.md`. Cada persona tiene su ficha en `docs/tareas/` y un issue en GitHub con lo mismo.
 

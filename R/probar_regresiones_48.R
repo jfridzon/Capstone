@@ -8,7 +8,7 @@ d <- data.frame(id = paste0("v", seq_len(n)), model = "prueba")
 for (p in predictores) d[[p]] <- sample(c(TRUE, FALSE), n, TRUE)
 d$y <- rbinom(n, 1, plogis(0.4 + 0.3 * d$math))
 d$y[seq(1, n, by = 5)] <- 0.5
-stopifnot(politica_empates == "medio_punto")
+stopifnot(politica_empates == "excluir")
 a <- ajustar_modelos(d, lambda = 0)
 g <- glm(reformulate(predictores, response = "y"),
          family = quasibinomial(), data = d)
@@ -41,8 +41,16 @@ stopifnot(o$convergence == 0, max(abs(b - o$par)) < 1e-4,
 fake <- data.frame(requiere_revision = FALSE,
   es_decisivo = c(TRUE, TRUE, FALSE, FALSE), won = c(1, 0, NA, NA),
   won_medio_punto_escenario = c(1, 0, 0.5, 0.5))
-stopifnot(identical(preparar_respuesta(fake)$y, c(1, 0, 0.5, 0.5)),
-  identical(preparar_respuesta(fake, "excluir")$y, c(1, 0)))
+stopifnot(identical(preparar_respuesta(fake)$y, c(1, 0)),
+  identical(preparar_respuesta(fake, "medio_punto")$y, c(1, 0, 0.5, 0.5)),
+  a[[1]]$family$family == "quasibinomial")
+
+decisivos <- d[d$y %in% c(0, 1), ]
+a_binomial <- ajustar_modelos(decisivos)
+g_binomial <- glm(reformulate(predictores, response = "y"),
+                  family = binomial(), data = decisivos)
+stopifnot(a_binomial[[1]]$family$family == "binomial",
+  max(abs(coef(a_binomial[[1]]) - coef(g_binomial))) < 1e-10)
 
 # El top 3 usa exactamente ranking_real, permite menos de 3 y filtra julio/precio.
 aj <- setNames(rep(a, 4), c("a", "b", "c", "d"))

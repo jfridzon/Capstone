@@ -1,20 +1,21 @@
 # The 48 regressions: 1 logistic regression per model
 # Actualizado para Nessim (issue #17) con asistencia de ChatGPT/Codex, 2/11/2026.
-# Medio punto por defecto, ridge opcional (lambda=0 conserva glm) y top3().
+# Fase 2b (issue #31): binomial por defecto; medio punto y ridge opcionales.
 # Tarea 1 de Nessim, fase 2 (codigo original de Jaime). Desde la raiz: source("R/02_regresiones_por_modelo.R")
 #
 # The question: for a given type of question (code, math, creative writing...),
 # which model is most likely to win?
 #
 # For EACH model separately:
-#   Data:       every vote where that model appeared (1 row = 1 vote, from that model's side)
-#   Response:   y = 1 if it won, 0 if it lost, 0.5 for tie or both_bad
+#   Data:       decisive votes where the model appeared (one row per vote for this model)
+#   Response:   y = 1 if it won, 0 if it lost
+#               Optional half-point fit: y = 0.5 for tie or both_bad
 #   Predictors: the 11 TRUE/FALSE characteristics of the question
 #               (all known BEFORE the model writes its answer)
 #
 #   glm(y ~ is_code + math + creative_writing + instruction_following + complexity +
 #             creativity + domain_knowledge + problem_solving + real_world +
-#             specificity + technical_accuracy, family = quasibinomial)
+#             specificity + technical_accuracy, family = binomial)
 #
 # Then, for any combination of characteristics (for example code + math), each model's
 # regression gives its expected preference score; sorting those gives the ranking.
@@ -38,8 +39,8 @@ predictores <- c("is_code", "math", "creative_writing", "instruction_following",
                  "complexity", "creativity", "domain_knowledge", "problem_solving",
                  "real_world", "specificity", "technical_accuracy")
 
-# Decisiones del 2/11, docs/12: medio punto por defecto. Excluir es sensibilidad.
-politica_empates <- "medio_punto"
+# Fase 2b, docs/14: excluir empates y both_bad del ajuste principal.
+politica_empates <- "excluir"
 
 # Sin rival en las 48. Se conserva la opcion para los chequeos de Mark.
 con_rival <- FALSE
@@ -71,7 +72,7 @@ preparar_respuesta <- function(base, politica = politica_empates, sin_revision =
   base
 }
 
-# Ridge opcional: score quasibinomial logit, penalizacion L2 en los 11 efectos.
+# Ridge opcional: ajuste logit con penalizacion L2 en los 11 efectos.
 # Minimiza sum(log(1 + exp(eta)) - y * eta) + lambda/2 * sum(beta_efectos^2).
 # El intercepto y un eventual control del rival NO se penalizan.
 # lambda lo elige Mark dentro de train; este archivo no lo selecciona.
