@@ -530,3 +530,34 @@ Codigo y guia preparados con asistencia de ChatGPT/Codex.
 
 Update individual de 3 slides en inglés: `reporte/eli_update_2026-11-09.pptx`. Guía en español: `docs/avance-eli-fase2-2026-11-04.md`.
 Código, gráficos, documentación y slides preparados con asistencia de ChatGPT (OpenAI).
+
+## Fase 2b, tarea A de Nessim: regresiones binomiales (9/11/2026)
+
+Según la decisión de la fase 2b, `R/02_regresiones_por_modelo.R` usa como
+modelo principal `glm(..., family = binomial)` con votos decisivos
+(victoria = 1, derrota = 0) y las mismas once características de la pregunta.
+`preparar_respuesta(base, politica = "medio_punto")` conserva el ajuste
+quasibinomial para sensibilidad. La opción ridge sigue disponible.
+
+El ajuste descriptivo de abril a julio usa **77,843 votos decisivos**
+(155,686 filas, después de excluir los casos marcados para revisión).
+Convergen las **48 regresiones** y se exportan **576 coeficientes**,
+incluidos los interceptos. Los coeficientes y rankings de ejemplo se
+regeneran en `R/resultados/`. El top 3 y los controles están en
+`R/resultados/regresiones_48_2026-11-09/`. El top 3 promedia las
+probabilidades ajustadas sobre las preguntas decisivas con cada
+característica y conserva el requisito de al menos 100 votos en julio.
+
+La demo `R/10_demo_clase_48.R` ajusta de nuevo solo con abril a junio y
+reproduce la fila binomial de la evaluación de Mark en los **20,416 votos**
+decisivos de julio. El reporte actualizado lee esta misma evaluación.
+
+| Método | Aciertos | Exactitud | Log-loss |
+|---|---:|---:|---:|
+| Bradley–Terry general | 13,164 | 64.5% | 0.6340 |
+| Regresiones binomiales por modelo | 13,303 | 65.2% | 0.6298 |
+
+Para regenerar: `Rscript R/generar_reporte_48.R`. Para probar y mostrar:
+`Rscript R/probar_regresiones_48.R` y `Rscript R/10_demo_clase_48.R`.
+El AUC con pROC corresponde a la tarea B de Mark (#32). Código y reporte
+actualizados con asistencia de ChatGPT/Codex.

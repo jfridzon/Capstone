@@ -1,0 +1,6 @@
+"archivo","md5_antes","md5_despues"
+"data/lmarena_votes.csv","e3b177ac1693c99e939d1343b4a5f0c5","e3b177ac1693c99e939d1343b4a5f0c5"
+"data/derivados/base_regresiones_2026-10-28_v2.csv.gz","52e16d696815d942848b424a1f35a54f","52e16d696815d942848b424a1f35a54f"
+"data/derivados/precios_modelos_2026-10-28_v2.csv","4fc4b83e70870f424dea1431c0a8de4a","4fc4b83e70870f424dea1431c0a8de4a"
+"R/03_evaluacion.R","a5459d5dbc9a2456c87d3424c90b540a","a5459d5dbc9a2456c87d3424c90b540a"
+"R/resultados/evaluacion.csv","86fda719042dca156f29bdf18f7c0dea","86fda719042dca156f29bdf18f7c0dea"
