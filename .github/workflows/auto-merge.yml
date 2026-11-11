@@ -1,0 +1,120 @@
+# Fusión automática de PRs seguros.
+# Si un PR del grupo no tiene conflictos y no toca nada protegido, se aprueba y se
+# fusiona solo. Si algo no cuadra, se queda esperando a Jaime, Mark o Nessim y el
+# bot deja un comentario con la razón. Detalle en docs/08.
+#
+# Seguridad: usa pull_request_target, así que SIEMPRE corre la versión de este
+# archivo que está en main (un PR no puede cambiarlo para saltarse las reglas), y
+# nunca descarga ni ejecuta el código del PR: solo lee la lista de archivos.
+name: Auto-merge de PRs seguros
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  evaluar:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            // ---- Reglas (editar aquí) ----------------------------------------
+            const EQUIPO = ['jfridzon', 'markbzq', 'ndb13', 'marcofnounou-bit', 'eliwulfsohn03'];
+            // Si el PR toca cualquiera de estos archivos, lo revisa una persona.
+            const PROTEGIDOS = [
+              /^data\//,
+              /^entregas\//,
+              /^\.github\//,
+              /^AGENTS\.md$/,
+              /^CLAUDE\.md$/,
+              /^README\.md$/,
+              /^Capstone\.Rproj$/,
+              /^R\/resultados\/auc\/folds_5\.csv$/,
+              /^docs\/07-pendientes-y-roles\.md$/,
+              /^docs\/08-como-trabajar-en-el-repo\.md$/,
+              /^docs\/12-decisiones-2-11\.md$/,
+              /^docs\/14-fase-2b\.md$/,
+            ];
+            // ------------------------------------------------------------------
+            const { owner, repo } = context.repo;
+            const BOT = 'github-actions[bot]';
+            const marker = '<!-- auto-merge-bot -->';
+            const num = context.payload.pull_request.number;
+
+            let pr = (await github.rest.pulls.get({ owner, repo, pull_number: num })).data;
+            for (let i = 0; i < 5 && pr.mergeable === null; i++) {
+              await new Promise(r => setTimeout(r, 3000));
+              pr = (await github.rest.pulls.get({ owner, repo, pull_number: num })).data;
+            }
+
+            const razones = new Set();
+            if (pr.head.repo === null || pr.head.repo.full_name !== `${owner}/${repo}`) razones.add('viene de un fork');
+            if (!EQUIPO.includes(pr.user.login.toLowerCase())) razones.add(`el autor (@${pr.user.login}) no está en la lista del grupo`);
+            if (pr.mergeable === false || pr.mergeable_state === 'dirty') razones.add('tiene conflictos con `main`');
+
+            const archivos = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: num, per_page: 100 });
+            for (const f of archivos) {
+              const nombres = [f.filename, f.previous_filename].filter(Boolean);
+              if (nombres.some(n => PROTEGIDOS.some(rx => rx.test(n)))) razones.add(`toca un archivo protegido: \`${f.filename}\``);
+              if (f.status === 'removed' || f.status === 'renamed') razones.add(`borra o renombra un archivo: \`${f.filename}\``);
+            }
+
+            const cuerpo = pr.body || '';
+            if (!/for the professor/i.test(cuerpo)) razones.add('falta la sección "For the professor" en la descripción');
+            if (!/closes\s+#\d+/i.test(cuerpo)) razones.add('falta `Closes #N` en la descripción');
+
+            async function comentar(texto) {
+              const todos = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: num, per_page: 100 });
+              const previo = todos.find(c => c.user.login === BOT && c.body.includes(marker));
+              const body = `${marker}\n${texto}`;
+              if (previo) await github.rest.issues.updateComment({ owner, repo, comment_id: previo.id, body });
+              else await github.rest.issues.createComment({ owner, repo, issue_number: num, body });
+            }
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: num, per_page: 100 });
+            const aprobacionesBot = reviews.filter(r => r.user.login === BOT && r.state === 'APPROVED');
+
+            if (razones.size > 0) {
+              // Quitar cualquier aprobación o auto-merge anterior del bot.
+              for (const r of aprobacionesBot) {
+                try {
+                  await github.rest.pulls.dismissReview({ owner, repo, pull_number: num, review_id: r.id, message: 'Ya no cumple las reglas de fusión automática.' });
+                } catch (e) { core.warning(`No se pudo quitar la aprobación: ${e.message}`); }
+              }
+              try {
+                await github.graphql(`mutation($id: ID!) { disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }`, { id: pr.node_id });
+              } catch (e) { /* no estaba activado */ }
+              await comentar(`🔒 **Este PR necesita la revisión de Jaime, Mark o Nessim.** No se fusiona solo porque:\n\n${[...razones].map(r => `- ${r}`).join('\n')}\n\nSi se arregla, se vuelve a evaluar solo.`);
+              return;
+            }
+
+            // Cumple todo: aprobar (si falta) y fusionar.
+            if (!aprobacionesBot.some(r => r.commit_id === pr.head.sha)) {
+              await github.rest.pulls.createReview({
+                owner, repo, pull_number: num, commit_id: pr.head.sha, event: 'APPROVE',
+                body: 'Revisión automática: sin conflictos, no toca archivos protegidos y la descripción está completa.',
+              });
+            }
+            try {
+              await github.rest.pulls.merge({ owner, repo, pull_number: num, merge_method: 'merge', sha: pr.head.sha });
+              await comentar('✅ Sin conflictos y sin tocar nada protegido: se aprobó y se fusionó solo.');
+            } catch (e) {
+              // Si todavía no se puede (por ejemplo, espera otro requisito), se deja en auto-merge.
+              try {
+                await github.graphql(`mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: MERGE}) { clientMutationId } }`, { id: pr.node_id });
+                await comentar('✅ Cumple las reglas. Quedó con auto-merge: se fusiona solo en cuanto GitHub lo permita.');
+              } catch (e2) {
+                await comentar(`⚠️ Cumple las reglas pero GitHub no dejó fusionarlo solo: ${e.message}. Lo puede fusionar una persona.`);
+              }
+            }
