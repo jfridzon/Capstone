@@ -45,7 +45,7 @@ Ninguna por ahora. Cerradas el 2/11 (noche):
 ## Fase 3 (desde el 18/11): quién hace qué
 
 Se detalla en las fichas cuando termine la fase 2. Por ahora:
-- **App** (18/11 a 30/11): una app Shiny donde eliges las características de tu pregunta y tu presupuesto, y te da el top 3. Mark (con `top3()` de Nessim) y Marco (precios).
+- **App** (18/11 a 30/11): una app Shiny donde eliges las características de tu pregunta y tu presupuesto, y te da el top 3. Mark (con `top3()` de Nessim) y Marco (precios). Adelanto del 11/11 (rama `mark/app-diseno`, ver `docs/tareas/mark.md`): botones de ejemplo y gráfico de barras en `app/app.R`; los ajustes no se guardan (reajustar tarda unos 4 s).
 - **Dashboards** (2/12 y 7/12): Eli.
 - **Reporte en R Markdown** (40% de la nota): Nessim arma la base con su `reporte/01_regresiones_48.Rmd`; cada uno escribe la sección de su parte.
 - **Presentación** (30%): todos; cada uno presenta su parte.

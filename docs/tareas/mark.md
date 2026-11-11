@@ -1,5 +1,17 @@
 # Tarea de Mark
 
+## App Shiny, adelantada (11/11, rama `mark/app-diseno`): LEER ANTES DE TOCAR `app/app.R`
+
+La fase de la app es del 18/11 al 30/11 (`docs/07`), pero Mark la adelantó sobre el esqueleto de Marco. Estado:
+
+- **Hecho:** 6 botones "Quick examples" (rellenan casillas y presupuesto) y un gráfico de barras del top 3 (color según si el modelo razona), en `app/app.R`. Los 6 ejemplos dan los mismos modelos y probabilidades que `R/resultados/top3_por_precio.csv`.
+- **Decidido:** NO se guardan los ajustes. Reajustar las 48 regresiones al abrir tarda unos 4 segundos, y el objeto completo pesa 51 MB (más del límite de `docs/08`). Si algún día se publica la app, se vuelve a decidir.
+- **No se sube ninguna app a un servidor** (decisión de Mark, 11/11). La app se abre en local con `shiny::runApp("app")`.
+- **Sin issue oficial todavía:** el PR va en borrador y sin `Closes #N` a propósito, para que no entre por fusión automática y lo revise el grupo (el archivo es de Marco).
+- **Pendiente (sin hacer):** gráfico de precio contra probabilidad, explicaciones más simples en inglés, y lo que decida el grupo el 18/11. No hay números nuevos en la app: todo sale de `top3()` de `R/02`.
+
+---
+
 ## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).
@@ -12,6 +24,8 @@ Lee primero `docs/14-fase-2b.md` (decisiones y orden).
 5. Salida en `R/resultados/auc/` (`por_modelo.csv`, `por_voto.csv`, `folds.csv`) y 1 curva ROC de julio (48 regresiones vs línea base). Actualizar `docs/05`.
 
 **Hoy en clase:** explica tu parte (issue #22).
+
+**Estado (11/11):** la tarea B (PR #39) y el issue #45, `R/15_roc_por_fold.R` (PR #51), están HECHOS y en `main`. Los 3 escenarios de arriba quedaron en 2 (todos los datos y 5-fold CV): ver `docs/05` y `docs/14`.
 
 ## Fase 2 (HECHA). No la repitas
 
