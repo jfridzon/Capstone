@@ -800,6 +800,7 @@ Ejecución completa con R 4.3.3, MASS 7.3-60 y pROC 1.18.5. Los hashes de
 data/, entregas/ y todas las salidas de Mark (incluidos los folds) no cambian.
 Código, gráfico y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
 
+
 ## Eli, demo del 16/11: gráficos de coeficientes y tabla (issue #46, 11/11/2026)
 
 `R/16_graficos_coeficientes.R` define tres funciones en R base para que Nessim
@@ -849,3 +850,31 @@ de ChatGPT/Codex (OpenAI).
 | 3º | qwen3-235b-a22b (68.9%, sin precio oficial) | gemini-2.5-flash-lite-preview-06-17-thinking (50.5%, $0.40) |
 
 El 1º hasta $2 gana 17.1 puntos menos que el 1º sin límite, por un precio 17 veces menor.
+
+## Demo 16/11, integración de Nessim (`R/14_demo_rstudio.R`, issue #44)
+
+El script muestra respuesta y once predictores, ajusta el GLM binomial de
+`o3-2025-04-16`, imprime su `summary()` y transforma los coeficientes con
+`exp(coef)`. Por ejemplo, `mathTRUE` tiene coeficiente -0.1479 y odds ratio
+0.8625: es una asociación ajustada en odds, no un cambio en puntos de
+probabilidad ni evidencia causal. Salida reproducible en
+`R/resultados/demo_rstudio_2026-11-11/odds_ratios_o3.csv`.
+
+Integra las piezas ya fusionadas de Mark (PR #51), Eli (#52) y Marco (#50)
+en ese orden. Mark recalcula a la vista el AUC con todos los datos y los
+cinco folds; el resto reutiliza sus funciones y resultados existentes.
+Bradley-Terry se muestra como comparación guardada, sin reajustarlo.
+La tabla por fold reproduce la de Mark (media 0.6894 contra 0.6843).
+El script no escribe archivos ni genera particiones propias. Si falta una
+pieza, avisa cuál es y continúa; la tabla final distingue una ejecución
+parcial de una integración completa.
+
+Se ejecutó la demo completa con las cuatro piezas y también en una copia
+sin las tres piezas opcionales. Los 26 archivos bajo data/, entregas/ y
+R/resultados/auc/ conservaron sus hashes en la ejecución completa.
+Se guardan la salida de consola, las tablas y el alcance de las comprobaciones
+en `R/resultados/demo_rstudio_2026-11-11/`. Guía de ensayo:
+`docs/15-guia-demo-nessim.md`. Esto verifica la ejecución en R; falta el
+ensayo personal de Nessim en RStudio antes de clase.
+
+Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).

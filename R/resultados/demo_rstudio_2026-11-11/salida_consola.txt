@@ -1,0 +1,206 @@
+
+1. What do we predict, and with what?
+Response: won = 1 if the model won, 0 if it lost.
+We use votes with a winner; flagged votes stay out.
+               feature                meaning
+               is_code                   Code
+                  math                   Math
+      creative_writing       Creative writing
+ instruction_following Following instructions
+            complexity             Complexity
+            creativity             Creativity
+      domain_knowledge       Domain knowledge
+       problem_solving        Problem solving
+            real_world         Real-world use
+           specificity            Specificity
+    technical_accuracy     Technical accuracy
+Answer length and formatting are not predictors: they come later.
+Decisive votes: 77843 | Models: 48 
+
+2. One logistic regression, with the code visible
+Model: o3-2025-04-16 
+
+Call:
+glm(formula = won ~ is_code + math + creative_writing + instruction_following + 
+    complexity + creativity + domain_knowledge + problem_solving + 
+    real_world + specificity + technical_accuracy, family = binomial, 
+    data = demo_14$one_model)
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                0.45216    0.07680   5.888 3.92e-09 ***
+is_codeTRUE               -0.12284    0.07041  -1.744  0.08107 .  
+mathTRUE                  -0.14791    0.12347  -1.198  0.23094    
+creative_writingTRUE      -0.24947    0.11283  -2.211  0.02703 *  
+instruction_followingTRUE -0.28329    0.08858  -3.198  0.00138 ** 
+complexityTRUE            -0.01951    0.07413  -0.263  0.79246    
+creativityTRUE             0.11971    0.07687   1.557  0.11942    
+domain_knowledgeTRUE       0.24587    0.09339   2.633  0.00847 ** 
+problem_solvingTRUE        0.03379    0.08559   0.395  0.69300    
+real_worldTRUE             0.12101    0.08196   1.476  0.13985    
+specificityTRUE           -0.20217    0.08616  -2.346  0.01896 *  
+technical_accuracyTRUE     0.14872    0.08415   1.767  0.07716 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6557.6  on 5092  degrees of freedom
+Residual deviance: 6513.1  on 5081  degrees of freedom
+AIC: 6537.1
+
+Number of Fisher Scoring iterations: 4
+
+                      term coefficient odds_ratio
+               (Intercept)      0.4522     1.5717
+               is_codeTRUE     -0.1228     0.8844
+                  mathTRUE     -0.1479     0.8625
+      creative_writingTRUE     -0.2495     0.7792
+ instruction_followingTRUE     -0.2833     0.7533
+            complexityTRUE     -0.0195     0.9807
+            creativityTRUE      0.1197     1.1272
+      domain_knowledgeTRUE      0.2459     1.2787
+       problem_solvingTRUE      0.0338     1.0344
+            real_worldTRUE      0.1210     1.1286
+           specificityTRUE     -0.2022     0.8170
+    technical_accuracyTRUE      0.1487     1.1603
+Intercept: log-odds of winning when all 11 features are FALSE.
+A feature coefficient changes log-odds, holding the others fixed.
+exp(coef) is an odds ratio, not a change in probability.
+These are associations, not causal effects.
+Each vote appears twice across the 48 fits; p-values are indicative.
+
+3. AUC with all the data (in sample)
+
+=== Step 2: ROC curve with ALL the data ===
+48 regressions fitted with 77843 votes that have a winner.
+
+
+Call:
+roc.default(response = won, predictor = p, levels = c(0, 1),     direction = "<", quiet = TRUE)
+
+Data: p in 39341 controls (won 0) < 38502 cases (won 1).
+Area under the curve: 0.7005
+
+AUC, 48 regressions : 0.7005 
+AUC, general ranking: 0.6854 
+Same as R/resultados/auc/por_voto.csv: TRUE 
+These votes were also used to fit: this is descriptive.
+
+4. Five-fold cross-validation on unseen sessions
+
+=== Step 1: how the 5 folds were made (file R/resultados/auc/folds_5.csv) ===
+- The unit is the SESSION (evaluation_session_id), not the row.
+- Why: every vote makes 2 rows, 1 per model. If the 2 rows fell in different folds, the
+  fit would have seen the vote that the test is about. A session never gets split.
+- The 106,620 sessions got the labels 1 to 5 in equal numbers,
+  shuffled with set.seed(2026). The code that does it (make_folds in R/11):
+
+    {
+        votes <- base[base$lado == "model_a", c("id", "evaluation_session_id")]
+        sessions <- sort(unique(votes$evaluation_session_id))
+        set.seed(seed)
+        fold_of_session <- setNames(sample(rep_len(1:k_folds, length(sessions))), 
+            sessions)
+        out <- data.frame(id = votes$id, fold = unname(fold_of_session[votes$evaluation_session_id]))
+        out[order(out$id), ]
+    }
+
+Sessions that are in more than one fold: 0 
+Making the folds again from the seed gives the same file: TRUE 
+
+ fold sessions votes votes_with_winner
+    1    21324 21324             15569
+    2    21324 21327             15560
+    3    21324 21326             15475
+    4    21324 21327             15679
+    5    21324 21326             15560
+
+=== Step 3: 5-fold cross-validation (each fold is predicted without being used to fit) ===
+  fold 1 : fitted with 62274 votes, tested on 15569 votes, AUC 0.6902 
+  fold 2 : fitted with 62283 votes, tested on 15560 votes, AUC 0.6921 
+  fold 3 : fitted with 62368 votes, tested on 15475 votes, AUC 0.6954 
+  fold 4 : fitted with 62164 votes, tested on 15679 votes, AUC 0.6779 
+  fold 5 : fitted with 62283 votes, tested on 15560 votes, AUC 0.6912 
+
+Same as R/resultados/auc/por_voto.csv in all the rows: TRUE 
+ fold votes auc_regressions auc_general_ranking difference
+    1 15569          0.6902              0.6844     0.0058
+    2 15560          0.6921              0.6873     0.0048
+    3 15475          0.6954              0.6908     0.0047
+    4 15679          0.6779              0.6735     0.0044
+    5 15560          0.6912              0.6857     0.0055
+ mean 77843          0.6894              0.6843     0.0050
+Fit on four folds, test on the fifth; repeat five times.
+The general ranking also learns only from the four training folds.
+AUC measures separation of wins and losses; it is not accuracy.
+The mean above is the mean of five AUCs, not a pooled-curve AUC.
+
+5. Coefficients and their uncertainty
+
+6. Binomial, quasibinomial and ordinal: sensitivity check
+          Method All data (in sample) Fold 1 Fold 2 Fold 3 Fold 4 Fold 5
+        Binomial               0.7005 0.6902 0.6921 0.6954 0.6779 0.6912
+   Quasibinomial               0.7004 0.6900 0.6923 0.6955 0.6780 0.6917
+         Ordinal               0.7002 0.6898 0.6924 0.6954 0.6779 0.6917
+ General ranking               0.6854 0.6844 0.6873 0.6908 0.6735 0.6857
+ Mean of 5 folds
+          0.6894
+          0.6895
+          0.6895
+          0.6843
+Similar AUCs are a sensitivity check, not proof of equivalence.
+
+7. Bradley-Terry: a comparison after the simple regressions
+Mean CV AUC: Bradley-Terry 0.6909; 48 regressions 0.6894; general ranking 0.6843.
+Saved results on the same held-out votes; Bradley-Terry models both opponents.
+Its fit includes half points for ties; the 48 fits use decisive votes.
+
+8. From predictions to a useful choice
+Ajustando las 48 regresiones binomial (unos segundos)...
+Listas: 48 regresiones binomial con 77,843 votos con ganador.
+
+Pregunta:    is_code
+Presupuesto: sin límite
+Se promedia sobre 21,048 preguntas reales
+
+ Puesto Modelo         Compania Prob. de ganar Precio salida Razona
+ 1      gemini-2.5-pro Google   72.2%          $10.00        si    
+ 2      grok-4-0709    xAI      65.1%          $15.00        si    
+ 3      o3-2025-04-16  OpenAI   65.0%          $8.00         si    
+
+Pregunta:    is_code + math
+Presupuesto: sin límite
+Se promedia sobre 1,491 preguntas reales
+
+ Puesto Modelo          Compania Prob. de ganar Precio salida      Razona
+ 1      gemini-2.5-pro  Google   74.8%          $10.00             si    
+ 2      grok-4-0709     xAI      70.5%          $15.00             si    
+ 3      qwen3-235b-a22b Alibaba  68.9%          sin precio oficial si    
+
+Pregunta:    is_code + math
+Presupuesto: hasta $2.00 por millón de tokens de salida
+Se promedia sobre 1,491 preguntas reales
+
+ Puesto Modelo                                       Compania Prob. de ganar Precio salida Razona
+ 1      gemini-2.5-flash-preview-04-17               Google   57.7%          $0.60         si    
+ 2      grok-3-mini-high                             xAI      52.2%          $0.50         si    
+ 3      gemini-2.5-flash-lite-preview-06-17-thinking Google   50.5%          $0.40         si    
+
+Código + math: sin límite contra hasta $2
+
+ Puesto Sin limite                                  Hasta $2                                                   
+ 1      gemini-2.5-pro (74.8%, $10.00)              gemini-2.5-flash-preview-04-17 (57.7%, $0.60)              
+ 2      grok-4-0709 (70.5%, $15.00)                 grok-3-mini-high (52.2%, $0.50)                            
+ 3      qwen3-235b-a22b (68.9%, sin precio oficial) gemini-2.5-flash-lite-preview-06-17-thinking (50.5%, $0.40)
+
+El 1º sin límite gana 74.8% y cuesta $10.00. El 1º hasta $2 gana 57.7% y cuesta $0.60:
+17.1 puntos menos por 17 veces menos de precio.
+Prices are the dataset's historical output-token prices, not a current quote.
+
+Demo integration status (missing pieces must be added before class)
+  piece loaded
+ Nessim   TRUE
+   Mark   TRUE
+    Eli   TRUE
+  Marco   TRUE
