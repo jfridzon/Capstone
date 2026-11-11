@@ -878,3 +878,22 @@ en `R/resultados/demo_rstudio_2026-11-11/`. Guía de ensayo:
 ensayo personal de Nessim en RStudio antes de clase.
 
 Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+## Actualización de presentación: demo simple de Nessim (11/11/2026)
+
+Por petición de Nessim, R/14_demo_rstudio.R ahora muestra directamente
+las fórmulas de los 48 glm binomiales, predict(), pROC::roc(), pROC::auc(),
+el AUC con todos los datos y la CV aleatoria de cinco folds por sesión.
+La consola solo muestra resultados. El guion oral está en docs/15.
+
+Se conserva el método: las mismas exclusiones, once características,
+folds_5.csv y línea base entrenada solo con los cuatro folds correspondientes.
+La receta set.seed(2026) y sample() se ve para comprobar el archivo de Mark;
+no se escriben folds nuevos ni se cambian los scripts de los compañeros.
+
+La ejecución reprodujo, al redondeo publicado, el AUC por voto con todos
+los datos (0.7005/0.6854), los cinco folds y su media (0.6894/0.6843),
+los 48 AUC dentro de muestra, los 240 AUC de modelo/fold y sus medias CV.
+No hubo AUC ausentes. La evidencia de esta versión queda en
+R/resultados/demo_formulas_2026-11-11/. La salida anterior se conserva
+como historia. Código y guía preparados con asistencia de ChatGPT/Codex.
