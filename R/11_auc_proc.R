@@ -227,152 +227,159 @@ run_set <- function(m, ev, scenario, fold) {
   pv
 }
 
-# ---- 6. Scenario 1: all the data (in-sample) ----------------------------------------
+# Everything below (the fits, the tables and the files written to R/resultados/auc/) runs
+# unless correr_11 = FALSE. R/15_roc_por_fold.R uses that to load the functions and the data
+# above without fitting or writing anything:
+#   options(correr_11 = FALSE); sys.source("R/11_auc_proc.R", envir = new.env())
+if (isTRUE(getOption("correr_11", TRUE))) {
 
-cat("\nScenario 1: all data\n")
-m_all <- fit_set(d)
-cat("Regressions fitted:", length(m_all$fits), "\n")
-res <- list(all = run_set(m_all, d, "all_data", "all"))
+  # ---- 6. Scenario 1: all the data (in-sample) ----------------------------------------
 
-# ---- 7. Scenario 2: 5-fold cross-validation (random folds by session) -----------------
+  cat("\nScenario 1: all data\n")
+  m_all <- fit_set(d)
+  cat("Regressions fitted:", length(m_all$fits), "\n")
+  res <- list(all = run_set(m_all, d, "all_data", "all"))
 
-cat("\nScenario 2: 5-fold cross-validation, folds from", folds_file, "\n")
-for (f in 1:k_folds) {
-  train <- d[d$fold != f, ]
-  test  <- d[d$fold == f, ]
-  # No vote and no session is in both sets (so the test never sees what the fit saw)
-  stopifnot(length(intersect(train$id, test$id)) == 0,
-            length(intersect(train$evaluation_session_id, test$evaluation_session_id)) == 0)
-  m_f <- fit_set(train)   # the regressions AND the baseline win rates use only the 4 train folds
-  cat("  fold", f, "| regressions:", length(m_f$fits),
-      "| train votes:", nrow(train) / 2, "| test votes:", nrow(test) / 2, "\n")
-  res[[as.character(f)]] <- run_set(m_f, test, "cv5", as.character(f))
+  # ---- 7. Scenario 2: 5-fold cross-validation (random folds by session) -----------------
+
+  cat("\nScenario 2: 5-fold cross-validation, folds from", folds_file, "\n")
+  for (f in 1:k_folds) {
+    train <- d[d$fold != f, ]
+    test  <- d[d$fold == f, ]
+    # No vote and no session is in both sets (so the test never sees what the fit saw)
+    stopifnot(length(intersect(train$id, test$id)) == 0,
+              length(intersect(train$evaluation_session_id, test$evaluation_session_id)) == 0)
+    m_f <- fit_set(train)   # the regressions AND the baseline win rates use only the 4 train folds
+    cat("  fold", f, "| regressions:", length(m_f$fits),
+        "| train votes:", nrow(train) / 2, "| test votes:", nrow(test) / 2, "\n")
+    res[[as.character(f)]] <- run_set(m_f, test, "cv5", as.character(f))
+  }
+  stopifnot(sum(sapply(res[as.character(1:k_folds)], function(r) r$row$n_votes + r$row$n_votes_left_out)) ==
+              nrow(d) / 2)   # every decisive vote is the test of exactly 1 fold
+
+  # ---- 8. Tables ---------------------------------------------------------------------------
+
+  por_voto   <- do.call(rbind, lapply(res, `[[`, "row"))
+  por_modelo <- do.call(rbind, lapply(res, `[[`, "models"))
+  rownames(por_voto) <- rownames(por_modelo) <- NULL
+
+  # por_voto.csv: add the mean and the sd of the 5 folds (AUC columns only)
+  cv <- por_voto[por_voto$scenario == "cv5", ]
+  blank <- por_voto[1, ]; blank[1, ] <- NA
+  mean_row <- sd_row <- blank
+  mean_row$scenario <- sd_row$scenario <- "cv5"
+  mean_row$fold <- "mean"; sd_row$fold <- "sd"
+  for (col in c("auc_regression", "auc_baseline", "auc_difference")) {
+    mean_row[[col]] <- mean(cv[[col]])
+    sd_row[[col]]   <- sd(cv[[col]])
+  }
+  mean_row$n_votes <- sum(cv$n_votes); mean_row$n_votes_left_out <- sum(cv$n_votes_left_out)
+  mean_row$correct_regression <- sum(cv$correct_regression)
+  mean_row$correct_baseline   <- sum(cv$correct_baseline)
+  por_voto <- rbind(por_voto, mean_row, sd_row)
+
+  # por_modelo.csv: add the mean over the folds that have an AUC (and the sd) for each model
+  cv_models <- por_modelo[por_modelo$scenario == "cv5", ]
+  mean_models <- do.call(rbind, lapply(all_models, function(mod) {
+    r <- cv_models[cv_models$model == mod, ]
+    data.frame(scenario = "cv5", fold = "mean", model = mod,
+               n_rows = sum(r$n_rows), n_wins = sum(r$n_wins),
+               auc = if (any(!is.na(r$auc))) mean(r$auc, na.rm = TRUE) else NA_real_,
+               status = paste0(sum(r$status == "ok"), "_of_", k_folds, "_folds"))
+  }))
+  por_modelo <- rbind(por_modelo, mean_models)
+
+  # folds.csv: 1 row per fold + mean, sd (AUC columns) and total (counts)
+  folds <- do.call(rbind, lapply(as.character(1:k_folds), function(f) {
+    v <- por_voto[por_voto$scenario == "cv5" & por_voto$fold == f, ]
+    m <- por_modelo[por_modelo$scenario == "cv5" & por_modelo$fold == f, ]
+    data.frame(fold = f, n_test_votes = v$n_votes, n_test_votes_left_out = v$n_votes_left_out,
+               auc_vote_regression = v$auc_regression, auc_vote_baseline = v$auc_baseline,
+               auc_vote_difference = v$auc_regression - v$auc_baseline,
+               auc_model_mean = mean(m$auc, na.rm = TRUE),
+               models_with_auc = sum(m$status == "ok"),
+               models_na_one_class = sum(m$status == "one_class"),
+               models_na_no_regression = sum(m$status == "no_regression"),
+               models_na_no_rows = sum(m$status == "no_rows"))
+  }))
+  auc_cols <- c("auc_vote_regression", "auc_vote_baseline", "auc_vote_difference", "auc_model_mean")
+  cnt_cols <- c("n_test_votes", "n_test_votes_left_out", "models_with_auc", "models_na_one_class",
+                "models_na_no_regression", "models_na_no_rows")
+  blank_f <- folds[1, ]; blank_f[1, ] <- NA
+  mean_f <- sd_f <- total_f <- blank_f
+  mean_f$fold <- "mean"; sd_f$fold <- "sd"; total_f$fold <- "total"
+  for (col in auc_cols) { mean_f[[col]] <- mean(folds[[col]]); sd_f[[col]] <- sd(folds[[col]]) }
+  for (col in cnt_cols) total_f[[col]] <- sum(folds[[col]])
+  folds <- rbind(folds, mean_f, sd_f, total_f)
+
+  # AUCs to 4 decimals; p-values to 3 significant digits (many are far below 0.0001)
+  round_cols <- function(x) {
+    for (col in names(x)) if (is.double(x[[col]]))
+      x[[col]] <- if (startsWith(col, "p_")) signif(x[[col]], 3) else round(x[[col]], 4)
+    x
+  }
+  write.csv(round_cols(por_voto),   file.path(out_folder, "por_voto.csv"),   row.names = FALSE)
+  write.csv(round_cols(por_modelo), file.path(out_folder, "por_modelo.csv"), row.names = FALSE)
+  write.csv(round_cols(folds),      file.path(out_folder, "folds.csv"),      row.names = FALSE)
+
+  # ---- 9. ROC curve: 48 regressions vs baseline, predictions of ALL the folds together -------
+  # Each vote is predicted by the regressions fitted WITHOUT its fold (out of fold), and the 5
+  # sets of predictions are put together in 1 curve per method.
+
+  oof <- do.call(rbind, lapply(res[as.character(1:k_folds)], `[[`, "votes"))
+  stopifnot(nrow(oof) == sum(por_voto$n_votes[por_voto$scenario == "cv5" & por_voto$fold %in% 1:k_folds]))
+  roc_reg  <- roc_of(oof$y, plogis(oof$score_vote))
+  roc_base <- roc_of(oof$y, plogis(oof$score_base))
+  pooled <- c(regression = auc_of(roc_reg), baseline = auc_of(roc_base))
+
+  png(file.path(out_folder, "curva_roc_cv5.png"), width = 1100, height = 900, res = 150)
+  par(mar = c(4.5, 4.5, 5, 1.5))   # room at the top for a 2-line title
+  plot(roc_reg, col = "#1f77b4", lwd = 3, legacy.axes = TRUE,
+       xlab = "False positive rate (1 - specificity)", ylab = "True positive rate (sensitivity)",
+       main = sprintf("ROC curve, 5-fold cross-validation (random folds by session)\n%s votes with a winner, each one predicted without its fold",
+                      format(nrow(oof), big.mark = ",")))
+  lines(roc_base, col = "#d62728", lwd = 3, lty = 2)
+  legend("bottomright", bty = "n", lwd = 3, lty = c(1, 2), col = c("#1f77b4", "#d62728"),
+         legend = c(sprintf("48 regressions (AUC = %.3f)", pooled["regression"]),
+                    sprintf("General ranking (AUC = %.3f)", pooled["baseline"])))
+  invisible(dev.off())
+
+  # Same curves as data (101 points each), so the figure can be redrawn for the slides
+  grid <- seq(0, 1, by = 0.01)
+  curve_of <- function(r, name)
+    data.frame(curve = name, false_positive_rate = 1 - grid,
+               true_positive_rate = as.numeric(pROC::coords(r, x = grid, input = "specificity",
+                                                            ret = "sensitivity", transpose = FALSE)[, 1]))
+  curvas <- rbind(curve_of(roc_reg, "48_regressions"), curve_of(roc_base, "general_ranking"))
+  write.csv(round_cols(curvas), file.path(out_folder, "curva_roc_cv5.csv"), row.names = FALSE)
+
+  writeLines(c(R.version.string, paste("pROC", as.character(packageVersion("pROC"))),
+               paste("set.seed(", seed, ") for folds_5.csv; k =", k_folds)),
+             file.path(out_folder, "versiones.txt"))
+
+  # ---- 10. What to read -----------------------------------------------------------------------
+
+  cat("\n=== AUC per vote (pROC): all data, then each fold of the 5-fold CV ===\n")
+  print(round_cols(por_voto[, c("scenario", "fold", "n_votes", "n_votes_left_out", "auc_regression",
+                                "auc_baseline", "auc_difference", "p_delong_paired")]),
+        row.names = FALSE)
+  cat("\nAll folds together (curve): regressions", round(pooled["regression"], 4),
+      "| baseline", round(pooled["baseline"], 4), "\n")
+
+  cat("\n=== AUC per model: summary by scenario / fold ===\n")
+  pm <- por_modelo[por_modelo$fold != "mean", ]
+  grupo <- paste(pm$scenario, pm$fold)
+  resumen <- do.call(rbind, lapply(unique(grupo), function(g) {
+    r <- pm[grupo == g, ]
+    data.frame(scenario = r$scenario[1], fold = r$fold[1], models_with_auc = sum(r$status == "ok"),
+               na_one_class = sum(r$status == "one_class"), na_no_regression = sum(r$status == "no_regression"),
+               na_no_rows = sum(r$status == "no_rows"), mean_auc = mean(r$auc, na.rm = TRUE),
+               min_auc = min(r$auc, na.rm = TRUE), max_auc = max(r$auc, na.rm = TRUE),
+               above_05 = sum(r$auc > 0.5, na.rm = TRUE))
+  }))
+  print(round_cols(resumen), row.names = FALSE)
+
+  cat("\n=== AUC of each fold (cv5) ===\n")
+  print(round_cols(folds), row.names = FALSE)
+  cat("\nSaved in", out_folder, "\n")
 }
-stopifnot(sum(sapply(res[as.character(1:k_folds)], function(r) r$row$n_votes + r$row$n_votes_left_out)) ==
-            nrow(d) / 2)   # every decisive vote is the test of exactly 1 fold
-
-# ---- 8. Tables ---------------------------------------------------------------------------
-
-por_voto   <- do.call(rbind, lapply(res, `[[`, "row"))
-por_modelo <- do.call(rbind, lapply(res, `[[`, "models"))
-rownames(por_voto) <- rownames(por_modelo) <- NULL
-
-# por_voto.csv: add the mean and the sd of the 5 folds (AUC columns only)
-cv <- por_voto[por_voto$scenario == "cv5", ]
-blank <- por_voto[1, ]; blank[1, ] <- NA
-mean_row <- sd_row <- blank
-mean_row$scenario <- sd_row$scenario <- "cv5"
-mean_row$fold <- "mean"; sd_row$fold <- "sd"
-for (col in c("auc_regression", "auc_baseline", "auc_difference")) {
-  mean_row[[col]] <- mean(cv[[col]])
-  sd_row[[col]]   <- sd(cv[[col]])
-}
-mean_row$n_votes <- sum(cv$n_votes); mean_row$n_votes_left_out <- sum(cv$n_votes_left_out)
-mean_row$correct_regression <- sum(cv$correct_regression)
-mean_row$correct_baseline   <- sum(cv$correct_baseline)
-por_voto <- rbind(por_voto, mean_row, sd_row)
-
-# por_modelo.csv: add the mean over the folds that have an AUC (and the sd) for each model
-cv_models <- por_modelo[por_modelo$scenario == "cv5", ]
-mean_models <- do.call(rbind, lapply(all_models, function(mod) {
-  r <- cv_models[cv_models$model == mod, ]
-  data.frame(scenario = "cv5", fold = "mean", model = mod,
-             n_rows = sum(r$n_rows), n_wins = sum(r$n_wins),
-             auc = if (any(!is.na(r$auc))) mean(r$auc, na.rm = TRUE) else NA_real_,
-             status = paste0(sum(r$status == "ok"), "_of_", k_folds, "_folds"))
-}))
-por_modelo <- rbind(por_modelo, mean_models)
-
-# folds.csv: 1 row per fold + mean, sd (AUC columns) and total (counts)
-folds <- do.call(rbind, lapply(as.character(1:k_folds), function(f) {
-  v <- por_voto[por_voto$scenario == "cv5" & por_voto$fold == f, ]
-  m <- por_modelo[por_modelo$scenario == "cv5" & por_modelo$fold == f, ]
-  data.frame(fold = f, n_test_votes = v$n_votes, n_test_votes_left_out = v$n_votes_left_out,
-             auc_vote_regression = v$auc_regression, auc_vote_baseline = v$auc_baseline,
-             auc_vote_difference = v$auc_regression - v$auc_baseline,
-             auc_model_mean = mean(m$auc, na.rm = TRUE),
-             models_with_auc = sum(m$status == "ok"),
-             models_na_one_class = sum(m$status == "one_class"),
-             models_na_no_regression = sum(m$status == "no_regression"),
-             models_na_no_rows = sum(m$status == "no_rows"))
-}))
-auc_cols <- c("auc_vote_regression", "auc_vote_baseline", "auc_vote_difference", "auc_model_mean")
-cnt_cols <- c("n_test_votes", "n_test_votes_left_out", "models_with_auc", "models_na_one_class",
-              "models_na_no_regression", "models_na_no_rows")
-blank_f <- folds[1, ]; blank_f[1, ] <- NA
-mean_f <- sd_f <- total_f <- blank_f
-mean_f$fold <- "mean"; sd_f$fold <- "sd"; total_f$fold <- "total"
-for (col in auc_cols) { mean_f[[col]] <- mean(folds[[col]]); sd_f[[col]] <- sd(folds[[col]]) }
-for (col in cnt_cols) total_f[[col]] <- sum(folds[[col]])
-folds <- rbind(folds, mean_f, sd_f, total_f)
-
-# AUCs to 4 decimals; p-values to 3 significant digits (many are far below 0.0001)
-round_cols <- function(x) {
-  for (col in names(x)) if (is.double(x[[col]]))
-    x[[col]] <- if (startsWith(col, "p_")) signif(x[[col]], 3) else round(x[[col]], 4)
-  x
-}
-write.csv(round_cols(por_voto),   file.path(out_folder, "por_voto.csv"),   row.names = FALSE)
-write.csv(round_cols(por_modelo), file.path(out_folder, "por_modelo.csv"), row.names = FALSE)
-write.csv(round_cols(folds),      file.path(out_folder, "folds.csv"),      row.names = FALSE)
-
-# ---- 9. ROC curve: 48 regressions vs baseline, predictions of ALL the folds together -------
-# Each vote is predicted by the regressions fitted WITHOUT its fold (out of fold), and the 5
-# sets of predictions are put together in 1 curve per method.
-
-oof <- do.call(rbind, lapply(res[as.character(1:k_folds)], `[[`, "votes"))
-stopifnot(nrow(oof) == sum(por_voto$n_votes[por_voto$scenario == "cv5" & por_voto$fold %in% 1:k_folds]))
-roc_reg  <- roc_of(oof$y, plogis(oof$score_vote))
-roc_base <- roc_of(oof$y, plogis(oof$score_base))
-pooled <- c(regression = auc_of(roc_reg), baseline = auc_of(roc_base))
-
-png(file.path(out_folder, "curva_roc_cv5.png"), width = 1100, height = 900, res = 150)
-par(mar = c(4.5, 4.5, 5, 1.5))   # room at the top for a 2-line title
-plot(roc_reg, col = "#1f77b4", lwd = 3, legacy.axes = TRUE,
-     xlab = "False positive rate (1 - specificity)", ylab = "True positive rate (sensitivity)",
-     main = sprintf("ROC curve, 5-fold cross-validation (random folds by session)\n%s votes with a winner, each one predicted without its fold",
-                    format(nrow(oof), big.mark = ",")))
-lines(roc_base, col = "#d62728", lwd = 3, lty = 2)
-legend("bottomright", bty = "n", lwd = 3, lty = c(1, 2), col = c("#1f77b4", "#d62728"),
-       legend = c(sprintf("48 regressions (AUC = %.3f)", pooled["regression"]),
-                  sprintf("General ranking (AUC = %.3f)", pooled["baseline"])))
-invisible(dev.off())
-
-# Same curves as data (101 points each), so the figure can be redrawn for the slides
-grid <- seq(0, 1, by = 0.01)
-curve_of <- function(r, name)
-  data.frame(curve = name, false_positive_rate = 1 - grid,
-             true_positive_rate = as.numeric(pROC::coords(r, x = grid, input = "specificity",
-                                                          ret = "sensitivity", transpose = FALSE)[, 1]))
-curvas <- rbind(curve_of(roc_reg, "48_regressions"), curve_of(roc_base, "general_ranking"))
-write.csv(round_cols(curvas), file.path(out_folder, "curva_roc_cv5.csv"), row.names = FALSE)
-
-writeLines(c(R.version.string, paste("pROC", as.character(packageVersion("pROC"))),
-             paste("set.seed(", seed, ") for folds_5.csv; k =", k_folds)),
-           file.path(out_folder, "versiones.txt"))
-
-# ---- 10. What to read -----------------------------------------------------------------------
-
-cat("\n=== AUC per vote (pROC): all data, then each fold of the 5-fold CV ===\n")
-print(round_cols(por_voto[, c("scenario", "fold", "n_votes", "n_votes_left_out", "auc_regression",
-                              "auc_baseline", "auc_difference", "p_delong_paired")]),
-      row.names = FALSE)
-cat("\nAll folds together (curve): regressions", round(pooled["regression"], 4),
-    "| baseline", round(pooled["baseline"], 4), "\n")
-
-cat("\n=== AUC per model: summary by scenario / fold ===\n")
-pm <- por_modelo[por_modelo$fold != "mean", ]
-grupo <- paste(pm$scenario, pm$fold)
-resumen <- do.call(rbind, lapply(unique(grupo), function(g) {
-  r <- pm[grupo == g, ]
-  data.frame(scenario = r$scenario[1], fold = r$fold[1], models_with_auc = sum(r$status == "ok"),
-             na_one_class = sum(r$status == "one_class"), na_no_regression = sum(r$status == "no_regression"),
-             na_no_rows = sum(r$status == "no_rows"), mean_auc = mean(r$auc, na.rm = TRUE),
-             min_auc = min(r$auc, na.rm = TRUE), max_auc = max(r$auc, na.rm = TRUE),
-             above_05 = sum(r$auc > 0.5, na.rm = TRUE))
-}))
-print(round_cols(resumen), row.names = FALSE)
-
-cat("\n=== AUC of each fold (cv5) ===\n")
-print(round_cols(folds), row.names = FALSE)
-cat("\nSaved in", out_folder, "\n")
