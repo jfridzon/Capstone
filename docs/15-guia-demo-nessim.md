@@ -1,79 +1,167 @@
-# Demo de Nessim: lunes 16 de noviembre
+# Demo simple de Nessim: código y resultados en RStudio
 
-Tarea: issue #44. Script principal: `R/14_demo_rstudio.R`.
-Guía preparada con asistencia de ChatGPT/Codex (OpenAI).
+Archivo: R/14_demo_rstudio.R. Actualizado el 11/11/2026 por petición de Nessim.
+Preparado con asistencia de ChatGPT/Codex (OpenAI).
+Esta guía se lee aparte; el script solo tiene títulos cortos, código y resultados.
 
-## Cómo abrir y ensayar
+## Preparación
 
-1. Abre `Capstone.Rproj` con la versión actual del repo.
-2. Si falta pROC, instala una vez: `install.packages("pROC")`.
-3. Abre `R/14_demo_rstudio.R`. Corre Setup y después cada sección con
-   Cmd+Enter. La consola muestra las tablas y el panel Plots los gráficos.
-   Usa las flechas del panel para volver a un gráfico; usa Zoom para el heatmap.
-4. Para comprobar todo de una vez: `source("R/14_demo_rstudio.R")`.
-5. Al final, las cuatro filas de `demo_14$integration` deben decir TRUE.
-   Que el script termine con una pieza ausente no significa que la demo
-   completa esté lista: el aviso identifica quién falta.
-
-No hacen falta la app Shiny ni otro ajuste de Bradley-Terry para esta demo.
-La comparación Bradley-Terry se lee de su resultado guardado.
-
-## Qué mostrar y cómo explicarlo
-
-| Sección | Qué haces | Idea para decir en inglés simple |
-|---|---|---|
-| 1 | Muestra `won` y las once características | We predict whether an AI model wins a human vote. We only use features of the question. |
-| 2 | Muestra el `glm()` de o3, el `summary()` completo y los odds ratios | We fit one logistic regression for each AI model. This is one example. |
-| 3 | Llama `demo_14$mark$roc_todos_los_datos()` | First, we fit and measure on all the data. This describes the sample. |
-| 4 | Explica sesiones y muestra los cinco folds | Now each session is tested without being used to fit. The general ranking also learns only from the training folds. |
-| 5 | Muestra el gráfico de o3 y el heatmap de Eli | Each dot is a feature coefficient. The bars show nominal confidence intervals. |
-| 6 | Muestra la tabla de sensibilidad | The three methods have very similar AUCs. Binomial remains our main method. |
-| 7 | Lee la comparación guardada de Bradley-Terry | Bradley-Terry compares both opponents directly. Its average AUC is slightly higher. |
-| 8 | Muestra los tres ejemplos de Marco | The tool recommends three models for a task. A budget changes which models qualify. |
-
-El script carga cada pieza en su propio entorno, incluidas las llamadas
-internas a `source()`. No necesitas ejecutar R/11 entero ni copiar el código
-de Mark. Sus funciones recalculan el AUC a la vista y usan `folds_5.csv`.
-
-## Lo que tienes que poder explicar
-
-- **Intercept:** log-odds de ganar cuando las once etiquetas son FALSE.
-  Es una referencia del modelo, no la tasa general de victorias.
-- **Coeficiente:** cambio en log-odds al pasar una etiqueta de FALSE a TRUE,
-  manteniendo las demás iguales. Un signo positivo indica una asociación
-  con mayores odds; no demuestra causalidad.
-- **`exp(coef)`:** odds ratio. Por ejemplo, en o3 el de `mathTRUE` es 0.8625:
-  las odds ajustadas se multiplican por ese valor. No significa una caída
-  de 13.75 puntos porcentuales en probabilidad. Su p-valor es orientativo;
-  no presentes ese coeficiente como evidencia concluyente.
-- **AUC:** separa ganadores y perdedores. No es el porcentaje de aciertos.
-  Distingue el AUC por modelo del AUC por voto que compara ambos modelos.
-- **Todos los datos:** se ajusta y se mide con lo mismo; no mide desempeño
-  en sesiones nuevas. La validación cruzada sí reserva sesiones.
-- **Folds:** se lee el archivo de Mark. Todas las filas de una sesión se
-  mantienen juntas para evitar que el ajuste vea parte de lo que se prueba.
-- **Resultado:** la mejora de AUC sobre el ranking general es pequeña.
-  Los números se leen del código y de los CSV, no se escriben a mano.
-- **Límites:** los votos se usan dos veces entre las 48 regresiones;
-  los p-valores e intervalos son nominales. Son preferencias humanas de
-  2025; las probabilidades del top 3 no suman 100% entre modelos.
-- **Precio:** es USD por millón de tokens de salida en la tabla histórica,
-  no el costo total de una respuesta ni una cotización actual. Sin límite
-  pueden aparecer modelos sin precio oficial; con presupuesto se excluyen.
-
-## Antes de clase
-
-Revisa que estén las piezas R/15, R/16 y R/17 de main y ensaya el script
-completo. En la sección 3 abre también R/15 para mostrar `pROC::roc()` y
-`pROC::auc()`; en la 4 señala el entrenamiento con cuatro folds y la prueba
-con el restante. Si hace falta volver a una tabla:
+Abre Capstone.Rproj dentro de capstone-repo. Comprueba la raíz del proyecto:
 
 ```r
-demo_14$odds_ratios
-demo_14$auc_folds
-demo_14$sensitivity
+getwd()
+file.exists("R/14_demo_rstudio.R")
 ```
 
-Respaldo acordado en docs/14: `R/10_demo_clase_48.R` y
-`R/resultados/auc/curva_roc_cv5.png`. La demo anterior contiene una sección
-histórica de julio: no la presentes como evaluación principal.
+file.exists() debe dar TRUE. Si se usa un equipo sin pROC:
+`install.packages("pROC")` una sola vez.
+
+Ensayo completo:
+
+```r
+source("R/14_demo_rstudio.R")
+```
+
+Para presentar, abre el archivo y selecciona cada bloque completo, desde
+su título hasta el siguiente, y presiona Cmd+Enter. Corre 1 a 6 en orden.
+No ejecutes todo de golpe durante la explicación: las tablas y gráficos avanzan.
+
+## 1. Data
+
+Muestra los filtros y la tabla: 77,843 votos y 48 modelos.
+
+Di: “We use votes with a clear winner. The response is won: one for a win
+and zero for a loss. The predictors are eleven features of the question,
+all available before the answer.”
+
+Cada voto tiene dos filas, una por modelo; cada regresión usa la fila de
+su modelo. Empates, both_bad y casos señalados quedan fuera del ajuste principal.
+
+## 2. The 48 logistic regressions
+
+Señala la fórmula completa en glm(), family = binomial y el loop por modelo.
+Ejecuta TODO el bloque. length(fits) imprime 48 y summary() muestra o3.
+
+Di: “This loop fits one standard logistic regression for each model,
+using the same eleven predictors. Here is the full summary for o3.”
+
+Para mostrar los coeficientes de las 48 regresiones juntos:
+
+```r
+View(as.data.frame(coefficients_48))
+```
+
+Si pide otro summary:
+
+```r
+summary(fits[["gemini-2.5-pro"]])
+```
+
+Intercept = log-odds de ganar con todas las etiquetas en FALSE.
+Cada coeficiente cambia esos log-odds, manteniendo las otras etiquetas fijas.
+No interpretes coeficientes como cambios directos en probabilidad.
+
+## 3. AUC for each of the 48 regressions
+
+Señala predict(type = "link"), pROC::roc() y pROC::auc().
+Ejecuta el bloque; aparece una fila de AUC por modelo.
+
+Di: “For each regression, we calculate the AUC from that model’s wins and
+losses, using pROC. These are in-sample AUCs.”
+
+```r
+View(auc_models_all)
+```
+
+Este AUC por modelo es distinto del AUC por voto de la siguiente sección.
+La tabla final también tendrá el promedio CV de cada modelo.
+
+## 4. AUC per vote: all data vs general ranking
+
+Muestra las dos fórmulas de score_votes:
+- p_48 = plogis(score_A - score_B).
+- p_general usa los logits de las tasas generales de victoria.
+
+Muestra las llamadas pROC::roc() y pROC::auc() debajo, y ejecuta el bloque.
+La tabla da 0.7005 para las regresiones y 0.6854 para el ranking general.
+El gráfico compara las dos curvas ROC.
+
+Di: “We compare the two models in each vote using the difference in their
+regression scores. Our baseline uses their overall win rates. We compute
+both AUCs with pROC. These results use all the data for fitting and evaluation.”
+
+AUC no es accuracy: mide separación de victorias y derrotas, no porcentaje
+de votos acertados. Esta evaluación es descriptiva dentro de muestra.
+
+## 5. Random folds by session
+
+Muestra read.csv(folds_5.csv), set.seed(2026), sample() y la comparación
+contra el archivo oficial. Ejecuta el bloque.
+
+Di: “The folds are random at the session level. This reproduces the
+original random assignment to verify Mark’s shared file. We use the
+saved assignments, so everyone evaluates on the same folds.”
+
+El código no guarda particiones nuevas. Todas las filas de la misma sesión
+quedan juntas. La tabla muestra 15,569; 15,560; 15,475; 15,679; 15,560 votos
+decisivos en los cinco folds.
+
+## 6. Five-fold cross-validation
+
+Señala estas líneas en el loop:
+- train: fold != f.
+- test: fold == f.
+- fit_48(train).
+- score_votes(fits_fold, train, test).
+- pROC::roc() y pROC::auc().
+
+Ejecuta el bloque completo.
+
+Di: “For each fold, we refit the 48 regressions on the other four folds
+and evaluate on the held-out fold. The baseline win rates also use only
+training data. No session appears in both sets.”
+
+Muestra auc_folds: el AUC de cada fold y su media.
+
+| Fold | AUC regresiones | AUC ranking general |
+|---|---:|---:|
+| 1 | 0.6902 | 0.6844 |
+| 2 | 0.6921 | 0.6873 |
+| 3 | 0.6954 | 0.6908 |
+| 4 | 0.6779 | 0.6735 |
+| 5 | 0.6912 | 0.6857 |
+| Media | 0.6894 | 0.6843 |
+
+Di: “The regressions have a slightly higher AUC in all five folds.
+The average is 0.6894 versus 0.6843. The improvement is small.”
+
+El último gráfico muestra las cinco curvas ROC de las regresiones.
+La tabla AUC_48_models contiene una fila por modelo, AUC_all y AUC_CV:
+
+```r
+View(AUC_48_models)
+```
+
+Para inspeccionar los 240 AUC individuales de modelo/fold, solo si lo pide:
+
+```r
+View(auc_models_folds)
+```
+
+La media CV es la media de los cinco AUCs; no es el AUC de juntar sus predicciones.
+NA_model_fold_AUC debe dar 0 para estos datos.
+
+## Respuestas cortas
+
+- Why not split rows randomly? “Rows from the same vote or session could
+  leak into both training and testing.”
+- Why a lower AUC in CV? “The held-out votes were not used to fit the models.”
+- Is 0.6894 the accuracy? “No. AUC measures ranking or separation across thresholds.”
+- Why are the individual-model AUCs near 0.54 but the per-vote AUC near 0.69?
+  “Within a model, question features explain relatively little. Per-vote
+  scoring also compares the overall strengths of the two models.”
+- Are coefficient effects causal? “No. They are associations, and p-values
+  are nominal because the voting data have dependence.”
+
+Para esta presentación sigue solo estos seis bloques. Los otros análisis
+permanecen en el repo y se pueden abrir si el profesor los pide.

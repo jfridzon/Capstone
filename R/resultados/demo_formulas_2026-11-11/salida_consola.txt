@@ -1,0 +1,162 @@
+Type 'citation("pROC")' for a citation.
+
+Attaching package: ‘pROC’
+
+The following objects are masked from ‘package:stats’:
+
+    cov, smooth, var
+
+  votes models
+1 77843     48
+[1] 48
+
+Call:
+glm(formula = won ~ is_code + math + creative_writing + instruction_following + 
+    complexity + creativity + domain_knowledge + problem_solving + 
+    real_world + specificity + technical_accuracy, family = binomial, 
+    data = data[data$model == m, ])
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                0.45216    0.07680   5.888 3.92e-09 ***
+is_codeTRUE               -0.12284    0.07041  -1.744  0.08107 .  
+mathTRUE                  -0.14791    0.12347  -1.198  0.23094    
+creative_writingTRUE      -0.24947    0.11283  -2.211  0.02703 *  
+instruction_followingTRUE -0.28329    0.08858  -3.198  0.00138 ** 
+complexityTRUE            -0.01951    0.07413  -0.263  0.79246    
+creativityTRUE             0.11971    0.07687   1.557  0.11942    
+domain_knowledgeTRUE       0.24587    0.09339   2.633  0.00847 ** 
+problem_solvingTRUE        0.03379    0.08559   0.395  0.69300    
+real_worldTRUE             0.12101    0.08196   1.476  0.13985    
+specificityTRUE           -0.20217    0.08616  -2.346  0.01896 *  
+technical_accuracyTRUE     0.14872    0.08415   1.767  0.07716 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6557.6  on 5092  degrees of freedom
+Residual deviance: 6513.1  on 5081  degrees of freedom
+AIC: 6537.1
+
+Number of Fisher Scoring iterations: 4
+
+                                        model rows    AUC
+          amazon-nova-experimental-chat-05-14 1819 0.5605
+                         amazon.nova-pro-v1:0 3687 0.5585
+                   chatgpt-4o-latest-20250326 4459 0.5393
+                    claude-3-5-haiku-20241022 3683 0.5753
+                   claude-3-5-sonnet-20241022 4049 0.5612
+                   claude-3-7-sonnet-20250219 4123 0.5765
+      claude-3-7-sonnet-20250219-thinking-32k 4406 0.5887
+                       claude-opus-4-20250514 5986 0.5672
+          claude-opus-4-20250514-thinking-16k 3656 0.5782
+                     claude-sonnet-4-20250514 4928 0.5698
+        claude-sonnet-4-20250514-thinking-32k 3329 0.5721
+                            command-a-03-2025 3911 0.5459
+                             deepseek-r1-0528 3794 0.5518
+                             deepseek-v3-0324 3470 0.5442
+                         gemini-2.0-flash-001 3379 0.5345
+                             gemini-2.5-flash 5558 0.5677
+ gemini-2.5-flash-lite-preview-06-17-thinking 3025 0.5555
+               gemini-2.5-flash-preview-04-17 2913 0.5479
+                               gemini-2.5-pro 5600 0.5692
+                 gemini-2.5-pro-preview-03-25  796 0.6375
+                 gemini-2.5-pro-preview-05-06 1940 0.5606
+                               gemma-3-27b-it 4154 0.5627
+                              gemma-3n-e4b-it 1498 0.5844
+                           gpt-4.1-2025-04-14 3613 0.5464
+                      gpt-4.1-mini-2025-04-14 3515 0.5574
+                             grok-3-mini-beta 3467 0.5329
+                             grok-3-mini-high 1571 0.5492
+                         grok-3-preview-02-24 3463 0.5510
+                                  grok-4-0709  931 0.5829
+                      hunyuan-turbos-20250416  879 0.5808
+                         kimi-k2-0711-preview 1595 0.5440
+                       llama-3.3-70b-instruct 2840 0.5617
+          llama-4-maverick-03-26-experimental 3449 0.5529
+           llama-4-maverick-17b-128e-instruct 3090 0.5595
+               llama-4-scout-17b-16e-instruct 1603 0.5598
+                        magistral-medium-2506 1490 0.6022
+                                   minimax-m1 3070 0.5794
+                          mistral-medium-2505 5221 0.5516
+                           mistral-small-2506 1326 0.5705
+          mistral-small-3.1-24b-instruct-2503 1835 0.5654
+                                o3-2025-04-16 5093 0.5598
+                                      o3-mini 3755 0.5551
+                           o4-mini-2025-04-16 3729 0.5592
+                          qwen-max-2025-01-25 2452 0.5489
+                              qwen3-235b-a22b 2854 0.5556
+                  qwen3-235b-a22b-no-thinking 5232 0.5368
+                                qwen3-30b-a3b 3089 0.5618
+                                      qwq-32b 2361 0.5276
+           evaluation votes AUC_48 AUC_general
+ All data (in sample) 77843 0.7005      0.6854
+
+    1     2     3     4     5 
+15569 15560 15475 15679 15560 
+ fold votes AUC_48 AUC_general
+    1 15569 0.6902      0.6844
+    2 15560 0.6921      0.6873
+    3 15475 0.6954      0.6908
+    4 15679 0.6779      0.6735
+    5 15560 0.6912      0.6857
+ mean 77843 0.6894      0.6843
+                                        model rows AUC_all AUC_CV
+          amazon-nova-experimental-chat-05-14 1819  0.5605 0.5343
+                         amazon.nova-pro-v1:0 3687  0.5585 0.5377
+                   chatgpt-4o-latest-20250326 4459  0.5393 0.5133
+                    claude-3-5-haiku-20241022 3683  0.5753 0.5538
+                   claude-3-5-sonnet-20241022 4049  0.5612 0.5454
+                   claude-3-7-sonnet-20250219 4123  0.5765 0.5695
+      claude-3-7-sonnet-20250219-thinking-32k 4406  0.5887 0.5784
+                       claude-opus-4-20250514 5986  0.5672 0.5574
+          claude-opus-4-20250514-thinking-16k 3656  0.5782 0.5662
+                     claude-sonnet-4-20250514 4928  0.5698 0.5581
+        claude-sonnet-4-20250514-thinking-32k 3329  0.5721 0.5571
+                            command-a-03-2025 3911  0.5459 0.5230
+                             deepseek-r1-0528 3794  0.5518 0.5335
+                             deepseek-v3-0324 3470  0.5442 0.5215
+                         gemini-2.0-flash-001 3379  0.5345 0.5058
+                             gemini-2.5-flash 5558  0.5677 0.5582
+ gemini-2.5-flash-lite-preview-06-17-thinking 3025  0.5555 0.5280
+               gemini-2.5-flash-preview-04-17 2913  0.5479 0.5178
+                               gemini-2.5-pro 5600  0.5692 0.5589
+                 gemini-2.5-pro-preview-03-25  796  0.6375 0.5969
+                 gemini-2.5-pro-preview-05-06 1940  0.5606 0.5321
+                               gemma-3-27b-it 4154  0.5627 0.5503
+                              gemma-3n-e4b-it 1498  0.5844 0.5566
+                           gpt-4.1-2025-04-14 3613  0.5464 0.5220
+                      gpt-4.1-mini-2025-04-14 3515  0.5574 0.5364
+                             grok-3-mini-beta 3467  0.5329 0.5088
+                             grok-3-mini-high 1571  0.5492 0.5136
+                         grok-3-preview-02-24 3463  0.5510 0.5253
+                                  grok-4-0709  931  0.5829 0.5501
+                      hunyuan-turbos-20250416  879  0.5808 0.5378
+                         kimi-k2-0711-preview 1595  0.5440 0.4917
+                       llama-3.3-70b-instruct 2840  0.5617 0.5368
+          llama-4-maverick-03-26-experimental 3449  0.5529 0.5374
+           llama-4-maverick-17b-128e-instruct 3090  0.5595 0.5311
+               llama-4-scout-17b-16e-instruct 1603  0.5598 0.5294
+                        magistral-medium-2506 1490  0.6022 0.5714
+                                   minimax-m1 3070  0.5794 0.5655
+                          mistral-medium-2505 5221  0.5516 0.5412
+                           mistral-small-2506 1326  0.5705 0.5417
+          mistral-small-3.1-24b-instruct-2503 1835  0.5654 0.5382
+                                o3-2025-04-16 5093  0.5598 0.5463
+                                      o3-mini 3755  0.5551 0.5305
+                           o4-mini-2025-04-16 3729  0.5592 0.5380
+                          qwen-max-2025-01-25 2452  0.5489 0.5200
+                              qwen3-235b-a22b 2854  0.5556 0.5321
+                  qwen3-235b-a22b-no-thinking 5232  0.5368 0.5224
+                                qwen3-30b-a3b 3089  0.5618 0.5441
+                                      qwq-32b 2361  0.5276 0.4921
+  NA_model_fold_AUC
+1                 0
+Warning message:
+package ‘pROC’ was built under R version 4.5.2 
+null device 
+          1 
+
+VERIFIED: all-data AUC, five folds, 48 model AUCs, 240 model/fold AUCs and protected hashes.
+Elapsed seconds: 9.09 
