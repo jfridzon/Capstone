@@ -800,7 +800,6 @@ Ejecución completa con R 4.3.3, MASS 7.3-60 y pROC 1.18.5. Los hashes de
 data/, entregas/ y todas las salidas de Mark (incluidos los folds) no cambian.
 Código, gráfico y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
 
-
 ## Eli, demo del 16/11: gráficos de coeficientes y tabla (issue #46, 11/11/2026)
 
 `R/16_graficos_coeficientes.R` define tres funciones en R base para que Nessim
@@ -836,3 +835,17 @@ R/02 encontró diferencia máxima de 1.16e-14 en coeficientes y errores estánda
 Los 162 archivos previos de data/, entregas/ y R/resultados/ permanecen intactos.
 PDF revisados visualmente. Código y documentación preparados con asistencia
 de ChatGPT/Codex (OpenAI).
+
+## Demo 16/11, pieza de Marco: top 3 en vivo (`R/17_top3_en_vivo.R`, issue #47)
+
+`top3_en_vivo(caracteristicas, presupuesto = NULL)` llama a `top3()` de `R/02` (48 regresiones binomial, 77,843 votos con ganador) e imprime modelo, compañía, probabilidad de ganar, precio de salida y si razona. No agrega números nuevos: con código, sin límite, da lo mismo que `R/resultados/top3_por_precio.csv` (gemini-2.5-pro 72.2%, grok-4 65.1%, o3 65.0%).
+
+"Sin límite" usa `precio_max = NULL`, así que también entran modelos sin precio oficial (se muestran como "sin precio oficial"). Por eso, en código + math, qwen3-235b-a22b sale 3º.
+
+| Código + math (1,491 preguntas) | Sin límite | Hasta $2 |
+|---|---|---|
+| 1º | gemini-2.5-pro (74.8%, $10) | gemini-2.5-flash-preview-04-17 (57.7%, $0.60) |
+| 2º | grok-4-0709 (70.5%, $15) | grok-3-mini-high (52.2%, $0.50) |
+| 3º | qwen3-235b-a22b (68.9%, sin precio oficial) | gemini-2.5-flash-lite-preview-06-17-thinking (50.5%, $0.40) |
+
+El 1º hasta $2 gana 17.1 puntos menos que el 1º sin límite, por un precio 17 veces menor.
