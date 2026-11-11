@@ -799,3 +799,40 @@ no es porcentaje de aciertos. PDF revisado visualmente.
 Ejecución completa con R 4.3.3, MASS 7.3-60 y pROC 1.18.5. Los hashes de
 data/, entregas/ y todas las salidas de Mark (incluidos los folds) no cambian.
 Código, gráfico y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Eli, demo del 16/11: gráficos de coeficientes y tabla (issue #46, 11/11/2026)
+
+`R/16_graficos_coeficientes.R` define tres funciones en R base para que Nessim
+las llame desde su demo. `source()` no ajusta modelos, no genera gráficos ni
+escribe archivos. Guía: `docs/16-graficos-eli-demo.md`.
+
+- `grafico_coeficientes(modelo)`: los 11 efectos binomiales publicados, ordenados,
+  con IC Wald nominales del 95% (`beta +/- qnorm(0.975) * SE`) y línea en cero.
+  Se mantiene el resto de características fijo. Los IC no corrigen la dependencia
+  entre votos/modelos; no son inferencia causal. El Intercept queda en summary().
+- `heatmap_48()`: matriz 48 × 11 de esos mismos efectos, con IDs completos,
+  colores rojo/blanco/azul y una única leyenda simétrica en log-odds.
+- `tabla_sensibilidad()`: data.frame con los cuatro métodos y los AUC almacenados
+  del PR #43, por fold y media, con textos en inglés simple y cuatro decimales.
+
+Ejemplo de o3-2025-04-16, calculado desde los resultados binomiales:
+
+| Característica | Coeficiente | IC nominal 95% |
+|---|---:|---|
+| Seguir instrucciones | -0.2833 | [-0.4569, -0.1097] |
+| Escritura creativa | -0.2495 | [-0.4706, -0.0283] |
+| Conocimiento experto | 0.2459 | [0.0628, 0.4289] |
+
+Los AUC medios de sensibilidad siguen siendo 0.6894, 0.6895, 0.6895 y 0.6843
+(binomial, quasibinomial, ordinal y ranking general). No se recalculan ni se
+cambian las decisiones del grupo.
+
+Ejecución completa: `Rscript R/16_graficos_coeficientes.R`. Ejemplos y tablas
+propios en `R/resultados/eli_demo_2026-11-11/`. Se comprobaron los 48 gráficos,
+el heatmap y la restauración de márgenes en un dispositivo de 7x7 pulgadas;
+la tabla reproduce su fuente. Una comprobación contra los 48 GLM originales de
+R/02 encontró diferencia máxima de 1.16e-14 en coeficientes y errores estándar.
+Los 162 archivos previos de data/, entregas/ y R/resultados/ permanecen intactos.
+PDF revisados visualmente. Código y documentación preparados con asistencia
+de ChatGPT/Codex (OpenAI).
