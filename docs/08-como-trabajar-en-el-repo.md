@@ -19,6 +19,19 @@ Nunca push directo a `main`, nunca `--force` y nunca borrar `data/` ni `entregas
 
 Están en `.github/CODEOWNERS`. Nadie se aprueba su propio pull request: si un responsable hace un cambio, lo aprueba otro responsable.
 
+## Fusión automática (desde el 11/11)
+
+Si un pull request **no tiene conflictos, no toca nada protegido y trae su descripción completa**, un bot lo aprueba y lo fusiona solo (`.github/workflows/auto-merge.yml`). Si no cumple, el bot deja un comentario con la razón y espera la aprobación de Jaime, Mark o Nessim.
+
+Se revisa a mano cuando el PR:
+- toca `data/`, `entregas/`, `.github/`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `Capstone.Rproj`, `R/resultados/auc/folds_5.csv`, `docs/07`, `docs/08`, `docs/12` o `docs/14`;
+- borra o renombra archivos;
+- tiene conflictos con `main`;
+- viene de un fork o de alguien que no está en el grupo;
+- no trae "For the professor" ni `Closes #N` en la descripción.
+
+La lista vive al principio del workflow y se cambia con un PR (que, por tocar `.github/`, lo revisa una persona). El workflow siempre corre la versión de `main`, así que un PR no puede cambiarlo para saltarse las reglas. Las demás reglas no cambian: `main` sigue protegida, nunca se hace push directo ni `--force`, y que un PR se fusione solo no quita la responsabilidad de poder explicar lo que se entrega.
+
 ## Configuración de protección (la hace Jaime, como dueño)
 
 En un repo personal todos los collaborators pueden escribir. Lo que evita que alguien, o la IA de alguien, dañe algo es la **protección de la rama `main`**. En repos públicos es gratis.
@@ -29,7 +42,7 @@ En GitHub: **Settings → Rules → Rulesets → New branch ruleset** (o **Setti
 - [x] Block force pushes
 - [x] Require a pull request before merging
   - Required approvals: **1**
-  - [x] Require review from Code Owners
+  - [ ] Require review from Code Owners (apagado el 11/11: el bot de la fusión automática no es code owner)
   - [x] Dismiss stale pull request approvals when new commits are pushed
 - Enforcement status: **Active**
 
