@@ -24,6 +24,7 @@ Este documento es para que cualquiera del grupo pueda **explicar en persona** qu
 | `R/06_costo_por_respuesta.R` | Script de la v4 (`razona`) y la prueba de costo |
 | `R/12_top3_por_precio.R` | Script del top 3 por presupuesto (fase 2b, binomial) |
 | `app/app.R` | Esqueleto de la app Shiny (fase 2b, D2): características + presupuesto → top 3 |
+| `R/17_top3_en_vivo.R` | Top 3 en vivo en la consola, para la demo del 16/11 |
 | `R/resultados/costo_por_modelo.csv` | Resultado de la prueba: costo por 1,000 respuestas de cada modelo |
 | `R/resultados/top3_por_precio.csv` | Top 3 por tarea dentro de cada presupuesto (binomial, 9/11) |
 | `R/resultados/top3_por_precio_2026-11-02_medio_punto.csv` | Versión anterior, con medio punto (2/11) |
@@ -209,6 +210,15 @@ Cada celda: modelo (probabilidad de ganar contra un rival al azar, precio de sal
 **No calcula nada nuevo:** con 1 sola característica (o ninguna) da exactamente lo mismo que `R/resultados/top3_por_precio.csv`. Se comprobó en las 16 combinaciones (4 tareas × 4 presupuestos). Con varias características, promedia las preguntas reales que tienen **todas** las marcadas. Si no hay ninguna, la app lo dice.
 
 **Es un esqueleto:** el texto de la app está en inglés (es para mostrar al profesor). El diseño, gráficos y opciones extra quedan para la fase de la app (18/11 a 30/11). Captura: `app/captura_esqueleto.png`.
+
+## Parte 6 (demo 16/11): top 3 en vivo en la consola
+
+**Archivo:** `R/17_top3_en_vivo.R` (issue #47). Nessim lo llama con `source()` desde `R/14`. Si ya hay un objeto `ajustes` con las 48 regresiones binomial, las reusa.
+
+- `top3_en_vivo(c("is_code", "math"))` → top 3 sin límite.
+- `top3_en_vivo(c("is_code", "math"), presupuesto = 2)` → top 3 con precio de salida de hasta $2 por millón.
+- Corre 3 ejemplos (código; código + math; código + math hasta $2) y al final pone el ejemplo 2 al lado del 3.
+- **Diferencia con `R/12`:** aquí "sin límite" es `precio_max = NULL`, así que entran también los modelos sin precio oficial (salen como "sin precio oficial"). En `R/12` se dejaban fuera para comparar columnas.
 
 ## Decisiones para el grupo (no las tomó Marco ni la IA)
 
