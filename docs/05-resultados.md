@@ -919,6 +919,36 @@ los avisos de Mark/Eli/Marco y el ensayo final personal en RStudio.
 Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
 
 
+## Mark, stepwise por AIC dentro de cada fold (16/11/2026)
+
+`R/18_stepwise.R` empieza el paso que pidió el profesor para después de la tabla 48 × 7: selección de
+variables por riesgo de overfitting. **No es parte de la demo del 16/11.** Para cada uno de los 48 modelos y
+cada uno de los 5 folds (los mismos de `folds_5.csv`): se ajusta `glm(..., binomial)` con las 11 características
+en los 4 folds de entrenamiento, se corre `step(direction = "backward", k = 2)` (AIC) solo con esos 4 folds, y el
+AUC se mide con `pROC` en el fold que quedó fuera. Son 240 ajustes. La regresión completa se mide en las mismas
+filas y coincide con `R/resultados/auc/por_modelo.csv` en las 240 celdas.
+
+| | AUC por modelo, promedio de los 5 folds (promedio de los 48 modelos) |
+|---|---:|
+| Regresión completa (11 características) | 0.5387 |
+| Stepwise por AIC | 0.5336 |
+
+- En promedio quedan 4.28 de las 11 características por ajuste. Por modelo, el promedio va de 0.2 a 8.
+- Stepwise queda mejor en 9 modelos, peor en 38 e igual en 1 (comparando el promedio de los 5 folds).
+- Con stepwise no sube el AUC por modelo fuera de muestra en promedio. Esto es solo el AUC **por modelo**; no se calculó el AUC por voto.
+- La característica que más se queda es `specificity` (126 de 240 ajustes, 52.5%) y la que menos, `technical_accuracy` (69 de 240, 28.8%).
+- 0 casos sin AUC (todos los tests tienen las 2 clases) y 0 avisos de `glm()`.
+
+Salida en `R/resultados/stepwise_2026-11-16/` (`por_modelo_y_fold.csv`, `resumen_por_modelo.csv`,
+`frecuencia_variables.csv`, `versiones.txt`). Corrida con R 4.3.3 y pROC 1.18.5, unos 2 minutos.
+**Pendiente (no hecho):** probar un solo modelo con las mismas variables para todos, que el profesor pidió después.
+
+Verificación independiente de la tabla 48 × 7 de Nessim (Mark, 16/11): se recalcularon los 48 modelos desde los datos
+con `glm` + `pROC` y `folds_5.csv`, sin usar `R/11`, y se compararon con `AUC_48x7` de `R/14_demo_rstudio.R` en sesión
+limpia: 336 celdas, 0 diferencias al 4.º decimal, 0 NA, y `Mean_CV` es el promedio de los 5 folds.
+Código y documentación preparados con asistencia de Claude (Anthropic).
+
+
 ## Eli: confirmación limpia de su pieza de demo (16/11/2026)
 
 Comprobador reproducible: `Rscript --vanilla R/validar_demo_eli_16_nov.R`,

@@ -1,0 +1,3 @@
+R version 4.3.3 (2024-02-29)
+pROC 1.18.5
+stepwise: step(glm, direction = 'backward', k = 2), inside each training fold; folds from folds_5.csv
