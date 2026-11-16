@@ -1,0 +1,241 @@
+"model","fold","n_train","n_test","variables_kept","kept","auc_stepwise","auc_full"
+"amazon-nova-experimental-chat-05-14",1,1459,360,4,"is_code math problem_solving technical_accuracy",0.543723349269931,0.55523969505104
+"amazon-nova-experimental-chat-05-14",2,1455,364,5,"is_code math creative_writing specificity technical_accuracy",0.516713048855906,0.503540507111936
+"amazon-nova-experimental-chat-05-14",3,1449,370,4,"is_code math problem_solving technical_accuracy",0.525440400608066,0.547751050701958
+"amazon-nova-experimental-chat-05-14",4,1446,373,5,"is_code math problem_solving specificity technical_accuracy",0.507960334788937,0.504230349344978
+"amazon-nova-experimental-chat-05-14",5,1467,352,4,"is_code math problem_solving technical_accuracy",0.561798878205128,0.560680422008547
+"amazon.nova-pro-v1:0",1,2978,709,4,"instruction_following complexity creativity problem_solving",0.509989240252398,0.521309771309771
+"amazon.nova-pro-v1:0",2,2946,741,1,"problem_solving",0.545861981156099,0.56125116713352
+"amazon.nova-pro-v1:0",3,2931,756,4,"complexity creativity problem_solving real_world",0.52890037593985,0.521532626208378
+"amazon.nova-pro-v1:0",4,2949,738,3,"creative_writing creativity problem_solving",0.532250542667209,0.544053554470221
+"amazon.nova-pro-v1:0",5,2944,743,4,"is_code creativity problem_solving specificity",0.527742954568248,0.540204091866413
+"chatgpt-4o-latest-20250326",1,3568,891,4,"creative_writing creativity problem_solving real_world",0.493886821366025,0.49972088441331
+"chatgpt-4o-latest-20250326",2,3556,903,2,"real_world specificity",0.534835076005711,0.51722726127488
+"chatgpt-4o-latest-20250326",3,3567,892,2,"real_world specificity",0.539455473560938,0.531126202603282
+"chatgpt-4o-latest-20250326",4,3542,917,4,"is_code instruction_following problem_solving real_world",0.502905198776758,0.500894106670813
+"chatgpt-4o-latest-20250326",5,3603,856,3,"instruction_following real_world specificity",0.531892203996983,0.517598746229261
+"claude-3-5-haiku-20241022",1,2918,765,7,"math instruction_following domain_knowledge problem_solving real_world specificity technical_accuracy",0.557181505164781,0.553199789677222
+"claude-3-5-haiku-20241022",2,2945,738,6,"math domain_knowledge problem_solving real_world specificity technical_accuracy",0.512139917695473,0.514305087916199
+"claude-3-5-haiku-20241022",3,2943,740,3,"domain_knowledge problem_solving specificity",0.56404919403893,0.58065788473236
+"claude-3-5-haiku-20241022",4,2953,730,4,"domain_knowledge problem_solving real_world specificity",0.554212592412932,0.568895356671248
+"claude-3-5-haiku-20241022",5,2973,710,6,"is_code math domain_knowledge real_world specificity technical_accuracy",0.562242813437723,0.552028658280308
+"claude-3-5-sonnet-20241022",1,3257,792,5,"instruction_following problem_solving real_world specificity technical_accuracy",0.572279037596957,0.573821169196892
+"claude-3-5-sonnet-20241022",2,3233,816,3,"real_world specificity technical_accuracy",0.501709503717381,0.523887418473873
+"claude-3-5-sonnet-20241022",3,3255,794,4,"instruction_following real_world specificity technical_accuracy",0.545405265513961,0.553847714173801
+"claude-3-5-sonnet-20241022",4,3235,814,4,"is_code real_world specificity technical_accuracy",0.539376056189269,0.56521638677651
+"claude-3-5-sonnet-20241022",5,3216,833,7,"is_code math instruction_following complexity real_world specificity technical_accuracy",0.509425158641284,0.510252152759007
+"claude-3-7-sonnet-20250219",1,3308,815,3,"creative_writing instruction_following domain_knowledge",0.563873032347345,0.599869599350658
+"claude-3-7-sonnet-20250219",2,3282,841,7,"is_code math creative_writing instruction_following complexity problem_solving technical_accuracy",0.554899912294278,0.566446757467884
+"claude-3-7-sonnet-20250219",3,3318,805,8,"is_code instruction_following complexity domain_knowledge problem_solving real_world specificity technical_accuracy",0.540401794737055,0.550574666181603
+"claude-3-7-sonnet-20250219",4,3257,866,7,"is_code instruction_following domain_knowledge problem_solving real_world specificity technical_accuracy",0.535768636448773,0.547802725229444
+"claude-3-7-sonnet-20250219",5,3327,796,8,"is_code math creative_writing instruction_following domain_knowledge real_world specificity technical_accuracy",0.572901947590744,0.582864191992823
+"claude-3-7-sonnet-20250219-thinking-32k",1,3539,867,6,"creative_writing instruction_following creativity domain_knowledge real_world specificity",0.592196136531996,0.586748532679925
+"claude-3-7-sonnet-20250219-thinking-32k",2,3521,885,7,"creative_writing instruction_following complexity creativity domain_knowledge real_world specificity",0.580052091755411,0.573762965187461
+"claude-3-7-sonnet-20250219-thinking-32k",3,3513,893,5,"creative_writing instruction_following domain_knowledge real_world specificity",0.572556670382757,0.578282828282828
+"claude-3-7-sonnet-20250219-thinking-32k",4,3544,862,6,"creative_writing instruction_following creativity domain_knowledge real_world specificity",0.563095623510022,0.559616799599729
+"claude-3-7-sonnet-20250219-thinking-32k",5,3507,899,5,"creative_writing instruction_following domain_knowledge real_world specificity",0.584470367094206,0.593498452012384
+"claude-opus-4-20250514",1,4791,1195,8,"is_code creative_writing instruction_following complexity creativity real_world specificity technical_accuracy",0.558821132728642,0.559936664755932
+"claude-opus-4-20250514",2,4799,1187,8,"is_code math creative_writing instruction_following complexity creativity specificity technical_accuracy",0.566203822017776,0.569714910412585
+"claude-opus-4-20250514",3,4805,1181,8,"is_code creative_writing instruction_following complexity creativity real_world specificity technical_accuracy",0.534400458978772,0.533448078026391
+"claude-opus-4-20250514",4,4806,1180,7,"is_code creative_writing instruction_following complexity real_world specificity technical_accuracy",0.571892202659001,0.571173553719008
+"claude-opus-4-20250514",5,4743,1243,9,"is_code math creative_writing instruction_following creativity problem_solving real_world specificity technical_accuracy",0.545795760779436,0.552702632669983
+"claude-opus-4-20250514-thinking-16k",1,2961,695,7,"is_code math creative_writing complexity creativity real_world specificity",0.528120082815735,0.534219461697723
+"claude-opus-4-20250514-thinking-16k",2,2942,714,8,"is_code math creative_writing instruction_following creativity problem_solving real_world technical_accuracy",0.571924042686755,0.578790018832392
+"claude-opus-4-20250514-thinking-16k",3,2937,719,7,"is_code math creative_writing problem_solving real_world specificity technical_accuracy",0.537482539189818,0.555622380878473
+"claude-opus-4-20250514-thinking-16k",4,2890,766,7,"is_code math creative_writing instruction_following creativity real_world specificity",0.583060333060333,0.585353535353535
+"claude-opus-4-20250514-thinking-16k",5,2894,762,7,"is_code math creative_writing instruction_following creativity real_world technical_accuracy",0.568102360412917,0.576773757559459
+"claude-sonnet-4-20250514",1,3920,1008,9,"is_code math instruction_following complexity creativity domain_knowledge problem_solving real_world specificity",0.573588791907986,0.573501101231748
+"claude-sonnet-4-20250514",2,3942,986,8,"is_code math instruction_following creativity domain_knowledge problem_solving real_world specificity",0.564823887046528,0.569413040565437
+"claude-sonnet-4-20250514",3,3980,948,5,"is_code instruction_following domain_knowledge real_world specificity",0.568638164812408,0.582796493821945
+"claude-sonnet-4-20250514",4,3910,1018,8,"is_code math instruction_following creativity domain_knowledge problem_solving real_world specificity",0.534907721485959,0.531398840238806
+"claude-sonnet-4-20250514",5,3960,968,9,"is_code math instruction_following complexity creativity domain_knowledge problem_solving real_world specificity",0.535633802816901,0.533171214788732
+"claude-sonnet-4-20250514-thinking-32k",1,2641,688,4,"is_code math instruction_following real_world",0.536278113725724,0.55219323308912
+"claude-sonnet-4-20250514-thinking-32k",2,2670,659,4,"is_code creative_writing instruction_following creativity",0.53843803810476,0.549764854005814
+"claude-sonnet-4-20250514-thinking-32k",3,2664,665,4,"is_code math instruction_following domain_knowledge",0.569680734547844,0.571515278741192
+"claude-sonnet-4-20250514-thinking-32k",4,2666,663,4,"is_code math creative_writing instruction_following",0.543095592337735,0.556239538776269
+"claude-sonnet-4-20250514-thinking-32k",5,2675,654,5,"is_code math creative_writing instruction_following creativity",0.56390145180906,0.555939305259957
+"command-a-03-2025",1,3139,772,3,"math complexity creativity",0.52173972753241,0.515237035816304
+"command-a-03-2025",2,3144,767,2,"math creativity",0.529758225152826,0.539048011539254
+"command-a-03-2025",3,3114,797,5,"math creative_writing domain_knowledge real_world technical_accuracy",0.493253659800492,0.499669646327244
+"command-a-03-2025",4,3103,808,2,"math real_world",0.510738788903252,0.510956299095158
+"command-a-03-2025",5,3144,767,2,"math complexity",0.54602719309346,0.55033323490952
+"deepseek-r1-0528",1,3022,772,5,"math instruction_following domain_knowledge real_world specificity",0.562833067969494,0.549448552131272
+"deepseek-r1-0528",2,3027,767,3,"math instruction_following domain_knowledge",0.537584269662921,0.541063670411985
+"deepseek-r1-0528",3,3031,763,6,"math instruction_following complexity domain_knowledge problem_solving technical_accuracy",0.526801045743545,0.525304363968256
+"deepseek-r1-0528",4,3067,727,3,"math instruction_following domain_knowledge",0.529857178034967,0.543023064926537
+"deepseek-r1-0528",5,3029,765,6,"math instruction_following domain_knowledge problem_solving real_world specificity",0.510502921194642,0.508518292773574
+"deepseek-v3-0324",1,2802,668,1,"instruction_following",0.525575055068068,0.547566171956812
+"deepseek-v3-0324",2,2737,733,2,"instruction_following problem_solving",0.511558462967958,0.512034289482361
+"deepseek-v3-0324",3,2758,712,3,"is_code math instruction_following",0.524467974918533,0.522053843886193
+"deepseek-v3-0324",4,2792,678,4,"math creative_writing instruction_following problem_solving",0.498691841451184,0.497069724850652
+"deepseek-v3-0324",5,2791,679,4,"math instruction_following domain_knowledge problem_solving",0.533994371880641,0.528768893136526
+"gemini-2.0-flash-001",1,2706,673,2,"real_world specificity",0.507371777883783,0.52533524142683
+"gemini-2.0-flash-001",2,2710,669,4,"complexity problem_solving specificity technical_accuracy",0.503474466709761,0.499551102492279
+"gemini-2.0-flash-001",3,2683,696,4,"creative_writing domain_knowledge real_world specificity",0.500373831775701,0.502413291796469
+"gemini-2.0-flash-001",4,2721,658,2,"real_world specificity",0.48505670385104,0.49923498483879
+"gemini-2.0-flash-001",5,2696,683,2,"real_world specificity",0.481939147166959,0.502564168642408
+"gemini-2.5-flash",1,4441,1117,8,"is_code math creativity domain_knowledge problem_solving real_world specificity technical_accuracy",0.554251212680194,0.554751656760265
+"gemini-2.5-flash",2,4481,1077,8,"is_code math complexity creativity domain_knowledge problem_solving specificity technical_accuracy",0.530372345996738,0.532306270854219
+"gemini-2.5-flash",3,4444,1114,6,"is_code creativity domain_knowledge problem_solving specificity technical_accuracy",0.557518115942029,0.563421178561663
+"gemini-2.5-flash",4,4420,1138,9,"is_code math complexity creativity domain_knowledge problem_solving real_world specificity technical_accuracy",0.563604257859132,0.563073683512402
+"gemini-2.5-flash",5,4446,1112,7,"is_code math creativity domain_knowledge problem_solving specificity technical_accuracy",0.582520466664558,0.577458723948722
+"gemini-2.5-flash-lite-preview-06-17-thinking",1,2416,609,4,"is_code creativity domain_knowledge technical_accuracy",0.515917501677235,0.518557794273595
+"gemini-2.5-flash-lite-preview-06-17-thinking",2,2405,620,6,"is_code creative_writing creativity problem_solving real_world technical_accuracy",0.529192435525264,0.540283562623585
+"gemini-2.5-flash-lite-preview-06-17-thinking",3,2428,597,4,"is_code creativity domain_knowledge technical_accuracy",0.534271802590768,0.541757890895822
+"gemini-2.5-flash-lite-preview-06-17-thinking",4,2425,600,3,"is_code creativity specificity",0.539123465173492,0.536429517649809
+"gemini-2.5-flash-lite-preview-06-17-thinking",5,2426,599,5,"is_code creativity domain_knowledge specificity technical_accuracy",0.506468350051885,0.502801798685576
+"gemini-2.5-flash-preview-04-17",1,2320,593,3,"is_code instruction_following complexity",0.54333029793593,0.519549126739516
+"gemini-2.5-flash-preview-04-17",2,2340,573,3,"is_code instruction_following complexity",0.525813509027813,0.509166121812604
+"gemini-2.5-flash-preview-04-17",3,2282,631,2,"instruction_following specificity",0.49782098387426,0.519330475607267
+"gemini-2.5-flash-preview-04-17",4,2339,574,3,"is_code instruction_following problem_solving",0.506693061840121,0.507359225741579
+"gemini-2.5-flash-preview-04-17",5,2371,542,3,"is_code instruction_following complexity",0.554467547258914,0.53343889328722
+"gemini-2.5-pro",1,4513,1087,5,"is_code math creativity domain_knowledge specificity",0.562314735235823,0.576388279865996
+"gemini-2.5-pro",2,4433,1167,7,"is_code math creativity domain_knowledge real_world specificity technical_accuracy",0.538015054133527,0.538940973131514
+"gemini-2.5-pro",3,4505,1095,6,"is_code instruction_following creativity domain_knowledge problem_solving specificity",0.553778549774991,0.562183434069555
+"gemini-2.5-pro",4,4454,1146,7,"is_code instruction_following creativity domain_knowledge real_world specificity technical_accuracy",0.556868353206574,0.559295439896874
+"gemini-2.5-pro",5,4495,1105,7,"is_code math creative_writing creativity domain_knowledge real_world specificity",0.553215178181158,0.557621254731842
+"gemini-2.5-pro-preview-03-25",1,624,172,5,"is_code complexity creativity domain_knowledge real_world",0.616558818649411,0.588767214202754
+"gemini-2.5-pro-preview-03-25",2,649,147,5,"is_code creative_writing complexity creativity domain_knowledge",0.597058823529412,0.578867102396514
+"gemini-2.5-pro-preview-03-25",3,643,153,5,"is_code complexity creativity domain_knowledge real_world",0.540723562152134,0.551113172541744
+"gemini-2.5-pro-preview-03-25",4,631,165,3,"creativity domain_knowledge real_world",0.592055485498108,0.635088272383354
+"gemini-2.5-pro-preview-03-25",5,637,159,4,"is_code complexity creativity domain_knowledge",0.617283950617284,0.630537400145243
+"gemini-2.5-pro-preview-05-06",1,1530,410,3,"instruction_following problem_solving specificity",0.518928495311168,0.542186167945439
+"gemini-2.5-pro-preview-05-06",2,1539,401,3,"creativity specificity technical_accuracy",0.537694552529183,0.546246757457847
+"gemini-2.5-pro-preview-05-06",3,1569,371,3,"instruction_following problem_solving specificity",0.548619447779112,0.5531212484994
+"gemini-2.5-pro-preview-05-06",4,1567,373,5,"is_code math instruction_following problem_solving specificity",0.496762228090029,0.496919401483717
+"gemini-2.5-pro-preview-05-06",5,1555,385,4,"is_code instruction_following problem_solving specificity",0.519795305509591,0.522231415088558
+"gemma-3-27b-it",1,3321,833,5,"is_code math instruction_following real_world specificity",0.539754963602173,0.537190964571244
+"gemma-3-27b-it",2,3359,795,5,"is_code math complexity real_world specificity",0.546730852776571,0.560032327310828
+"gemma-3-27b-it",3,3304,850,6,"is_code math creative_writing domain_knowledge real_world specificity",0.563007588869658,0.568249900146452
+"gemma-3-27b-it",4,3317,837,6,"is_code math domain_knowledge real_world specificity technical_accuracy",0.551651288141787,0.556147793714599
+"gemma-3-27b-it",5,3315,839,8,"is_code math creative_writing instruction_following domain_knowledge real_world specificity technical_accuracy",0.52820687695368,0.529792554703041
+"gemma-3n-e4b-it",1,1200,298,3,"is_code instruction_following complexity",0.530531189083821,0.533235867446394
+"gemma-3n-e4b-it",2,1185,313,2,"is_code instruction_following",0.577064612751391,0.60517757809157
+"gemma-3n-e4b-it",3,1208,290,3,"is_code math instruction_following",0.563602800153433,0.542913310318374
+"gemma-3n-e4b-it",4,1184,314,4,"is_code math instruction_following domain_knowledge",0.550566392671656,0.523964339753813
+"gemma-3n-e4b-it",5,1215,283,4,"is_code math creative_writing instruction_following",0.575945807770961,0.577684049079755
+"gpt-4.1-2025-04-14",1,2893,720,4,"math creative_writing creativity real_world",0.515379640510762,0.509645795048544
+"gpt-4.1-2025-04-14",2,2844,769,5,"is_code math complexity problem_solving real_world",0.507134062927497,0.511901504787962
+"gpt-4.1-2025-04-14",3,2931,682,4,"math creativity domain_knowledge real_world",0.514328587321162,0.548418810421104
+"gpt-4.1-2025-04-14",4,2866,747,5,"is_code math complexity problem_solving technical_accuracy",0.499834366396255,0.529184640979962
+"gpt-4.1-2025-04-14",5,2918,695,6,"is_code math complexity creativity problem_solving real_world",0.509670624281884,0.5106739047175
+"gpt-4.1-mini-2025-04-14",1,2811,704,6,"math creative_writing instruction_following complexity domain_knowledge specificity",0.544089159067882,0.530881458966565
+"gpt-4.1-mini-2025-04-14",2,2824,691,5,"creative_writing instruction_following complexity domain_knowledge specificity",0.535006383121682,0.54404353960895
+"gpt-4.1-mini-2025-04-14",3,2805,710,5,"is_code creative_writing instruction_following complexity technical_accuracy",0.516880589332819,0.529587274014026
+"gpt-4.1-mini-2025-04-14",4,2794,721,6,"is_code creative_writing instruction_following complexity domain_knowledge specificity",0.523519527983399,0.525610152693034
+"gpt-4.1-mini-2025-04-14",5,2826,689,7,"is_code math creative_writing instruction_following complexity domain_knowledge specificity",0.550461380724539,0.551832706766917
+"grok-3-mini-beta",1,2728,739,3,"math creative_writing complexity",0.492712503115881,0.498555697297614
+"grok-3-mini-beta",2,2836,631,3,"complexity domain_knowledge specificity",0.525417596333595,0.531010673581379
+"grok-3-mini-beta",3,2784,683,2,"creative_writing creativity",0.497179434341353,0.518305771641509
+"grok-3-mini-beta",4,2750,717,3,"math complexity domain_knowledge",0.492114190566596,0.489437606012978
+"grok-3-mini-beta",5,2770,697,3,"domain_knowledge real_world specificity",0.504244861483467,0.506706550160527
+"grok-3-mini-high",1,1245,326,1,"problem_solving",0.50391448358928,0.52636630532972
+"grok-3-mini-high",2,1268,303,2,"complexity specificity",0.550567232433383,0.520930437076774
+"grok-3-mini-high",3,1249,322,3,"complexity problem_solving specificity",0.534148886827458,0.515538033395176
+"grok-3-mini-high",4,1275,296,2,"complexity specificity",0.541598173515982,0.538538812785388
+"grok-3-mini-high",5,1247,324,4,"creative_writing complexity problem_solving specificity",0.477907509157509,0.466765873015873
+"grok-3-preview-02-24",1,2742,721,4,"math creative_writing instruction_following real_world",0.498348309798887,0.495746683782627
+"grok-3-preview-02-24",2,2748,715,3,"math real_world specificity",0.549824671155524,0.539230857876628
+"grok-3-preview-02-24",3,2803,660,3,"math real_world specificity",0.52653601489469,0.539229471316085
+"grok-3-preview-02-24",4,2799,664,3,"is_code math real_world",0.490609455172144,0.498927774078571
+"grok-3-preview-02-24",5,2760,703,5,"is_code math real_world specificity technical_accuracy",0.5543853261906,0.553171754997313
+"grok-4-0709",1,738,193,2,"domain_knowledge specificity",0.548290598290598,0.492368742368742
+"grok-4-0709",2,754,177,4,"is_code creative_writing complexity specificity",0.516012396694215,0.563090318772137
+"grok-4-0709",3,764,167,6,"math creative_writing creativity domain_knowledge real_world specificity",0.553719008264463,0.558569888609414
+"grok-4-0709",4,747,184,2,"domain_knowledge specificity",0.5146484375,0.570242745535714
+"grok-4-0709",5,721,210,3,"complexity domain_knowledge specificity",0.544045595440456,0.566043395660434
+"hunyuan-turbos-20250416",1,702,177,3,"is_code instruction_following creativity",0.577604303332459,0.571372343217003
+"hunyuan-turbos-20250416",2,711,168,4,"is_code instruction_following creativity domain_knowledge",0.536089052750993,0.536514463981849
+"hunyuan-turbos-20250416",3,698,181,4,"is_code instruction_following creativity domain_knowledge",0.587862993298585,0.587366592206503
+"hunyuan-turbos-20250416",4,698,181,2,"is_code creativity",0.462704817803864,0.487772071411103
+"hunyuan-turbos-20250416",5,707,172,4,"creative_writing instruction_following complexity creativity",0.506388888888889,0.506180555555556
+"kimi-k2-0711-preview",1,1288,307,0,"",0.5,0.540546942291128
+"kimi-k2-0711-preview",2,1278,317,2,"instruction_following real_world",0.468617195161818,0.466104118993135
+"kimi-k2-0711-preview",3,1259,336,3,"complexity real_world specificity",0.471471966037183,0.494876299224125
+"kimi-k2-0711-preview",4,1270,325,4,"creative_writing instruction_following domain_knowledge problem_solving",0.463222450064555,0.468785600364548
+"kimi-k2-0711-preview",5,1285,310,2,"real_world specificity",0.460175863387282,0.488063378785948
+"llama-3.3-70b-instruct",1,2289,551,4,"is_code complexity creativity problem_solving",0.545740089514066,0.531433823529412
+"llama-3.3-70b-instruct",2,2297,543,5,"is_code complexity creativity problem_solving technical_accuracy",0.560147049359676,0.557226977282965
+"llama-3.3-70b-instruct",3,2246,594,4,"is_code complexity creativity problem_solving",0.5052871712292,0.520725979602791
+"llama-3.3-70b-instruct",4,2285,555,4,"complexity creativity specificity technical_accuracy",0.511894036270635,0.535384212973727
+"llama-3.3-70b-instruct",5,2243,597,5,"is_code complexity creativity domain_knowledge problem_solving",0.547658797443589,0.539070040433025
+"llama-4-maverick-03-26-experimental",1,2757,692,5,"is_code instruction_following complexity problem_solving real_world",0.543284684019556,0.547034672765088
+"llama-4-maverick-03-26-experimental",2,2750,699,5,"is_code instruction_following complexity problem_solving real_world",0.546313427210744,0.54355106725597
+"llama-4-maverick-03-26-experimental",3,2815,634,4,"is_code instruction_following complexity problem_solving",0.524836052672997,0.538759771260689
+"llama-4-maverick-03-26-experimental",4,2706,743,3,"is_code instruction_following problem_solving",0.50999584279839,0.525997357207548
+"llama-4-maverick-03-26-experimental",5,2768,681,5,"is_code instruction_following complexity problem_solving real_world",0.518983595467614,0.531737978465528
+"llama-4-maverick-17b-128e-instruct",1,2490,600,5,"is_code creative_writing creativity problem_solving specificity",0.506297071391872,0.523966465745185
+"llama-4-maverick-17b-128e-instruct",2,2498,592,4,"complexity creativity real_world specificity",0.572995391705069,0.557333333333333
+"llama-4-maverick-17b-128e-instruct",3,2444,646,3,"complexity creativity specificity",0.518631597917926,0.526635499157205
+"llama-4-maverick-17b-128e-instruct",4,2486,604,4,"instruction_following creativity problem_solving specificity",0.485359000418485,0.496281461110779
+"llama-4-maverick-17b-128e-instruct",5,2442,648,4,"complexity creativity real_world specificity",0.560445727112394,0.551341790925124
+"llama-4-scout-17b-16e-instruct",1,1259,344,2,"complexity technical_accuracy",0.509608024815695,0.511441002296258
+"llama-4-scout-17b-16e-instruct",2,1308,295,2,"complexity technical_accuracy",0.605012531328321,0.564110275689223
+"llama-4-scout-17b-16e-instruct",3,1283,320,3,"complexity domain_knowledge technical_accuracy",0.512220354325618,0.519785335574809
+"llama-4-scout-17b-16e-instruct",4,1281,322,2,"complexity technical_accuracy",0.531465772341685,0.551943184059972
+"llama-4-scout-17b-16e-instruct",5,1281,322,4,"complexity domain_knowledge specificity technical_accuracy",0.517896369039928,0.499526209243227
+"magistral-medium-2506",1,1202,288,5,"is_code creative_writing domain_knowledge specificity technical_accuracy",0.580684320478798,0.577183671164813
+"magistral-medium-2506",2,1175,315,6,"is_code creative_writing creativity domain_knowledge specificity technical_accuracy",0.541374649579495,0.513215859030837
+"magistral-medium-2506",3,1193,297,5,"is_code creative_writing domain_knowledge specificity technical_accuracy",0.621776826933904,0.623803625717825
+"magistral-medium-2506",4,1223,267,5,"is_code creative_writing domain_knowledge specificity technical_accuracy",0.540924116125323,0.539954009772923
+"magistral-medium-2506",5,1167,323,6,"is_code creative_writing complexity real_world specificity technical_accuracy",0.605805146295912,0.602666528325379
+"minimax-m1",1,2486,584,5,"is_code math complexity creativity domain_knowledge",0.561706912878788,0.5642578125
+"minimax-m1",2,2475,595,5,"is_code math complexity creativity domain_knowledge",0.560421108131032,0.559561469866813
+"minimax-m1",3,2480,590,4,"is_code math complexity creativity",0.57099972396025,0.575065559440559
+"minimax-m1",4,2406,664,7,"is_code math complexity creativity domain_knowledge problem_solving real_world",0.552667485332242,0.553904579979078
+"minimax-m1",5,2433,637,5,"is_code math complexity creativity domain_knowledge",0.592031475228561,0.574600635823312
+"mistral-medium-2505",1,4202,1019,5,"math creative_writing problem_solving real_world technical_accuracy",0.528886242958099,0.536454118789448
+"mistral-medium-2505",2,4171,1050,5,"math creative_writing instruction_following problem_solving real_world",0.550436169283197,0.539153292750415
+"mistral-medium-2505",3,4133,1088,5,"math creative_writing problem_solving real_world specificity",0.523247950819672,0.534339139344262
+"mistral-medium-2505",4,4190,1031,5,"math creative_writing problem_solving real_world technical_accuracy",0.563531465104532,0.569626957380559
+"mistral-medium-2505",5,4188,1033,5,"math creative_writing problem_solving real_world technical_accuracy",0.524786780383795,0.526474769012082
+"mistral-small-2506",1,1092,234,5,"is_code creative_writing instruction_following domain_knowledge real_world",0.484888059701493,0.483507462686567
+"mistral-small-2506",2,1029,297,2,"instruction_following real_world",0.538877588757397,0.549440643491124
+"mistral-small-2506",3,1073,253,3,"instruction_following creativity real_world",0.532849455637592,0.521899637091728
+"mistral-small-2506",4,1043,283,3,"is_code instruction_following specificity",0.513245542119287,0.548882967821275
+"mistral-small-2506",5,1067,259,2,"instruction_following real_world",0.594368885707468,0.604748270102601
+"mistral-small-3.1-24b-instruct-2503",1,1479,356,2,"creative_writing domain_knowledge",0.527079198989717,0.543694750135306
+"mistral-small-3.1-24b-instruct-2503",2,1466,369,3,"creative_writing domain_knowledge specificity",0.539094650205761,0.558819355754222
+"mistral-small-3.1-24b-instruct-2503",3,1481,354,3,"domain_knowledge real_world specificity",0.516251638269987,0.51763714660176
+"mistral-small-3.1-24b-instruct-2503",4,1469,366,2,"domain_knowledge specificity",0.539704157681686,0.556577006015208
+"mistral-small-3.1-24b-instruct-2503",5,1445,390,4,"creative_writing complexity domain_knowledge specificity",0.519706554991238,0.514271288128546
+"o3-2025-04-16",1,4078,1015,4,"instruction_following domain_knowledge real_world specificity",0.506776005927076,0.531002487255023
+"o3-2025-04-16",2,4123,970,5,"creative_writing instruction_following creativity domain_knowledge specificity",0.565670745334674,0.571234681714903
+"o3-2025-04-16",3,4057,1036,5,"creative_writing instruction_following domain_knowledge real_world specificity",0.512729888783393,0.525348937398309
+"o3-2025-04-16",4,4042,1051,4,"instruction_following domain_knowledge real_world specificity",0.543984243984244,0.55978705978706
+"o3-2025-04-16",5,4072,1021,7,"is_code math creative_writing instruction_following creativity domain_knowledge technical_accuracy",0.535306869393444,0.54424956601305
+"o3-mini",1,2986,769,4,"math domain_knowledge problem_solving technical_accuracy",0.502995834890061,0.523814465800435
+"o3-mini",2,2960,795,5,"is_code math domain_knowledge real_world specificity",0.536621232404365,0.54978161805471
+"o3-mini",3,3053,702,2,"is_code math",0.505437687938523,0.534463748747076
+"o3-mini",4,2986,769,6,"is_code math creative_writing domain_knowledge real_world specificity",0.522533516911437,0.516501168224299
+"o3-mini",5,3035,720,5,"is_code math creative_writing domain_knowledge specificity",0.52315625,0.52807421875
+"o4-mini-2025-04-16",1,2980,749,3,"creative_writing complexity specificity",0.516424564935999,0.552596001725874
+"o4-mini-2025-04-16",2,2982,747,6,"creative_writing creativity domain_knowledge problem_solving specificity technical_accuracy",0.51033549309751,0.534176808802498
+"o4-mini-2025-04-16",3,2995,734,4,"creative_writing instruction_following creativity specificity",0.55386318953244,0.579256212665627
+"o4-mini-2025-04-16",4,2967,762,9,"creative_writing instruction_following complexity creativity domain_knowledge problem_solving real_world specificity technical_accuracy",0.490109966835399,0.492990050619654
+"o4-mini-2025-04-16",5,2992,737,7,"is_code creative_writing instruction_following creativity domain_knowledge problem_solving technical_accuracy",0.516359464060996,0.53116811014879
+"qwen-max-2025-01-25",1,1959,493,3,"is_code creative_writing creativity",0.4656853043048,0.500263895761174
+"qwen-max-2025-01-25",2,1955,497,2,"is_code instruction_following",0.545620798734678,0.544722881244234
+"qwen-max-2025-01-25",3,1981,471,2,"is_code instruction_following",0.512324642071478,0.516796494644596
+"qwen-max-2025-01-25",4,1947,505,5,"is_code math instruction_following domain_knowledge technical_accuracy",0.49794436393422,0.497448175918342
+"qwen-max-2025-01-25",5,1966,486,3,"creativity problem_solving specificity",0.511962537249893,0.540630055342699
+"qwen3-235b-a22b",1,2276,578,4,"math creative_writing specificity technical_accuracy",0.520953817785601,0.536052540201396
+"qwen3-235b-a22b",2,2275,579,4,"is_code math creative_writing specificity",0.520811761022949,0.521859272280685
+"qwen3-235b-a22b",3,2277,577,3,"math creative_writing instruction_following",0.516453271254668,0.509942286240846
+"qwen3-235b-a22b",4,2315,539,2,"math instruction_following",0.525172365273674,0.542971718024483
+"qwen3-235b-a22b",5,2273,581,3,"math creative_writing instruction_following",0.530611154640644,0.549552437258114
+"qwen3-235b-a22b-no-thinking",1,4160,1072,1,"real_world",0.519089262466746,0.519876393841626
+"qwen3-235b-a22b-no-thinking",2,4166,1066,2,"domain_knowledge real_world",0.506913780663781,0.524289321789322
+"qwen3-235b-a22b-no-thinking",3,4247,985,4,"creative_writing problem_solving real_world specificity",0.520599707459776,0.51102585816076
+"qwen3-235b-a22b-no-thinking",4,4212,1020,2,"real_world specificity",0.532104014122103,0.544807672074164
+"qwen3-235b-a22b-no-thinking",5,4143,1089,3,"problem_solving real_world specificity",0.525429365388901,0.511979050590595
+"qwen3-30b-a3b",1,2433,656,4,"math creative_writing real_world specificity",0.537805921454696,0.538811948213127
+"qwen3-30b-a3b",2,2457,632,5,"is_code creative_writing domain_knowledge real_world specificity",0.525398284313725,0.542386642156863
+"qwen3-30b-a3b",3,2470,619,1,"creative_writing",0.529243614310683,0.599033460380299
+"qwen3-30b-a3b",4,2489,600,7,"math creative_writing instruction_following complexity real_world specificity technical_accuracy",0.506724509483138,0.513465943067324
+"qwen3-30b-a3b",5,2507,582,6,"creative_writing instruction_following creativity real_world specificity technical_accuracy",0.513722566793893,0.527045562977099
+"qwq-32b",1,1899,462,1,"creative_writing",0.488149782227502,0.492420385768426
+"qwq-32b",2,1916,445,0,"",0.5,0.47255081300813
+"qwq-32b",3,1884,477,0,"",0.5,0.500360851962683
+"qwq-32b",4,1864,497,0,"",0.5,0.507216716932357
+"qwq-32b",5,1881,480,0,"",0.5,0.488116970044681
