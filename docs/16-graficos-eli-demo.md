@@ -61,3 +61,49 @@ The bars show the uncertainty around each question-feature effect.
 The heatmap shows all 48 models, and the three regression methods have almost identical AUCs.”
 
 Código, gráficos y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Confirmación de Eli para el 16/11/2026
+
+Se ejecutó `Rscript --vanilla R/validar_demo_eli_16_nov.R` con R 4.4.1
+en un runner nuevo de Ubuntu 24.04. El comprobador carga R/16 sin escribir
+archivos ni abrir dispositivos, verifica las firmas originales y ejecuta
+los 48 gráficos (11 coeficientes por modelo), el heatmap 48 × 11 y la tabla
+4 × 8. Compara los coeficientes e intervalos con sus CSV, comprueba la
+restauración de márgenes y repite los gráficos en un dispositivo de 7 × 7
+pulgadas. Los archivos previos de data/, entregas/ y R/resultados/ conservan
+su listado y sus hashes; se excluye solamente la carpeta propia de evidencia.
+
+La tabla imprime ahora una explicación en inglés. Binomial usa votos con
+ganador; quasibinomial asigna medio punto a los empates; ordinal los incluye
+como categoría intermedia. La línea base es un ranking que ignora el tipo
+de pregunta. Los AUC por voto y las decisiones del grupo no cambian:
+0.6894, 0.6895 y 0.6895 de media CV en las tres regresiones, frente a 0.6843
+del ranking general. Son resultados guardados, no estimaciones nuevas.
+
+Ejecución: https://github.com/jfridzon/Capstone/actions/runs/43965093890
+(commit de código `c5557fdbfe4767d48d0daf53c774e4983cd94dcc`).
+Evidencia textual en `R/resultados/eli_validacion_demo_2026-11-16/`.
+Los PDF y el CSV generados por R están en el artefacto `eli-demo-validacion`
+de esa ejecución (retención de 14 días); pueden regenerarse con el comando.
+
+El primer intento falló en una aserción del comprobador, porque los argumentos
+de una función sin argumentos son NULL, no character(0). Se corrigió el
+comprobador, conservando el error exacto en `primer_intento_stderr.txt`.
+La ejecución final no tiene errores ni warnings de R. Las advertencias de
+Node de las acciones auxiliares no son errores del código R.
+
+**Alcance:** valida la pieza de Eli leyendo los resultados publicados.
+No reajusta las regresiones, no recalcula AUC, no cambia folds y no prueba
+la interfaz gráfica de RStudio ni la demo completa de Nessim. Los títulos,
+ejes y leyendas existentes se revisaron en el código; los gráficos no
+cambiaron en esta entrega. No se afirma una nueva revisión visual de PDF.
+
+**Qué sigue:** que un responsable revise y fusione este PR. Nessim debe
+cargar R/16 después de cualquier demo antigua que también defina heatmap_48,
+ejecutar el bloque de integración anterior y hacer su ensayo completo en
+RStudio con Plots > Zoom. Eli no depende de otra tarea; Nessim espera esta
+confirmación. El workflow nuevo requiere revisión humana por estar bajo
+.github/, según la política del repo.
+
+Preparado con asistencia de ChatGPT/Codex (OpenAI).
