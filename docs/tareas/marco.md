@@ -1,5 +1,11 @@
 # Tarea de Marco
 
+## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
+
+(1) Confirmar que `top3_en_vivo()` de `R/17_top3_en_vivo.R` corre en sesión limpia con 3 preguntas, con y sin presupuesto, y avisar a Nessim; (2) salida que diga claro qué se muestra. La app no es para hoy.
+No cambies los nombres ni los argumentos de las funciones que otros cargan con `source()`. Si tu tarea espera a otra persona, mira "Depende de" en `docs/17`.
+
+
 ## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).

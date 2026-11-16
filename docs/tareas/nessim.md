@@ -1,5 +1,11 @@
 # Tarea de Nessim
 
+## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
+
+Presentas la demo. Pasos: (1) PR #57 aprobado por Jaime o Mark y mergeado; (2) bloque de la tabla 48 x 7 desde `R/resultados/auc/por_modelo.csv`; (3) títulos claros en cada sección; (4) ensayo final cuando Mark, Eli y Marco confirmen sus piezas.
+No cambies los nombres ni los argumentos de las funciones que otros cargan con `source()`. Si tu tarea espera a otra persona, mira "Depende de" en `docs/17`.
+
+
 ## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).
