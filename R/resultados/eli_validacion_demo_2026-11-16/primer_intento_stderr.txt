@@ -1,0 +1,2 @@
+Error: identical(names(formals(pieza$heatmap_48)), character(0)) is not TRUE
+Execution halted
