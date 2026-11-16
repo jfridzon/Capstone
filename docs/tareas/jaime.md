@@ -1,5 +1,11 @@
 # Tarea de Jaime
 
+## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
+
+(1) Aprobar primero el PR #57 de Nessim (bloquea a todos); (2) revisar los PR que lleguen; (3) tus slides de update individual.
+No cambies los nombres ni los argumentos de las funciones que otros cargan con `source()`. Si tu tarea espera a otra persona, mira "Depende de" en `docs/17`.
+
+
 ## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).

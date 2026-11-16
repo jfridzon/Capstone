@@ -1,5 +1,11 @@
 # Tarea de Mark
 
+## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
+
+(1) Confirmar que las funciones de `R/15_roc_por_fold.R` corren en sesión limpia y avisar a Nessim; (2) verificar de forma independiente la tabla 48 x 7 de Nessim cuando la suba; (3) si queda tiempo, empezar `R/18_stepwise.R` (no bloquea la demo).
+No cambies los nombres ni los argumentos de las funciones que otros cargan con `source()`. Si tu tarea espera a otra persona, mira "Depende de" en `docs/17`.
+
+
 ## App Shiny, adelantada (11/11, rama `mark/app-diseno`): LEER ANTES DE TOCAR `app/app.R`
 
 La fase de la app es del 18/11 al 30/11 (`docs/07`), pero Mark la adelantó sobre el esqueleto de Marco. Estado:

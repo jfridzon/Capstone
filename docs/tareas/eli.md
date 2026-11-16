@@ -1,5 +1,11 @@
 # Tarea de Eli
 
+## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
+
+(1) Confirmar que las funciones de `R/16_graficos_coeficientes.R` corren en sesión limpia y avisar a Nessim; (2) títulos y ejes claros en cada gráfico; (3) tabla de sensibilidad que se lea sola.
+No cambies los nombres ni los argumentos de las funciones que otros cargan con `source()`. Si tu tarea espera a otra persona, mira "Depende de" en `docs/17`.
+
+
 ## Fase 2b (desde el 9/11): LO QUE TOCA AHORA
 
 Lee primero `docs/14-fase-2b.md` (decisiones y orden).
