@@ -1,6 +1,7 @@
 # Nessim, issue #44. Prepared with ChatGPT/Codex assistance.
 
-# ---- 1. Data ----
+# ---- 1. Response and predictors ----
+cat("\n=== 1. Response: won (1 = win, 0 = loss); question predictors ===\n")
 library(pROC)
 
 base <- read.csv(gzfile(
@@ -9,6 +10,7 @@ base <- read.csv(gzfile(
 features <- c("is_code", "math", "creative_writing", "instruction_following",
               "complexity", "creativity", "domain_knowledge", "problem_solving",
               "real_world", "specificity", "technical_accuracy")
+print(features)
 for (x in features) base[[x]] <- as.logical(base[[x]])
 votes <- base[!base$requiere_revision & base$es_decisivo, ]
 stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
@@ -16,6 +18,7 @@ print(data.frame(votes = length(unique(votes$id)),
                  models = length(unique(votes$model))))
 
 # ---- 2. The 48 logistic regressions ----
+cat("\n=== 2. The 48 binomial GLMs; o3 summary and odds ratios ===\n")
 fit_48 <- function(data) {
   models <- sort(unique(data$model))
   fits <- setNames(vector("list", length(models)), models)
@@ -35,9 +38,11 @@ fit_48 <- function(data) {
 fits <- fit_48(votes)
 print(length(fits))
 print(summary(fits[["o3-2025-04-16"]]))
+print(data.frame(odds_ratio = exp(coef(fits[["o3-2025-04-16"]]))))
 coefficients_48 <- do.call(rbind, lapply(fits, coef))
 
 # ---- 3. AUC for each of the 48 regressions ----
+cat("\n=== 3. In-sample AUC for each model, calculated with pROC ===\n")
 auc_by_model <- function(fits, data) {
   do.call(rbind, lapply(names(fits), function(m) {
     rows <- data[data$model == m, ]
@@ -55,7 +60,36 @@ auc_by_model <- function(fits, data) {
 auc_models_all <- auc_by_model(fits, votes)
 print(transform(auc_models_all, AUC = round(AUC, 4)), row.names = FALSE)
 
-# ---- 4. AUC per vote: all data vs general ranking ----
+# ---- 4. The professor's 48 x 7 table, from Mark's saved CSV ----
+cat("\n=== 4. AUC per model: folds 1-5, mean CV and all data ===\n")
+auc_saved <- read.csv("R/resultados/auc/por_modelo.csv",
+                      stringsAsFactors = FALSE)
+stopifnot(all(c("scenario", "fold", "model", "n_rows", "n_wins",
+                "auc", "status") %in% names(auc_saved)))
+auc_columns <- c(paste0("Fold_", 1:5), "Mean_CV", "All_data")
+auc_saved$column <- ifelse(
+  auc_saved$scenario == "all_data" & auc_saved$fold == "all", "All_data",
+  ifelse(auc_saved$scenario == "cv5" & auc_saved$fold == "mean", "Mean_CV",
+         ifelse(auc_saved$scenario == "cv5" & auc_saved$fold %in% 1:5,
+                paste0("Fold_", auc_saved$fold), NA_character_)))
+auc_long <- auc_saved[!is.na(auc_saved$column), c("model", "column", "auc")]
+stopifnot(setequal(auc_long$model, names(fits)),
+          !anyDuplicated(auc_long[c("model", "column")]),
+          all(table(auc_long$model) == length(auc_columns)),
+          all(is.na(auc_long$auc) | auc_long$auc >= 0 & auc_long$auc <= 1))
+auc_wide <- reshape(auc_long, idvar = "model", timevar = "column",
+                    direction = "wide")
+auc_wide <- auc_wide[match(names(fits), auc_wide$model), ]
+AUC_48x7 <- auc_wide[paste0("auc.", auc_columns)]
+names(AUC_48x7) <- auc_columns
+rownames(AUC_48x7) <- auc_wide$model
+stopifnot(identical(dim(AUC_48x7), c(48L, 7L)))
+# Mean_CV is the saved mean of unrounded AUCs, not a mean of rounded cells.
+print(AUC_48x7, digits = 4)
+if (interactive()) View(AUC_48x7, title = "AUC per model: 48 x 7")
+
+# ---- 5. AUC per vote: all data vs general ranking ----
+cat("\n=== 5. In-sample AUC per vote: regressions vs general ranking ===\n")
 score_votes <- function(fits, train, test) {
   a <- test[test$lado == "model_a", ]
   score_A <- score_B <- rep(NA_real_, nrow(a))
@@ -91,7 +125,8 @@ lines(roc_general, col = "red", lty = 2)
 legend("bottomright", c("48 regressions", "General ranking"),
        col = c("blue", "red"), lty = c(1, 2), bty = "n")
 
-# ---- 5. Random folds by session: verify Mark's shared file ----
+# ---- 6. Random folds by session: verify Mark's shared file ----
+cat("\n=== 6. Verify the official random folds by session ===\n")
 folds <- read.csv("R/resultados/auc/folds_5.csv", stringsAsFactors = FALSE)
 sessions <- sort(unique(base$evaluation_session_id))
 set.seed(2026)
@@ -105,7 +140,8 @@ stopifnot(!anyNA(votes$fold),
                      function(f) length(unique(f))) == 1L))
 print(table(votes$fold[votes$lado == "model_a"]))
 
-# ---- 6. Five-fold cross-validation ----
+# ---- 7. Five-fold cross-validation ----
+cat("\n=== 7. Refit on four folds; calculate AUC on the held-out fold ===\n")
 fold_results <- model_results <- roc_folds <- vector("list", 5)
 for (f in 1:5) {
   train <- votes[votes$fold != f, ]
@@ -149,3 +185,17 @@ print(data.frame(NA_model_fold_AUC = sum(is.na(auc_models_folds$AUC))))
 plot(roc_folds[[1]], col = 1, legacy.axes = TRUE, main = "Five held-out folds")
 for (f in 2:5) lines(roc_folds[[f]], col = f)
 legend("bottomright", paste("Fold", 1:5), col = 1:5, lty = 1, bty = "n")
+
+# Verify the saved 48 x 7 table against the pROC calculations above.
+auc_recalculated <- sapply(1:5, function(f) {
+  rows <- auc_models_folds[auc_models_folds$fold == f, ]
+  rows$AUC[match(rownames(AUC_48x7), rows$model)]
+})
+auc_recalculated <- cbind(auc_recalculated,
+  rowMeans(auc_recalculated),
+  auc_models_all$AUC[match(rownames(AUC_48x7), auc_models_all$model)])
+dimnames(auc_recalculated) <- dimnames(as.matrix(AUC_48x7))
+stopifnot(identical(is.na(as.matrix(AUC_48x7)), is.na(auc_recalculated)),
+          all(abs(as.matrix(AUC_48x7) - round(auc_recalculated, 4)) < 1e-10,
+              na.rm = TRUE))
+cat("\n48 x 7 saved AUC table matches recalculated pROC values.\n")

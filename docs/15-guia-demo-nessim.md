@@ -23,7 +23,7 @@ source("R/14_demo_rstudio.R")
 ```
 
 Para presentar, abre el archivo y selecciona cada bloque completo, desde
-su título hasta el siguiente, y presiona Cmd+Enter. Corre 1 a 6 en orden.
+su título hasta el siguiente, y presiona Cmd+Enter. Corre 1 a 7 en orden.
 No ejecutes todo de golpe durante la explicación: las tablas y gráficos avanzan.
 
 ## 1. Data
@@ -76,7 +76,21 @@ View(auc_models_all)
 Este AUC por modelo es distinto del AUC por voto de la siguiente sección.
 La tabla final también tendrá el promedio CV de cada modelo.
 
-## 4. AUC per vote: all data vs general ranking
+## 4. Tabla de AUC por modelo: 48 × 7 (16/11)
+
+El bloque lee `R/resultados/auc/por_modelo.csv` y lo pivotea con `reshape()`.
+`AUC_48x7` tiene los modelos como nombres de fila y exactamente siete
+columnas numéricas: Fold_1 a Fold_5, Mean_CV y All_data. En RStudio se
+abre automáticamente con `View()`; en Rscript se imprime en consola.
+La media se lee de la fila `cv5 / mean`: se calculó antes de redondear
+los AUC guardados. No se vuelve a promediar las cinco celdas redondeadas.
+El bloque 7 recalcula con pROC y comprueba las siete columnas al redondeo
+del CSV. No se modifica el archivo de Mark ni sus folds.
+
+Di: “Each row is one model. The columns show its five held-out AUCs,
+their mean, and the AUC fitted and measured on all data.”
+
+## 5. AUC per vote: all data vs general ranking
 
 Muestra las dos fórmulas de score_votes:
 - p_48 = plogis(score_A - score_B).
@@ -93,7 +107,7 @@ both AUCs with pROC. These results use all the data for fitting and evaluation.�
 AUC no es accuracy: mide separación de victorias y derrotas, no porcentaje
 de votos acertados. Esta evaluación es descriptiva dentro de muestra.
 
-## 5. Random folds by session
+## 6. Random folds by session
 
 Muestra read.csv(folds_5.csv), set.seed(2026), sample() y la comparación
 contra el archivo oficial. Ejecuta el bloque.
@@ -106,7 +120,7 @@ El código no guarda particiones nuevas. Todas las filas de la misma sesión
 quedan juntas. La tabla muestra 15,569; 15,560; 15,475; 15,679; 15,560 votos
 decisivos en los cinco folds.
 
-## 6. Five-fold cross-validation
+## 7. Five-fold cross-validation
 
 Señala estas líneas en el loop:
 - train: fold != f.
@@ -163,5 +177,34 @@ NA_model_fold_AUC debe dar 0 para estos datos.
 - Are coefficient effects causal? “No. They are associations, and p-values
   are nominal because the voting data have dependence.”
 
-Para esta presentación sigue solo estos seis bloques. Los otros análisis
+Para esta presentación sigue solo estos siete bloques. Los otros análisis
 permanecen en el repo y se pueden abrir si el profesor los pide.
+
+
+## Estado del lunes 16/11
+
+El PR #57 ya está aprobado y fusionado. La tabla y los títulos se preparan
+en `nessim/tabla-auc-demo-16-nov`. La ejecución técnica limpia se reproduce
+con `Rscript --vanilla R/verificar_demo_16nov_nessim.R`; sus salidas quedan
+en `R/resultados/nessim_demo_2026-11-16/`.
+
+**Ensayo final pendiente:** Nessim confirmó que aún faltan los avisos de
+Mark, Eli y Marco. Esta ejecución de R/14 no sustituye esas confirmaciones
+ni el ensayo personal completo en RStudio. El orden general de presentación
+sigue en docs/17: después de la tabla, Mark muestra R/15, Eli R/16,
+Nessim la comparación guardada Bradley-Terry y Marco R/17. Las piezas y
+sus interfaces se conservan; R/14 mantiene las fórmulas visibles del PR #57.
+
+Avisar a Mark para que verifique la tabla independientemente con pROC,
+`folds_5.csv` y `por_modelo.csv`; a Jaime para revisión del PR; a Eli y Marco
+para recibir sus confirmaciones antes del ensayo completo.
+
+Cinco frases para Nessim:
+
+1. We predict whether an AI model wins, using eleven features of the question.
+2. We fit one logistic regression for each of the forty-eight models.
+3. The intercept is the log-odds of winning when all eleven features are false.
+4. My table shows five held-out AUCs, their mean, and the in-sample AUC for each model.
+5. We keep each session in one fold so it cannot appear in both training and testing.
+
+Actualización preparada con asistencia de ChatGPT/Codex (OpenAI).
