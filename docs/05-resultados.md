@@ -947,3 +947,23 @@ Verificación independiente de la tabla 48 × 7 de Nessim (Mark, 16/11): se reca
 con `glm` + `pROC` y `folds_5.csv`, sin usar `R/11`, y se compararon con `AUC_48x7` de `R/14_demo_rstudio.R` en sesión
 limpia: 336 celdas, 0 diferencias al 4.º decimal, 0 NA, y `Mean_CV` es el promedio de los 5 folds.
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+
+## Eli: confirmación limpia de su pieza de demo (16/11/2026)
+
+Comprobador reproducible: `Rscript --vanilla R/validar_demo_eli_16_nov.R`,
+R 4.4.1 en Ubuntu 24.04. Verifica sin reajustar modelos las tres interfaces,
+los 48 gráficos de once efectos e IC Wald nominales, el heatmap 48 × 11,
+los márgenes gráficos y la tabla de sensibilidad 4 × 8 contra sus CSV.
+La diferencia máxima entre coeficientes/intervalos y su fuente fue 0.
+Los archivos previos de data/, entregas/ y R/resultados/ conservan listado
+y hashes; la única carpeta de salida es la propia del comprobador.
+Los AUC publicados siguen iguales; no se agrega una evaluación estadística.
+
+Ejecución y PDF/CSV generados:
+https://github.com/jfridzon/Capstone/actions/runs/43965093890.
+Consola y primer error del comprobador, corregido antes de la ejecución final:
+`R/resultados/eli_validacion_demo_2026-11-16/`.
+Guía y límites: `docs/16-graficos-eli-demo.md`.
+No equivale al ensayo personal completo de Nessim en RStudio.
+Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).

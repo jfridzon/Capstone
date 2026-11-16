@@ -1,0 +1,40 @@
+CLEAN R SESSION
+R version 4.4.1 (2024-06-14) 
+PASS: source without file, device or option changes; original interfaces.
+PASS: all 48 coefficient plots, 11 effects and nominal 95% intervals.
+PASS: heatmap 48 x 11; plots also work on a 7 x 7 inch device.
+
+Sensitivity check: AUC per vote, not accuracy.
+All data uses the fitting sample; folds test unseen sessions.
+Binomial uses wins/losses; quasibinomial gives ties half a point; ordinal includes ties.
+The mean is the average of five fold AUCs. Similar AUCs do not prove equivalence.
+          Method All data (in sample) Fold 1 Fold 2 Fold 3 Fold 4 Fold 5 Mean of 5 folds
+        Binomial               0.7005 0.6902 0.6921 0.6954 0.6779 0.6912          0.6894
+   Quasibinomial               0.7004 0.6900 0.6923 0.6955 0.6780 0.6917          0.6895
+         Ordinal               0.7002 0.6898 0.6924 0.6954 0.6779 0.6917          0.6895
+ General ranking               0.6854 0.6844 0.6873 0.6908 0.6735 0.6857          0.6843
+
+PASS: sensitivity table matches stored results; protected input hashes unchanged.
+Maximum coefficient/interval difference: 0 
+Protected files checked: 185 
+R version 4.4.1 (2024-06-14)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
+LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8        LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C           LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+loaded via a namespace (and not attached):
+[1] compiler_4.4.1 tools_4.4.1   
+ALL ELI DEMO CHECKS PASSED. No RStudio GUI or full Nessim demo was tested here.

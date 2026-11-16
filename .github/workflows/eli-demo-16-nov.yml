@@ -1,0 +1,37 @@
+name: Eli - clean R demo validation
+on:
+  push:
+    branches: ["eli/validacion-demo-16-nov"]
+    paths:
+      - "R/16_graficos_coeficientes.R"
+      - "R/validar_demo_eli_16_nov.R"
+      - ".github/workflows/eli-demo-16-nov.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
+        with:
+          r-version: "4.4.1"
+          use-public-rspm: false
+      - name: Execute all Eli functions in a clean R process
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p R/resultados/eli_validacion_demo_2026-11-16
+          Rscript --vanilla R/validar_demo_eli_16_nov.R 2>&1 | tee R/resultados/eli_validacion_demo_2026-11-16/salida_consola.txt
+      - name: Preserve logs and plots even if R fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eli-demo-validacion
+          path: R/resultados/eli_validacion_demo_2026-11-16/
+          if-no-files-found: error
+          retention-days: 14
