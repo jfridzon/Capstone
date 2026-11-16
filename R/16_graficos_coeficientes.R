@@ -125,6 +125,11 @@ tabla_sensibilidad <- function() {
   names(salida) <- c("Method", "All data (in sample)", paste("Fold", 1:5), "Mean of 5 folds")
   salida[-1] <- lapply(salida[-1], round, digits = 4)
   rownames(salida) <- NULL
+  # La explicacion acompana la tabla, sin cambiar sus columnas ni su interfaz.
+  cat("\nSensitivity check: AUC per vote, not accuracy.\n",
+      "All data uses the fitting sample; folds test unseen sessions.\n",
+      "Binomial uses wins/losses; quasibinomial gives ties half a point; ordinal includes ties.\n",
+      "The mean is the average of five fold AUCs. Similar AUCs do not prove equivalence.\n", sep = "")
   # data.frame visible: funciona tanto en consola como con View(tabla_sensibilidad()).
   salida
 }
