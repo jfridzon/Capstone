@@ -1,169 +1,151 @@
-# Live RStudio demo for Monday 16 November 2026 (Nessim, issue #44).
-# Open Capstone.Rproj; run sections with Cmd+Enter, or source this file.
-# Inputs: the existing long base, shared folds and saved comparison results.
-# Output: console tables and plots. This script does not write result files.
-# Prepared with ChatGPT/Codex assistance; explain each section before class.
+# Nessim, issue #44. Prepared with ChatGPT/Codex assistance.
 
-# ---- Setup: load existing functions without running their export scripts ----
-if (!file.exists("R/02_regresiones_por_modelo.R")) {
-  stop("Open Capstone.Rproj and run this script from the repository root.")
+# ---- 1. Data ----
+library(pROC)
+
+base <- read.csv(gzfile(
+  "data/derivados/base_regresiones_2026-10-28_v2.csv.gz"
+), stringsAsFactors = FALSE)
+features <- c("is_code", "math", "creative_writing", "instruction_following",
+              "complexity", "creativity", "domain_knowledge", "problem_solving",
+              "real_world", "specificity", "technical_accuracy")
+for (x in features) base[[x]] <- as.logical(base[[x]])
+votes <- base[!base$requiere_revision & base$es_decisivo, ]
+stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
+print(data.frame(votes = length(unique(votes$id)),
+                 models = length(unique(votes$model))))
+
+# ---- 2. The 48 logistic regressions ----
+fit_48 <- function(data) {
+  models <- sort(unique(data$model))
+  fits <- setNames(vector("list", length(models)), models)
+  for (m in models) {
+    fits[[m]] <- glm(
+      won ~ is_code + math + creative_writing + instruction_following +
+        complexity + creativity + domain_knowledge + problem_solving +
+        real_world + specificity + technical_accuracy,
+      family = binomial, data = data[data$model == m, ]
+    )
+  }
+  stopifnot(length(fits) == 48L,
+            all(vapply(fits, function(f) f$converged, logical(1))))
+  fits
 }
 
-# Each teammate gets a separate environment so names do not overwrite ours.
-cargar_pieza_demo <- function(path) {
-  pieza <- new.env()
-  # Keep nested source() calls (Marco loads R/02) in this environment too.
-  pieza$source <- function(file, ...) base::source(file, local = pieza, ...)
-  anteriores <- options(correr_02 = FALSE, correr_11 = FALSE)
-  on.exit(options(anteriores))
-  sys.source(path, envir = pieza)
-  pieza
+fits <- fit_48(votes)
+print(length(fits))
+print(summary(fits[["o3-2025-04-16"]]))
+coefficients_48 <- do.call(rbind, lapply(fits, coef))
+
+# ---- 3. AUC for each of the 48 regressions ----
+auc_by_model <- function(fits, data) {
+  do.call(rbind, lapply(names(fits), function(m) {
+    rows <- data[data$model == m, ]
+    score <- predict(fits[[m]], newdata = rows, type = "link")
+    auc <- NA_real_
+    if (length(unique(rows$won)) == 2L) {
+      roc <- pROC::roc(rows$won, score, levels = c(0, 1),
+                       direction = "<", quiet = TRUE)
+      auc <- as.numeric(pROC::auc(roc))
+    }
+    data.frame(model = m, rows = nrow(rows), AUC = auc)
+  }))
 }
 
-demo_14 <- new.env()
-demo_14$model_name <- "o3-2025-04-16"
-demo_14$models <- cargar_pieza_demo("R/02_regresiones_por_modelo.R")
+auc_models_all <- auc_by_model(fits, votes)
+print(transform(auc_models_all, AUC = round(AUC, 4)), row.names = FALSE)
 
-# ---- 1. Predict a win or a loss using only the question's 11 features --------
-cat("\n1. What do we predict, and with what?\n")
-demo_14$votes <- demo_14$models$preparar_respuesta(
-  demo_14$models$cargar_base(), politica = "excluir"
+# ---- 4. AUC per vote: all data vs general ranking ----
+score_votes <- function(fits, train, test) {
+  a <- test[test$lado == "model_a", ]
+  score_A <- score_B <- rep(NA_real_, nrow(a))
+  for (m in names(fits)) {
+    i <- which(a$model == m)
+    j <- which(a$rival == m)
+    if (length(i)) score_A[i] <- predict(
+      fits[[m]], newdata = a[i, ], type = "link")
+    if (length(j)) score_B[j] <- predict(
+      fits[[m]], newdata = a[j, ], type = "link")
+  }
+  win_rate <- tapply(train$won, train$model, mean)
+  p_48 <- plogis(score_A - score_B)
+  p_general <- plogis(qlogis(win_rate[a$model]) - qlogis(win_rate[a$rival]))
+  stopifnot(all(is.finite(p_48)), all(is.finite(p_general)))
+  data.frame(won = a$won, p_48 = p_48, p_general = unname(p_general))
+}
+
+scores <- score_votes(fits, train = votes, test = votes)
+roc_48 <- pROC::roc(scores$won, scores$p_48,
+                     levels = c(0, 1), direction = "<", quiet = TRUE)
+roc_general <- pROC::roc(scores$won, scores$p_general,
+                          levels = c(0, 1), direction = "<", quiet = TRUE)
+auc_all <- data.frame(
+  evaluation = "All data (in sample)", votes = nrow(scores),
+  AUC_48 = as.numeric(pROC::auc(roc_48)),
+  AUC_general = as.numeric(pROC::auc(roc_general))
 )
-demo_14$features <- demo_14$models$predictores
-stopifnot(all(demo_14$votes$won %in% c(0, 1)),
-          !anyNA(demo_14$votes[c("won", demo_14$features)]))
-cat("Response: won = 1 if the model won, 0 if it lost.\n")
-cat("We use votes with a winner; flagged votes stay out.\n")
-print(data.frame(
-  feature = demo_14$features,
-  meaning = c(
-    "Code", "Math", "Creative writing", "Following instructions",
-    "Complexity", "Creativity", "Domain knowledge", "Problem solving",
-    "Real-world use", "Specificity", "Technical accuracy"
+print(transform(auc_all, AUC_48 = round(AUC_48, 4),
+                AUC_general = round(AUC_general, 4)), row.names = FALSE)
+plot(roc_48, col = "blue", legacy.axes = TRUE, main = "All data")
+lines(roc_general, col = "red", lty = 2)
+legend("bottomright", c("48 regressions", "General ranking"),
+       col = c("blue", "red"), lty = c(1, 2), bty = "n")
+
+# ---- 5. Random folds by session: verify Mark's shared file ----
+folds <- read.csv("R/resultados/auc/folds_5.csv", stringsAsFactors = FALSE)
+sessions <- sort(unique(base$evaluation_session_id))
+set.seed(2026)
+session_fold <- setNames(sample(rep_len(1:5, length(sessions))), sessions)
+saved_sessions <- base$evaluation_session_id[match(folds$id, base$id)]
+stopifnot(!anyDuplicated(folds$id), setequal(folds$id, base$id),
+          all(folds$fold == unname(session_fold[saved_sessions])))
+votes$fold <- folds$fold[match(votes$id, folds$id)]
+stopifnot(!anyNA(votes$fold),
+          all(tapply(votes$fold, votes$evaluation_session_id,
+                     function(f) length(unique(f))) == 1L))
+print(table(votes$fold[votes$lado == "model_a"]))
+
+# ---- 6. Five-fold cross-validation ----
+fold_results <- model_results <- roc_folds <- vector("list", 5)
+for (f in 1:5) {
+  train <- votes[votes$fold != f, ]
+  test <- votes[votes$fold == f, ]
+  stopifnot(length(intersect(train$evaluation_session_id,
+                             test$evaluation_session_id)) == 0L)
+  fits_fold <- fit_48(train)
+  scores_fold <- score_votes(fits_fold, train, test)
+  roc_fold <- pROC::roc(scores_fold$won, scores_fold$p_48,
+                         levels = c(0, 1), direction = "<", quiet = TRUE)
+  roc_baseline <- pROC::roc(scores_fold$won, scores_fold$p_general,
+                             levels = c(0, 1), direction = "<", quiet = TRUE)
+  fold_results[[f]] <- data.frame(
+    fold = as.character(f), votes = nrow(scores_fold),
+    AUC_48 = as.numeric(pROC::auc(roc_fold)),
+    AUC_general = as.numeric(pROC::auc(roc_baseline))
   )
-), row.names = FALSE)
-cat("Answer length and formatting are not predictors: they come later.\n")
-cat("Decisive votes:", nrow(demo_14$votes) / 2,
-    "| Models:", length(unique(demo_14$votes$model)), "\n")
-
-# ---- 2. Fit one binomial regression; read its intercept and odds ratios -----
-cat("\n2. One logistic regression, with the code visible\n")
-demo_14$one_model <- demo_14$votes[
-  demo_14$votes$model == demo_14$model_name, ]
-if (!nrow(demo_14$one_model)) stop("The example model has no votes.")
-
-# The same 11 features as R/02; no opponent or answer features.
-demo_14$fit <- glm(
-  won ~ is_code + math + creative_writing + instruction_following +
-    complexity + creativity + domain_knowledge + problem_solving +
-    real_world + specificity + technical_accuracy,
-  family = binomial, data = demo_14$one_model
-)
-stopifnot(demo_14$fit$converged, all(is.finite(coef(demo_14$fit))))
-cat("Model:", demo_14$model_name, "\n")
-print(summary(demo_14$fit))
-
-demo_14$odds_ratios <- data.frame(
-  term = names(coef(demo_14$fit)),
-  coefficient = unname(coef(demo_14$fit)),
-  odds_ratio = unname(exp(coef(demo_14$fit)))
-)
-print(transform(demo_14$odds_ratios,
-                coefficient = round(coefficient, 4),
-                odds_ratio = round(odds_ratio, 4)), row.names = FALSE)
-cat("Intercept: log-odds of winning when all 11 features are FALSE.\n")
-cat("A feature coefficient changes log-odds, holding the others fixed.\n")
-cat("exp(coef) is an odds ratio, not a change in probability.\n")
-cat("These are associations, not causal effects.\n")
-cat("Each vote appears twice across the 48 fits; p-values are indicative.\n")
-
-# ---- 3. Use Mark's pROC code to draw the ROC curve with all the data --------
-cat("\n3. AUC with all the data (in sample)\n")
-demo_14$mark <- NULL
-if (file.exists("R/15_roc_por_fold.R")) {
-  # R/11 can create folds if missing: require the shared file before loading.
-  if (!file.exists("R/resultados/auc/folds_5.csv")) {
-    stop("The shared folds_5.csv is missing. Download it; do not make folds.")
-  }
-  if (!requireNamespace("pROC", quietly = TRUE)) {
-    stop("Install pROC before the demo: install.packages('pROC').")
-  }
-  demo_14$mark <- cargar_pieza_demo("R/15_roc_por_fold.R")
-  demo_14$auc_all <- demo_14$mark$roc_todos_los_datos()
-  cat("These votes were also used to fit: this is descriptive.\n")
-} else {
-  cat("Pending Mark (#45): R/15_roc_por_fold.R is not here yet.\n")
+  model_results[[f]] <- data.frame(fold = f,
+                                  auc_by_model(fits_fold, test))
+  roc_folds[[f]] <- roc_fold
 }
 
-# ---- 4. Hold out sessions at random; show each fold's AUC and the mean ------
-cat("\n4. Five-fold cross-validation on unseen sessions\n")
-if (!is.null(demo_14$mark)) {
-  demo_14$fold_counts <- demo_14$mark$explicar_folds()
-  demo_14$auc_folds <- demo_14$mark$roc_cinco_folds()
-  print(demo_14$auc_folds, row.names = FALSE)
-  cat("Fit on four folds, test on the fifth; repeat five times.\n")
-  cat("The general ranking also learns only from the four training folds.\n")
-  cat("AUC measures separation of wins and losses; it is not accuracy.\n")
-  cat("The mean above is the mean of five AUCs, not a pooled-curve AUC.\n")
-} else {
-  cat("Pending Mark (#45): live fold evaluation was not run.\n")
-}
-
-# ---- 5. Use Eli's coefficient chart and the heatmap of all 48 models --------
-cat("\n5. Coefficients and their uncertainty\n")
-demo_14$eli <- NULL
-if (file.exists("R/16_graficos_coeficientes.R")) {
-  demo_14$eli <- cargar_pieza_demo("R/16_graficos_coeficientes.R")
-  demo_14$eli$grafico_coeficientes(demo_14$model_name)
-  demo_14$eli$heatmap_48()
-} else {
-  cat("Pending Eli (#46): R/16_graficos_coeficientes.R is not here yet.\n")
-}
-
-# ---- 6. Use Eli's sensitivity table to compare the three regression fits ---
-cat("\n6. Binomial, quasibinomial and ordinal: sensitivity check\n")
-if (!is.null(demo_14$eli)) {
-  demo_14$sensitivity <- demo_14$eli$tabla_sensibilidad()
-  print(demo_14$sensitivity, row.names = FALSE)
-  cat("Similar AUCs are a sensitivity check, not proof of equivalence.\n")
-} else {
-  cat("Pending Eli (#46): the live sensitivity table was not loaded.\n")
-}
-
-# ---- 7. Read Bradley-Terry's saved AUC as a brief, secondary comparison -----
-cat("\n7. Bradley-Terry: a comparison after the simple regressions\n")
-demo_14$bt <- read.csv("R/resultados/bradley_terry/por_voto.csv",
-                       stringsAsFactors = FALSE)
-demo_14$bt_mean <- demo_14$bt[
-  demo_14$bt$scenario == "cv5" & demo_14$bt$fold == "mean", ]
-stopifnot(nrow(demo_14$bt_mean) == 1L,
-          is.finite(demo_14$bt_mean$auc_bradley_terry),
-          is.finite(demo_14$bt_mean$auc_48_regresiones),
-          is.finite(demo_14$bt_mean$auc_ranking_general))
-cat(sprintf(
-  "Mean CV AUC: Bradley-Terry %.4f; 48 regressions %.4f; general ranking %.4f.\n",
-  demo_14$bt_mean$auc_bradley_terry,
-  demo_14$bt_mean$auc_48_regresiones,
-  demo_14$bt_mean$auc_ranking_general
+auc_folds <- do.call(rbind, fold_results)
+auc_folds <- rbind(auc_folds, data.frame(
+  fold = "mean", votes = sum(auc_folds$votes),
+  AUC_48 = mean(auc_folds$AUC_48),
+  AUC_general = mean(auc_folds$AUC_general)
 ))
-cat("Saved results on the same held-out votes; Bradley-Terry models both opponents.\n")
-cat("Its fit includes half points for ties; the 48 fits use decisive votes.\n")
+print(transform(auc_folds, AUC_48 = round(AUC_48, 4),
+                AUC_general = round(AUC_general, 4)), row.names = FALSE)
 
-# ---- 8. Use Marco's live top-three examples, with and without a budget ------
-cat("\n8. From predictions to a useful choice\n")
-demo_14$marco <- NULL
-if (file.exists("R/17_top3_en_vivo.R")) {
-  # Marco's script defines top3_en_vivo() and runs its three examples on source.
-  demo_14$marco <- cargar_pieza_demo("R/17_top3_en_vivo.R")
-} else {
-  cat("Pending Marco (#47): R/17_top3_en_vivo.R is not here yet.\n")
-}
-cat("Prices are the dataset's historical output-token prices, not a current quote.\n")
+auc_models_folds <- do.call(rbind, model_results)
+auc_models_cv <- aggregate(AUC ~ model, auc_models_folds, mean,
+                           na.action = na.pass)
+AUC_48_models <- merge(auc_models_all, auc_models_cv, by = "model",
+                       suffixes = c("_all", "_CV"))
+print(transform(AUC_48_models, AUC_all = round(AUC_all, 4),
+                AUC_CV = round(AUC_CV, 4)), row.names = FALSE)
+print(data.frame(NA_model_fold_AUC = sum(is.na(auc_models_folds$AUC))))
 
-demo_14$integration <- data.frame(
-  piece = c("Nessim", "Mark", "Eli", "Marco"),
-  loaded = c(TRUE, !is.null(demo_14$mark),
-             !is.null(demo_14$eli), !is.null(demo_14$marco))
-)
-cat("\nDemo integration status (missing pieces must be added before class)\n")
-print(demo_14$integration, row.names = FALSE)
+plot(roc_folds[[1]], col = 1, legacy.axes = TRUE, main = "Five held-out folds")
+for (f in 2:5) lines(roc_folds[[f]], col = f)
+legend("bottomright", paste("Fold", 1:5), col = 1:5, lty = 1, bty = "n")
