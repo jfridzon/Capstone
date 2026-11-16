@@ -1,0 +1,12 @@
+Type 'citation("pROC")' for a citation.
+
+Attaching package: ‘pROC’
+
+The following objects are masked from ‘package:stats’:
+
+    cov, smooth, var
+
+Error: identical(is.na(as.matrix(AUC_48x7)), is.na(auc_recalculated)) is not TRUE
+In addition: Warning message:
+package ‘pROC’ was built under R version 4.5.2 
+Execution halted
