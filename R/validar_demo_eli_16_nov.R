@@ -73,7 +73,11 @@ stopifnot(identical(dim(tabla), c(4L, 8L)),
           max(abs(as.matrix(tabla[-1]) - round(as.matrix(ref[columnas]), 4))) < 1e-12)
 print(tabla, row.names = FALSE)
 write.csv(tabla, file.path(salida, "tabla_sensibilidad.csv"), row.names = FALSE)
-stopifnot(identical(tools::md5sum(protegidos), huellas))
+protegidos_despues <- unlist(lapply(c("data", "entregas", "R/resultados"), function(p)
+  list.files(p, recursive = TRUE, full.names = TRUE, all.files = TRUE)), use.names = FALSE)
+protegidos_despues <- protegidos_despues[!startsWith(protegidos_despues, paste0(salida, "/"))]
+stopifnot(identical(protegidos, protegidos_despues),
+          identical(tools::md5sum(protegidos), huellas))
 cat("\nPASS: sensitivity table matches stored results; protected input hashes unchanged.\n")
 cat("Maximum coefficient/interval difference:", max_diferencia, "\n")
 cat("Protected files checked:", length(protegidos), "\n")

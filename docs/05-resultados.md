@@ -897,3 +897,23 @@ los 48 AUC dentro de muestra, los 240 AUC de modelo/fold y sus medias CV.
 No hubo AUC ausentes. La evidencia de esta versión queda en
 R/resultados/demo_formulas_2026-11-11/. La salida anterior se conserva
 como historia. Código y guía preparados con asistencia de ChatGPT/Codex.
+
+
+## Nessim, tabla de AUC 48 × 7 para la demo (16/11/2026)
+
+`R/14_demo_rstudio.R` pivotea `R/resultados/auc/por_modelo.csv` a
+`AUC_48x7`: modelos como nombres de fila, cinco AUC de fold, media CV
+guardada y AUC con todos los datos. Conserva el redondeo publicado;
+no agrega una evaluación nueva. La sesión limpia recalcula los AUC con
+pROC y comprueba las siete columnas contra el CSV.
+
+Verificación reproducible: `Rscript --vanilla R/verificar_demo_16nov_nessim.R`.
+Evidencia propia: `R/resultados/nessim_demo_2026-11-16/` (tabla, consola,
+stderr, versiones y resultado de hashes). Se conserva el error del primer
+intento en `primer_intento_stderr.txt`: la comprobación comparaba matrices
+con nombres de columnas distintos; se corrigió alineando sus dimensiones.
+La ejecución final termina sin errores, con el aviso de pROC compilado
+bajo R 4.5.2. Los hashes de data/, entregas/ y las salidas AUC de Mark
+permanecen iguales. Pendientes la verificación independiente de Mark,
+los avisos de Mark/Eli/Marco y el ensayo final personal en RStudio.
+Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
