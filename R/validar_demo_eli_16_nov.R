@@ -23,8 +23,8 @@ sys.source("R/16_graficos_coeficientes.R", envir = pieza)
 stopifnot(identical(archivos_antes, list.files(".", recursive = TRUE, all.files = FALSE)),
           identical(dispositivo_antes, dev.cur()), identical(opciones_antes, options()),
           identical(names(formals(pieza$grafico_coeficientes)), "modelo"),
-          identical(names(formals(pieza$heatmap_48)), character(0)),
-          identical(names(formals(pieza$tabla_sensibilidad)), character(0)))
+          length(formals(pieza$heatmap_48)) == 0L,
+          length(formals(pieza$tabla_sensibilidad)) == 0L)
 cat("PASS: source without file, device or option changes; original interfaces.\n")
 
 publicados <- read.csv("R/resultados/coeficientes_por_modelo.csv", stringsAsFactors = FALSE)
@@ -76,6 +76,8 @@ write.csv(tabla, file.path(salida, "tabla_sensibilidad.csv"), row.names = FALSE)
 stopifnot(identical(tools::md5sum(protegidos), huellas))
 cat("\nPASS: sensitivity table matches stored results; protected input hashes unchanged.\n")
 cat("Maximum coefficient/interval difference:", max_diferencia, "\n")
+cat("Protected files checked:", length(protegidos), "\n")
+print(sessionInfo())
 cat("ALL ELI DEMO CHECKS PASSED. No RStudio GUI or full Nessim demo was tested here.\n")
 writeLines(c("PASS: all Eli functions executed in a clean R process.",
              paste("Protected files checked:", length(protegidos)),
