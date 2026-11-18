@@ -4,7 +4,54 @@ Archivo: R/14_demo_rstudio.R. Actualizado el 11/11/2026 por petición de Nessim.
 Preparado con asistencia de ChatGPT/Codex (OpenAI).
 Esta guía se lee aparte; el script solo tiene títulos cortos, código y resultados.
 
-## Preparación
+## Preparación del miércoles 18/11 (borrador)
+
+Esta sección actualiza el guion del 16/11 de abajo. La demo completa del
+18/11 sigue pendiente: en el commit base del PR #63 no están las nuevas
+piezas R/19 (Eli), R/20 (Mark) y R/21 (Marco). Los bloques 8–10 solo
+explican qué se mostrará; no cargan funciones ni publican resultados nuevos.
+La presencia futura de un archivo no certifica su integración.
+
+Se puede ensayar ahora la apertura y los bloques existentes 1–7:
+
+“We predict whether an AI model wins a decisive vote. Each regression
+model uses the same eleven question features, known before the answer.
+An AUC of 0.5 means chance-level discrimination, like a coin flip.
+AUC is not accuracy. We separate per-AI-model AUC from per-vote AUC,
+and in-sample results from held-out results.”
+
+Después de que lleguen a main las entregas del equipo, en este orden:
+
+1. Eli: inspeccionar la interfaz real de R/19. Integrar la escalera completa
+   (moneda, etiquetas, rival, etiquetas + rival), primero todos los datos y
+   después cinco folds. Mostrar la tabla 48 × 7 con rival. Calcular desde su
+   tabla cuánto aporta el rival y cuánto añaden las etiquetas; no usar las
+   aproximaciones de Python de docs/18 como resultados oficiales.
+2. Mark: inspeccionar R/20 e integrar ambas versiones de Bradley–Terry.
+   “This regression model compares AI model A with AI model B.” Explicar
+   la diferencia entre victoria decisiva (binomial) y puntaje esperado con
+   medio punto (quasibinomial). Comparar por voto sobre los mismos casos,
+   con las 48 regresiones y la línea base. No afirmar que dan parecido
+   hasta ver los resultados oficiales de Mark. No usar stepwise hoy.
+3. Marco: inspeccionar R/21 y llamar a su matriz_confusion() con su interfaz
+   publicada, sin modificarla. Mostrar accuracy, precision y recall con
+   umbral 0.5; indicar qué variante incluye. Si falta la variante con rival,
+   decirlo explícitamente.
+4. Repetir el ensayo técnico en sesión limpia con las tres piezas integradas,
+   y después ensayar personalmente en RStudio. Una corrida parcial sin
+   errores no significa que la presentación completa esté lista.
+
+No adelantar las implementaciones de R/19–21, no asumir sus argumentos y
+no renombrar funciones compartidas. Se conservan los gráficos y top 3 del
+16/11 en sus archivos originales. Avisar a Eli, Mark y Marco de las piezas
+que se esperan, y a Jaime para revisar el borrador y la integración final.
+
+Verificación de este adelanto, desde la raíz:
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R`.
+Evidencia en `R/resultados/nessim_demo_2026-11-18/`.
+Guion preparado con asistencia de ChatGPT/Codex (OpenAI).
+
+## Preparación (guía del 16/11)
 
 Abre Capstone.Rproj dentro de capstone-repo. Comprueba la raíz del proyecto:
 

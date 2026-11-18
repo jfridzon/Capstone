@@ -967,3 +967,28 @@ Consola y primer error del comprobador, corregido antes de la ejecución final:
 Guía y límites: `docs/16-graficos-eli-demo.md`.
 No equivale al ensayo personal completo de Nessim en RStudio.
 Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Nessim: preparación parcial de la demo del 18/11/2026
+
+R/14 conserva las fórmulas e interfaces existentes y añade la apertura y
+los títulos para las tres piezas del 18/11. R/19 de Eli, R/20 de Mark y
+R/21 de Marco no están en el commit base 64c135d de main. No se integran
+ni se inventan sus resultados. El guion propio se actualiza en docs/15.
+
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R` terminó con código 0.
+Se verificaron las secciones disponibles, incluida la tabla 48 × 7 contra
+pROC; los resultados por voto reproducen los publicados, sin evaluación
+estadística nueva. Consola, stderr, tablas y versiones están en
+`R/resultados/nessim_demo_2026-11-18/`. No hubo errores; el aviso literal fue:
+
+```text
+Warning message:
+package ‘pROC’ was built under R version 4.5.2
+```
+
+Los nombres y hashes de todos los archivos previos de data/, entregas/ y
+R/resultados/ permanecieron iguales. La integración de las tres piezas y
+el ensayo final completo siguen pendientes; esta corrida parcial no los
+sustituye. Avisar a Eli, Mark y Marco por las entregas y a Jaime por la
+revisión. Código y documentación con asistencia de ChatGPT/Codex (OpenAI).

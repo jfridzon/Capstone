@@ -1,4 +1,5 @@
-# Nessim, issue #44. Prepared with ChatGPT/Codex assistance.
+# Nessim, demo preparation for 18/11; full integration pending.
+# Prepared with ChatGPT/Codex assistance. Existing interfaces unchanged.
 
 # ---- 1. Response and predictors ----
 cat("\n=== 1. Response: won (1 = win, 0 = loss); question predictors ===\n")
@@ -11,6 +12,12 @@ features <- c("is_code", "math", "creative_writing", "instruction_following",
               "complexity", "creativity", "domain_knowledge", "problem_solving",
               "real_world", "specificity", "technical_accuracy")
 print(features)
+cat("Response: an AI model wins (1) or loses (0), given a decisive vote.\n")
+cat("Each regression model uses the same eleven question features.\n")
+cat("AUC 0.5 means chance-level discrimination, like a coin flip.\n")
+cat("AUC is not accuracy; in-sample AUC is not held-out performance.\n")
+cat("18/11 preparation only: opponent, Bradley-Terry variants and\n",
+    "confusion-matrix integration still await the team deliveries.\n")
 for (x in features) base[[x]] <- as.logical(base[[x]])
 votes <- base[!base$requiere_revision & base$es_decisivo, ]
 stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
@@ -199,3 +206,35 @@ stopifnot(identical(is.na(as.matrix(AUC_48x7)), is.na(auc_recalculated)),
           all(abs(as.matrix(AUC_48x7) - round(auc_recalculated, 4)) < 1e-10,
               na.rm = TRUE))
 cat("\n48 x 7 saved AUC table matches recalculated pROC values.\n")
+
+# ---- 8. Per-AI-model AUC ladder: awaiting Eli ----
+cat("\n=== 8. Per-AI-model AUC ladder: pending Eli integration ===\n")
+cat("Show together: coin flip, labels only, opponent only, labels + opponent.\n")
+cat("No opponent AUC is presented until all four rows are available.\n")
+cat("Report the opponent contribution and the extra gain from labels.\n")
+
+# ---- 9. Per-vote Bradley-Terry: awaiting Mark ----
+cat("\n=== 9. Per-vote Bradley-Terry: pending Mark integration ===\n")
+cat("Compare decisive-vote binomial with half-point quasibinomial.\n")
+cat("Evaluate A versus B on the same held-out decisive votes.\n")
+cat("Do not compare a per-AI-model AUC directly with a per-vote AUC.\n")
+
+# ---- 10. Per-vote confusion matrix: awaiting Marco ----
+cat("\n=== 10. Per-vote confusion matrix: pending Marco integration ===\n")
+cat("At threshold 0.5: compare accuracy, precision and recall with baseline.\n")
+cat("AUC alone does not give these threshold-specific metrics.\n")
+
+# File presence does not certify a merged, reviewed, compatible interface.
+# Integrate only after the upstream PRs land in main; inspect their real APIs.
+demo_18nov_dependencies <- data.frame(
+  owner = c("Eli", "Mark", "Marco"),
+  file = c("R/19_fuerza_rival.R", "R/20_regresion_grande_cv.R",
+           "R/21_matriz_confusion.R"),
+  status = "Pending integration",
+  stringsAsFactors = FALSE
+)
+demo_18nov_dependencies$file_present <- file.exists(
+  demo_18nov_dependencies$file
+)
+print(demo_18nov_dependencies, row.names = FALSE)
+cat("\n18/11 integration and final team rehearsal: PENDING.\n")
