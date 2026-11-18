@@ -19,7 +19,7 @@ test <- d[d$fold == 1L, ]
 rates <- .eli19_tasas(train)
 # Cambiar TODAS las respuestas reservadas no puede afectar ninguna fuerza de train.
 changed <- d
-changed$won[changed$fold == 1L] <- 1 - changed$won[changed$fold == 1L]
+changed$won[changed$fold == 1L] <- 1L - changed$won[changed$fold == 1L]
 stopifnot(identical(rates, .eli19_tasas(changed[changed$fold != 1L, ])))
 cat("PASS: changing held-out outcomes cannot change training strengths.\n")
 
