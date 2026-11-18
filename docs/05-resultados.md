@@ -1027,3 +1027,49 @@ Salida en `R/resultados/regresion_grande_cv_2026-11-18/` (`por_voto_01_vs_05.csv
 `options(correr_20 = FALSE); source("R/20_regresion_grande_cv.R"); tabla_regresion_grande(); explicar_regresion_grande()`
 (solo lee lo guardado, es instantáneo).
 Código y documentación preparados con asistencia de Claude (Anthropic).
+
+## Eli, fuerza del rival: escalera de AUC por modelo (18/11/2026)
+
+**Qué es.** La escalera pedida en `docs/18`: el AUC **por modelo de IA** (promedio simple de los 48) con cuatro
+filas juntas. Respuesta: `won` (1/0), solo votos decisivos sin revisión (77,843 votos). Predictores: las mismas 11
+etiquetas de la pregunta; la fuerza del rival (su porcentaje de victorias) se calcula **solo con las filas de
+entrenamiento** de cada corrida, así que el fold de prueba nunca la ve. Cada modelo tiene su propia `glm` binomial.
+Los folds son los de `R/resultados/auc/folds_5.csv` (por sesión, sin traslape: 0 votos y 0 sesiones compartidos).
+
+| Método | Todos los datos (dentro de muestra) | Promedio de los 5 folds |
+|---|---|---|
+| Moneda (puntaje constante) | 0.5000 | 0.5000 |
+| Solo etiquetas de la pregunta | 0.5617 | 0.5387 |
+| Solo fuerza del rival | 0.6297 | 0.6290 |
+| Etiquetas + fuerza del rival | 0.6450 | 0.6342 |
+
+AUC por fold (1 a 5): solo etiquetas 0.5374, 0.5406, 0.5418, 0.5339, 0.5398; solo rival 0.6289, 0.6313, 0.6332,
+0.6209, 0.6305; etiquetas + rival 0.6333, 0.6362, 0.6385, 0.6262, 0.6368.
+
+- **La fila "solo etiquetas" es la de `R/11`.** Reproduce los 288 AUC por modelo de `R/resultados/auc/por_modelo.csv`
+  (48 modelos x 6 corridas) con diferencia 0 después de redondear a 4 decimales; el promedio de 0.5387 es el mismo
+  de la sección de AUC.
+- **Coincide con el chequeo rápido de `docs/18`** (aprox. 0.54, 0.63 y 0.63). Los números oficiales son los de esta tabla.
+- **Lectura (descriptiva, sin prueba de significancia):** la fuerza del rival sola da +0.0903 de AUC sobre las
+  etiquetas solas (promedio de folds); agregar las etiquetas a la fuerza del rival da solo +0.0052 más
+  (con todos los datos: +0.0680 y +0.0152). En estos datos, saber quién es el rival predice mucho más que las
+  etiquetas, y las etiquetas aportan poco encima del rival.
+- **Todos los datos es dentro de muestra**, no validación externa; la comparación válida es la de los 5 folds.
+- **No se tomó la decisión abierta #5** de `docs/18` (si el modelo principal debe controlar por la fuerza del rival):
+  aquí solo se mide qué pasa con y sin ella.
+- **Tabla de 48 filas x 7 columnas** (`All_data`, `Fold_1` a `Fold_5`, `Mean_CV`) con la variante etiquetas + rival:
+  `R/resultados/fuerza_rival/auc_rival_48x7.csv`. Las tablas de las otras dos variantes están en
+  `auc_48x7_labels_only.csv` y `auc_48x7_opponent_only.csv`. Ningún AUC quedó vacío (0 faltantes).
+- **Ojo:** este AUC es **por modelo**, no por voto; no se compara directo con el AUC por voto (por ejemplo, el 0.6908
+  de la regresión grande de arriba). Son medidas distintas.
+
+Salida en `R/resultados/fuerza_rival/` (`escalera_auc.csv`, `incrementos_auc.csv`, `auc_rival_48x7.csv`,
+`auc_por_modelo_fold.csv`, `coeficientes.csv`, `fuerzas_entrenamiento.csv`, `controles_folds.csv`,
+`comparacion_labels_mark.csv`, `verificacion.txt`). Para la demo, sin volver a correr nada:
+`source("R/19_fuerza_rival.R"); escalera_auc(); tabla_auc_rival()`. Para regenerar (unos 30 segundos, desde la
+raíz): `Rscript --vanilla R/19_fuerza_rival.R`, y luego `Rscript --vanilla R/validar_fuerza_rival.R`. Corrida con
+R 4.3.3 y pROC 1.18.5.
+
+Código de `R/19_fuerza_rival.R` y `R/validar_fuerza_rival.R` escrito por Eli (con asistencia de ChatGPT/Codex, OpenAI).
+Mark lo corrió en una sesión limpia, lo validó y le corrigió una línea al validador (el tipo entero/decimal en la
+prueba de "cambiar las respuestas de prueba"; no era fuga). Revisión y documentación con asistencia de Claude (Anthropic).
