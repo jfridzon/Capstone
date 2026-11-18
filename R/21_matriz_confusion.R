@@ -6,9 +6,10 @@
 # Qué se predice (variable de respuesta): en cada voto, y = 1 si ganó el modelo de IA del
 # lado A (model_a), y = 0 si ganó el del lado B. Solo votos con ganador (77,843).
 #
-# Dos formas de predecir, las mismas de R/11 (Mark), sin cambiar nada:
+# Tres formas de predecir (las 2 primeras, las mismas de R/11 de Mark, sin cambiar nada):
 #   - 48 regresiones: p = plogis(score_A - score_B). score = predictor lineal (logit) de la
 #     regresión glm(..., binomial) de ese modelo de IA con las 11 etiquetas de la pregunta.
+#   - 48 regresiones + fuerza del rival: igual, pero cada regresión añade fuerza_rival.
 #   - Ranking general (línea base): p = plogis(logit(%vict. A) - logit(%vict. B)), con el
 #     % de victorias calculado solo con los folds de entrenamiento.
 # Umbral: si p > 0.5 se predice "gana A" (1); si no, "gana B" (0). Es la misma regla que
@@ -23,7 +24,9 @@
 #   options(correr_21 = FALSE); source("R/21_matriz_confusion.R")   # solo carga la función
 #   res <- matriz_confusion()                      # umbral 0.5 por defecto
 #
-# Variante con la fuerza del rival: NO está todavía. Espera a R/19_fuerza_rival.R (Eli).
+# Variante con la fuerza del rival (desde el 18/11): 48 regresiones con las 11 etiquetas +
+# fuerza_rival, con las funciones de R/19_fuerza_rival.R (Eli). La fuerza del rival se
+# calcula solo con los folds de entrenamiento.
 # Necesita pROC solo porque R/11 lo carga en sus funciones.
 
 
@@ -34,6 +37,11 @@ old_opt <- options(correr_11 = FALSE)
 suppressPackageStartupMessages(
   invisible(capture.output(sys.source("R/11_auc_proc.R", envir = env21))))
 options(old_opt)
+
+# Funciones de Eli (R/19) para la fuerza del rival. sys.source() solo las define; no corre
+# su análisis ni escribe nada.
+env19_21 <- new.env()
+sys.source("R/19_fuerza_rival.R", envir = env19_21)
 
 archivo_folds_21 <- "R/resultados/auc/folds_5.csv"
 carpeta_21       <- "R/resultados/matriz_confusion"
@@ -47,24 +55,54 @@ votos_con_probabilidad <- function() {
   if (!is.null(.cache_21$votos)) return(.cache_21$votos)
   d <- env21$d
   pred <- env21$predictors
-  un_escenario <- function(m, ev, escenario, fold) {
+  # Variante con rival (docs/18, R/19 de Eli): por modelo de IA,
+  # glm(won ~ 11 etiquetas + fuerza_rival, binomial). fuerza_rival = % de victorias del rival
+  # calculado SOLO con el entrenamiento. Devuelve el logit de cada fila de `test`.
+  formula_rival <- reformulate(c(pred, "fuerza_rival"), response = "won")
+  score_con_rival <- function(train, test) {
+    tasas <- env19_21$.eli19_tasas(train)
+    train <- env19_21$.eli19_con_rival(train, tasas)
+    test  <- env19_21$.eli19_con_rival(test, tasas)
+    s <- rep(NA_real_, nrow(test))
+    for (mod in unique(test$model)) {
+      fit <- glm(formula_rival, family = binomial(), data = train[train$model == mod, ])
+      stopifnot(fit$converged)
+      i <- which(test$model == mod)
+      s[i] <- predict(fit, newdata = test[i, ], type = "link")
+    }
+    stopifnot(is.finite(s))
+    s
+  }
+
+  un_escenario <- function(m, train, ev, escenario, fold) {
+    # Logit con rival para las 2 filas de cada voto, y P(A gana) = plogis(score_A - score_B)
+    s_rival <- score_con_rival(train, ev)
+    clave <- paste(ev$id, ev$lado)
     v <- ev[ev$lado == "model_a", ]
     v <- v[v$model %in% names(m$fits) & v$rival %in% names(m$fits), ]
     x <- v[pred]
     score_reg  <- env21$linear_predictor(m$fits, v$model, x) -
                   env21$linear_predictor(m$fits, v$rival, x)
     score_base <- qlogis(m$rate[v$model]) - qlogis(m$rate[v$rival])
-    stopifnot(is.finite(score_reg), is.finite(score_base))
-    data.frame(escenario = escenario, fold = fold, id = v$id, y = v$y,
-               p_regresiones = plogis(score_reg), p_ranking = unname(plogis(score_base)))
+    score_riv  <- s_rival[match(paste(v$id, "model_a"), clave)] -
+                  s_rival[match(paste(v$id, "model_b"), clave)]
+    stopifnot(is.finite(score_reg), is.finite(score_base), is.finite(score_riv))
+    list(votos = data.frame(escenario = escenario, fold = fold, id = v$id, y = v$y,
+                            p_regresiones = plogis(score_reg),
+                            p_ranking = unname(plogis(score_base)),
+                            p_rival = plogis(score_riv)),
+         filas = data.frame(escenario = escenario, fold = fold, model = ev$model,
+                            y = ev$y, score_rival = s_rival))
   }
-  partes <- list(un_escenario(env21$fit_set(d), d, "all_data", "all"))
+  partes <- list(un_escenario(env21$fit_set(d), d, d, "all_data", "all"))
   for (f in 1:5) {
     train <- d[d$fold != f, ]
     test  <- d[d$fold == f, ]
     stopifnot(length(intersect(train$evaluation_session_id, test$evaluation_session_id)) == 0)
-    partes[[f + 1]] <- un_escenario(env21$fit_set(train), test, "cv5", as.character(f))
+    partes[[f + 1]] <- un_escenario(env21$fit_set(train), train, test, "cv5", as.character(f))
   }
+  .cache_21$filas_rival <- do.call(rbind, lapply(partes, `[[`, "filas"))
+  partes <- lapply(partes, `[[`, "votos")
   .cache_21$votos <- do.call(rbind, partes)
   .cache_21$votos
 }
@@ -75,13 +113,17 @@ votos_con_probabilidad <- function() {
 # Devuelve (invisible) una lista con:
 #   $tabla    1 fila por escenario x fold x método: TP, FP, FN, TN, accuracy, precision, recall.
 #             En cv5, la fila fold = "total" suma los 5 folds (cada voto se prueba 1 sola vez).
-#   $matrices las 2 matrices de confusión (2 x 2) del total de los 5 folds.
+#   $matrices las 3 matrices de confusión (2 x 2) del total de los 5 folds.
+# Métodos: 48 regresiones (11 etiquetas), 48 regresiones + fuerza del rival (R/19, Eli),
+# y ranking general (línea base).
 # Imprime una versión limpia en la consola.
 
 matriz_confusion <- function(umbral = 0.5) {
   stopifnot(is.numeric(umbral), length(umbral) == 1, umbral > 0, umbral < 1)
   v <- votos_con_probabilidad()
-  metodos <- c("48 regressions" = "p_regresiones", "General ranking" = "p_ranking")
+  metodos <- c("48 regressions" = "p_regresiones",
+               "48 regressions + opponent strength" = "p_rival",
+               "General ranking" = "p_ranking")
 
   contar <- function(y, p) {
     pred <- as.integer(p > umbral)
@@ -150,10 +192,23 @@ if (isTRUE(getOption("correr_21", TRUE))) {
               o$correct_regression == with(a[a$method == "48 regressions", ], TP + TN),
               o$correct_baseline   == with(a[a$method == "General ranking", ], TP + TN))
   }
-  empates <- sum(votos_con_probabilidad()$p_ranking == 0.5 |
-                 votos_con_probabilidad()$p_regresiones == 0.5)
-  cat("\nCheck: correct votes match R/resultados/auc/por_voto.csv in all 6 runs.",
+  vv <- votos_con_probabilidad()
+  empates <- sum(vv$p_ranking == 0.5 | vv$p_regresiones == 0.5 | vv$p_rival == 0.5)
+  cat("\nCheck 1: correct votes match R/resultados/auc/por_voto.csv in all 6 runs.",
       "Votes with P exactly 0.5:", empates, "\n")
+
+  # Comprobación 2: con los mismos scores con rival, el AUC por modelo de IA y fold tiene que
+  # ser el de Eli (R/resultados/fuerza_rival/auc_por_modelo_fold.csv, labels_opponent).
+  eli <- read.csv("R/resultados/fuerza_rival/auc_por_modelo_fold.csv", stringsAsFactors = FALSE)
+  eli <- eli[eli$variant == "labels_opponent", ]
+  fr  <- .cache_21$filas_rival
+  dif <- vapply(seq_len(nrow(eli)), function(i) {
+    r <- fr[fr$fold == eli$fold[i] & fr$model == eli$model[i], ]
+    abs(env21$auc_of(env21$roc_of(r$y, r$score_rival)) - eli$auc[i])
+  }, numeric(1))
+  stopifnot(nrow(eli) == 48 * 6, max(dif) < 1e-9)
+  cat("Check 2: opponent-strength scores give the same", nrow(eli),
+      "AI-model AUCs as Eli's R/19 (max difference", signif(max(dif), 2), ").\n")
 
   dir.create(carpeta_21, showWarnings = FALSE, recursive = TRUE)
   out <- t21

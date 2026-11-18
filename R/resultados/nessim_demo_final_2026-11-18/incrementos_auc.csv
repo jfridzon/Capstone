@@ -1,0 +1,3 @@
+"comparison","All_data","Mean_CV"
+"Opponent only minus labels only",0.068045030125973,0.090253268828364
+"Labels + opponent minus opponent only",0.015226738336688,0.005225889935355

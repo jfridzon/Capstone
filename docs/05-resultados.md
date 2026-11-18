@@ -983,7 +983,15 @@ Script: `R/21_matriz_confusion.R` (función `matriz_confusion(umbral = 0.5)`). R
 
 Lectura: con umbral 0.5, las 48 regresiones y el ranking general aciertan casi los mismos votos (49,801 contra 49,795). La ventaja de las regresiones se ve en el AUC (0.6894 contra 0.6843), no en la accuracy a 0.5. Con todos los datos (dentro de muestra): 0.6480 contra 0.6401.
 
-Falta la variante con la fuerza del rival: espera a `R/19_fuerza_rival.R` (Eli).
+**Variante con la fuerza del rival (añadida el 18/11, después del merge de `R/19` de Eli):** cada una de las 48 regresiones con las 11 etiquetas + `fuerza_rival` (% de victorias del rival, solo con entrenamiento), usando las funciones de `R/19`. Comprobado: con esos scores salen los mismos 288 AUC por modelo de IA de Eli (`labels_opponent`).
+
+| 5-fold (los 5 folds de prueba juntos) | Accuracy | Precision | Recall |
+|---|---:|---:|---:|
+| 48 regresiones | 0.6398 | 0.6351 | 0.6385 |
+| 48 regresiones + fuerza del rival | 0.6412 | 0.6364 | 0.6406 |
+| Ranking general | 0.6397 | 0.6346 | 0.6402 |
+
+Lectura: por voto, la fuerza del rival casi no cambia la accuracy (+0.0014; 49,915 contra 49,801 votos acertados). Por voto el rival ya estaba en la comparación A contra B; el salto grande de Eli (0.54 a 0.63) es en el AUC **por modelo**, no por voto.
 Código preparado con asistencia de Claude (Anthropic).
 
 ## Mark, regresión grande con 5-fold: 0/1 contra 0.5 (18/11/2026)
@@ -1134,4 +1142,39 @@ La integración y el ensayo técnico en R están hechos. Quedan el ensayo
 personal de Nessim en RStudio y la variante con rival de la matriz de Marco,
 que su script todavía no incluye. Avisar a Jaime para revisar PR #66, a
 Mark/Eli para confirmar la integración y a Marco por esa variante.
+Integración y documentación con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Nessim: demo final con las tres matrices de Marco (PR #69, 18/11/2026)
+
+Esta sección actualiza el estado de la corrida anterior: la variante con
+fuerza del rival ya está en main y queda integrada en R/14 mediante la
+misma llamada matriz_confusion(umbral = 0.5), sin cambiar R/21 ni su interfaz.
+Ahora se muestran las matrices de las 48 regresiones, las 48 con rival y
+el ranking general; los avisos de variante pendiente se retiran de la demo.
+
+La carga de Mark y Marco se simplifica a pasos visibles: crear un entorno,
+desactivar el bloque que escribe resultados, cargar el script, restaurar
+la opción y llamar a la función publicada. Los cálculos GLM y pROC de
+los bloques 1–7 se mantienen a la vista; Eli y Mark leen sus resultados
+publicados y Marco calcula las tres matrices en vivo. Guion en docs/15.
+
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R` terminó con código 0,
+sin errores. Único aviso literal:
+
+```text
+Warning message:
+package ‘pROC’ was built under R version 4.5.2
+```
+
+La evidencia se conserva en `R/resultados/nessim_demo_final_2026-11-18/`: consola
+y stderr literales, las tablas, dependencias y versiones. Se verificaron las
+tres matrices, las 21 filas contra el CSV de Marco al redondeo publicado y
+los controles previos de las tablas de Eli/Mark y de los AUC recalculados.
+Todos los archivos previos de data/, entregas/ y R/resultados/ conservaron
+listado y hashes. Las carpetas de las corridas anteriores se conservan.
+
+La integración y la corrida técnica completa están terminadas. Avisar a
+Jaime para revisar PR #66 y al equipo para confirmar la integración. El
+ensayo personal de Nessim en RStudio sigue siendo una actividad aparte.
 Integración y documentación con asistencia de ChatGPT/Codex (OpenAI).

@@ -1,0 +1,514 @@
+
+=== 1. Response: won (1 = win, 0 = loss); question predictors ===
+ [1] "is_code"               "math"                  "creative_writing"     
+ [4] "instruction_following" "complexity"            "creativity"           
+ [7] "domain_knowledge"      "problem_solving"       "real_world"           
+[10] "specificity"           "technical_accuracy"   
+Response: an AI model wins (1) or loses (0), given a decisive vote.
+Each regression model uses the same eleven question features.
+AUC 0.5 means chance-level discrimination, like a coin flip.
+AUC is not accuracy; in-sample AUC is not held-out performance.
+18/11: Eli's opponent ladder and Mark's Bradley-Terry comparison
+ use their published results; Marco's matrix compares methods with and without opponent strength.
+  votes models
+1 77843     48
+
+=== 2. The 48 binomial GLMs; o3 summary and odds ratios ===
+[1] 48
+
+Call:
+glm(formula = won ~ is_code + math + creative_writing + instruction_following + 
+    complexity + creativity + domain_knowledge + problem_solving + 
+    real_world + specificity + technical_accuracy, family = binomial, 
+    data = data[data$model == m, ])
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                0.45216    0.07680   5.888 3.92e-09 ***
+is_codeTRUE               -0.12284    0.07041  -1.744  0.08107 .  
+mathTRUE                  -0.14791    0.12347  -1.198  0.23094    
+creative_writingTRUE      -0.24947    0.11283  -2.211  0.02703 *  
+instruction_followingTRUE -0.28329    0.08858  -3.198  0.00138 ** 
+complexityTRUE            -0.01951    0.07413  -0.263  0.79246    
+creativityTRUE             0.11971    0.07687   1.557  0.11942    
+domain_knowledgeTRUE       0.24587    0.09339   2.633  0.00847 ** 
+problem_solvingTRUE        0.03379    0.08559   0.395  0.69300    
+real_worldTRUE             0.12101    0.08196   1.476  0.13985    
+specificityTRUE           -0.20217    0.08616  -2.346  0.01896 *  
+technical_accuracyTRUE     0.14872    0.08415   1.767  0.07716 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6557.6  on 5092  degrees of freedom
+Residual deviance: 6513.1  on 5081  degrees of freedom
+AIC: 6537.1
+
+Number of Fisher Scoring iterations: 4
+
+                          odds_ratio
+(Intercept)                1.5716982
+is_codeTRUE                0.8844074
+mathTRUE                   0.8625059
+creative_writingTRUE       0.7792108
+instruction_followingTRUE  0.7533046
+complexityTRUE             0.9806834
+creativityTRUE             1.1271680
+domain_knowledgeTRUE       1.2787270
+problem_solvingTRUE        1.0343671
+real_worldTRUE             1.1286362
+specificityTRUE            0.8169527
+technical_accuracyTRUE     1.1603487
+
+=== 3. In-sample AUC for each model, calculated with pROC ===
+                                        model rows    AUC
+          amazon-nova-experimental-chat-05-14 1819 0.5605
+                         amazon.nova-pro-v1:0 3687 0.5585
+                   chatgpt-4o-latest-20250326 4459 0.5393
+                    claude-3-5-haiku-20241022 3683 0.5753
+                   claude-3-5-sonnet-20241022 4049 0.5612
+                   claude-3-7-sonnet-20250219 4123 0.5765
+      claude-3-7-sonnet-20250219-thinking-32k 4406 0.5887
+                       claude-opus-4-20250514 5986 0.5672
+          claude-opus-4-20250514-thinking-16k 3656 0.5782
+                     claude-sonnet-4-20250514 4928 0.5698
+        claude-sonnet-4-20250514-thinking-32k 3329 0.5721
+                            command-a-03-2025 3911 0.5459
+                             deepseek-r1-0528 3794 0.5518
+                             deepseek-v3-0324 3470 0.5442
+                         gemini-2.0-flash-001 3379 0.5345
+                             gemini-2.5-flash 5558 0.5677
+ gemini-2.5-flash-lite-preview-06-17-thinking 3025 0.5555
+               gemini-2.5-flash-preview-04-17 2913 0.5479
+                               gemini-2.5-pro 5600 0.5692
+                 gemini-2.5-pro-preview-03-25  796 0.6375
+                 gemini-2.5-pro-preview-05-06 1940 0.5606
+                               gemma-3-27b-it 4154 0.5627
+                              gemma-3n-e4b-it 1498 0.5844
+                           gpt-4.1-2025-04-14 3613 0.5464
+                      gpt-4.1-mini-2025-04-14 3515 0.5574
+                             grok-3-mini-beta 3467 0.5329
+                             grok-3-mini-high 1571 0.5492
+                         grok-3-preview-02-24 3463 0.5510
+                                  grok-4-0709  931 0.5829
+                      hunyuan-turbos-20250416  879 0.5808
+                         kimi-k2-0711-preview 1595 0.5440
+                       llama-3.3-70b-instruct 2840 0.5617
+          llama-4-maverick-03-26-experimental 3449 0.5529
+           llama-4-maverick-17b-128e-instruct 3090 0.5595
+               llama-4-scout-17b-16e-instruct 1603 0.5598
+                        magistral-medium-2506 1490 0.6022
+                                   minimax-m1 3070 0.5794
+                          mistral-medium-2505 5221 0.5516
+                           mistral-small-2506 1326 0.5705
+          mistral-small-3.1-24b-instruct-2503 1835 0.5654
+                                o3-2025-04-16 5093 0.5598
+                                      o3-mini 3755 0.5551
+                           o4-mini-2025-04-16 3729 0.5592
+                          qwen-max-2025-01-25 2452 0.5489
+                              qwen3-235b-a22b 2854 0.5556
+                  qwen3-235b-a22b-no-thinking 5232 0.5368
+                                qwen3-30b-a3b 3089 0.5618
+                                      qwq-32b 2361 0.5276
+
+=== 4. AUC per model: folds 1-5, mean CV and all data ===
+                                             Fold_1 Fold_2 Fold_3 Fold_4 Fold_5
+amazon-nova-experimental-chat-05-14          0.5552 0.5035 0.5478 0.5042 0.5607
+amazon.nova-pro-v1:0                         0.5213 0.5613 0.5215 0.5441 0.5402
+chatgpt-4o-latest-20250326                   0.4997 0.5172 0.5311 0.5009 0.5176
+claude-3-5-haiku-20241022                    0.5532 0.5143 0.5807 0.5689 0.5520
+claude-3-5-sonnet-20241022                   0.5738 0.5239 0.5538 0.5652 0.5103
+claude-3-7-sonnet-20250219                   0.5999 0.5664 0.5506 0.5478 0.5829
+claude-3-7-sonnet-20250219-thinking-32k      0.5867 0.5738 0.5783 0.5596 0.5935
+claude-opus-4-20250514                       0.5599 0.5697 0.5334 0.5712 0.5527
+claude-opus-4-20250514-thinking-16k          0.5342 0.5788 0.5556 0.5854 0.5768
+claude-sonnet-4-20250514                     0.5735 0.5694 0.5828 0.5314 0.5332
+claude-sonnet-4-20250514-thinking-32k        0.5522 0.5498 0.5715 0.5562 0.5559
+command-a-03-2025                            0.5152 0.5390 0.4997 0.5110 0.5503
+deepseek-r1-0528                             0.5494 0.5411 0.5253 0.5430 0.5085
+deepseek-v3-0324                             0.5476 0.5120 0.5221 0.4971 0.5288
+gemini-2.0-flash-001                         0.5253 0.4996 0.5024 0.4992 0.5026
+gemini-2.5-flash                             0.5548 0.5323 0.5634 0.5631 0.5775
+gemini-2.5-flash-lite-preview-06-17-thinking 0.5186 0.5403 0.5418 0.5364 0.5028
+gemini-2.5-flash-preview-04-17               0.5195 0.5092 0.5193 0.5074 0.5334
+gemini-2.5-pro                               0.5764 0.5389 0.5622 0.5593 0.5576
+gemini-2.5-pro-preview-03-25                 0.5888 0.5789 0.5511 0.6351 0.6305
+gemini-2.5-pro-preview-05-06                 0.5422 0.5462 0.5531 0.4969 0.5222
+gemma-3-27b-it                               0.5372 0.5600 0.5682 0.5561 0.5298
+gemma-3n-e4b-it                              0.5332 0.6052 0.5429 0.5240 0.5777
+gpt-4.1-2025-04-14                           0.5096 0.5119 0.5484 0.5292 0.5107
+gpt-4.1-mini-2025-04-14                      0.5309 0.5440 0.5296 0.5256 0.5518
+grok-3-mini-beta                             0.4986 0.5310 0.5183 0.4894 0.5067
+grok-3-mini-high                             0.5264 0.5209 0.5155 0.5385 0.4668
+grok-3-preview-02-24                         0.4957 0.5392 0.5392 0.4989 0.5532
+grok-4-0709                                  0.4924 0.5631 0.5586 0.5702 0.5660
+hunyuan-turbos-20250416                      0.5714 0.5365 0.5874 0.4878 0.5062
+kimi-k2-0711-preview                         0.5405 0.4661 0.4949 0.4688 0.4881
+llama-3.3-70b-instruct                       0.5314 0.5572 0.5207 0.5354 0.5391
+llama-4-maverick-03-26-experimental          0.5470 0.5436 0.5388 0.5260 0.5317
+llama-4-maverick-17b-128e-instruct           0.5240 0.5573 0.5266 0.4963 0.5513
+llama-4-scout-17b-16e-instruct               0.5114 0.5641 0.5198 0.5519 0.4995
+magistral-medium-2506                        0.5772 0.5132 0.6238 0.5400 0.6027
+minimax-m1                                   0.5643 0.5596 0.5751 0.5539 0.5746
+mistral-medium-2505                          0.5365 0.5392 0.5343 0.5696 0.5265
+mistral-small-2506                           0.4835 0.5494 0.5219 0.5489 0.6047
+mistral-small-3.1-24b-instruct-2503          0.5437 0.5588 0.5176 0.5566 0.5143
+o3-2025-04-16                                0.5310 0.5712 0.5253 0.5598 0.5442
+o3-mini                                      0.5238 0.5498 0.5345 0.5165 0.5281
+o4-mini-2025-04-16                           0.5526 0.5342 0.5793 0.4930 0.5312
+qwen-max-2025-01-25                          0.5003 0.5447 0.5168 0.4974 0.5406
+qwen3-235b-a22b                              0.5361 0.5219 0.5099 0.5430 0.5496
+qwen3-235b-a22b-no-thinking                  0.5199 0.5243 0.5110 0.5448 0.5120
+qwen3-30b-a3b                                0.5388 0.5424 0.5990 0.5135 0.5270
+qwq-32b                                      0.4924 0.4726 0.5004 0.5072 0.4881
+                                             Mean_CV All_data
+amazon-nova-experimental-chat-05-14           0.5343   0.5605
+amazon.nova-pro-v1:0                          0.5377   0.5585
+chatgpt-4o-latest-20250326                    0.5133   0.5393
+claude-3-5-haiku-20241022                     0.5538   0.5753
+claude-3-5-sonnet-20241022                    0.5454   0.5612
+claude-3-7-sonnet-20250219                    0.5695   0.5765
+claude-3-7-sonnet-20250219-thinking-32k       0.5784   0.5887
+claude-opus-4-20250514                        0.5574   0.5672
+claude-opus-4-20250514-thinking-16k           0.5662   0.5782
+claude-sonnet-4-20250514                      0.5581   0.5698
+claude-sonnet-4-20250514-thinking-32k         0.5571   0.5721
+command-a-03-2025                             0.5230   0.5459
+deepseek-r1-0528                              0.5335   0.5518
+deepseek-v3-0324                              0.5215   0.5442
+gemini-2.0-flash-001                          0.5058   0.5345
+gemini-2.5-flash                              0.5582   0.5677
+gemini-2.5-flash-lite-preview-06-17-thinking  0.5280   0.5555
+gemini-2.5-flash-preview-04-17                0.5178   0.5479
+gemini-2.5-pro                                0.5589   0.5692
+gemini-2.5-pro-preview-03-25                  0.5969   0.6375
+gemini-2.5-pro-preview-05-06                  0.5321   0.5606
+gemma-3-27b-it                                0.5503   0.5627
+gemma-3n-e4b-it                               0.5566   0.5844
+gpt-4.1-2025-04-14                            0.5220   0.5464
+gpt-4.1-mini-2025-04-14                       0.5364   0.5574
+grok-3-mini-beta                              0.5088   0.5329
+grok-3-mini-high                              0.5136   0.5492
+grok-3-preview-02-24                          0.5253   0.5510
+grok-4-0709                                   0.5501   0.5829
+hunyuan-turbos-20250416                       0.5378   0.5808
+kimi-k2-0711-preview                          0.4917   0.5440
+llama-3.3-70b-instruct                        0.5368   0.5617
+llama-4-maverick-03-26-experimental           0.5374   0.5529
+llama-4-maverick-17b-128e-instruct            0.5311   0.5595
+llama-4-scout-17b-16e-instruct                0.5294   0.5598
+magistral-medium-2506                         0.5714   0.6022
+minimax-m1                                    0.5655   0.5794
+mistral-medium-2505                           0.5412   0.5516
+mistral-small-2506                            0.5417   0.5705
+mistral-small-3.1-24b-instruct-2503           0.5382   0.5654
+o3-2025-04-16                                 0.5463   0.5598
+o3-mini                                       0.5305   0.5551
+o4-mini-2025-04-16                            0.5380   0.5592
+qwen-max-2025-01-25                           0.5200   0.5489
+qwen3-235b-a22b                               0.5321   0.5556
+qwen3-235b-a22b-no-thinking                   0.5224   0.5368
+qwen3-30b-a3b                                 0.5441   0.5618
+qwq-32b                                       0.4921   0.5276
+
+=== 5. In-sample AUC per vote: regressions vs general ranking ===
+           evaluation votes AUC_48 AUC_general
+ All data (in sample) 77843 0.7005      0.6854
+
+=== 6. Verify the official random folds by session ===
+
+    1     2     3     4     5 
+15569 15560 15475 15679 15560 
+
+=== 7. Refit on four folds; calculate AUC on the held-out fold ===
+ fold votes AUC_48 AUC_general
+    1 15569 0.6902      0.6844
+    2 15560 0.6921      0.6873
+    3 15475 0.6954      0.6908
+    4 15679 0.6779      0.6735
+    5 15560 0.6912      0.6857
+ mean 77843 0.6894      0.6843
+                                        model rows AUC_all AUC_CV
+          amazon-nova-experimental-chat-05-14 1819  0.5605 0.5343
+                         amazon.nova-pro-v1:0 3687  0.5585 0.5377
+                   chatgpt-4o-latest-20250326 4459  0.5393 0.5133
+                    claude-3-5-haiku-20241022 3683  0.5753 0.5538
+                   claude-3-5-sonnet-20241022 4049  0.5612 0.5454
+                   claude-3-7-sonnet-20250219 4123  0.5765 0.5695
+      claude-3-7-sonnet-20250219-thinking-32k 4406  0.5887 0.5784
+                       claude-opus-4-20250514 5986  0.5672 0.5574
+          claude-opus-4-20250514-thinking-16k 3656  0.5782 0.5662
+                     claude-sonnet-4-20250514 4928  0.5698 0.5581
+        claude-sonnet-4-20250514-thinking-32k 3329  0.5721 0.5571
+                            command-a-03-2025 3911  0.5459 0.5230
+                             deepseek-r1-0528 3794  0.5518 0.5335
+                             deepseek-v3-0324 3470  0.5442 0.5215
+                         gemini-2.0-flash-001 3379  0.5345 0.5058
+                             gemini-2.5-flash 5558  0.5677 0.5582
+ gemini-2.5-flash-lite-preview-06-17-thinking 3025  0.5555 0.5280
+               gemini-2.5-flash-preview-04-17 2913  0.5479 0.5178
+                               gemini-2.5-pro 5600  0.5692 0.5589
+                 gemini-2.5-pro-preview-03-25  796  0.6375 0.5969
+                 gemini-2.5-pro-preview-05-06 1940  0.5606 0.5321
+                               gemma-3-27b-it 4154  0.5627 0.5503
+                              gemma-3n-e4b-it 1498  0.5844 0.5566
+                           gpt-4.1-2025-04-14 3613  0.5464 0.5220
+                      gpt-4.1-mini-2025-04-14 3515  0.5574 0.5364
+                             grok-3-mini-beta 3467  0.5329 0.5088
+                             grok-3-mini-high 1571  0.5492 0.5136
+                         grok-3-preview-02-24 3463  0.5510 0.5253
+                                  grok-4-0709  931  0.5829 0.5501
+                      hunyuan-turbos-20250416  879  0.5808 0.5378
+                         kimi-k2-0711-preview 1595  0.5440 0.4917
+                       llama-3.3-70b-instruct 2840  0.5617 0.5368
+          llama-4-maverick-03-26-experimental 3449  0.5529 0.5374
+           llama-4-maverick-17b-128e-instruct 3090  0.5595 0.5311
+               llama-4-scout-17b-16e-instruct 1603  0.5598 0.5294
+                        magistral-medium-2506 1490  0.6022 0.5714
+                                   minimax-m1 3070  0.5794 0.5655
+                          mistral-medium-2505 5221  0.5516 0.5412
+                           mistral-small-2506 1326  0.5705 0.5417
+          mistral-small-3.1-24b-instruct-2503 1835  0.5654 0.5382
+                                o3-2025-04-16 5093  0.5598 0.5463
+                                      o3-mini 3755  0.5551 0.5305
+                           o4-mini-2025-04-16 3729  0.5592 0.5380
+                          qwen-max-2025-01-25 2452  0.5489 0.5200
+                              qwen3-235b-a22b 2854  0.5556 0.5321
+                  qwen3-235b-a22b-no-thinking 5232  0.5368 0.5224
+                                qwen3-30b-a3b 3089  0.5618 0.5441
+                                      qwq-32b 2361  0.5276 0.4921
+  NA_model_fold_AUC
+1                 0
+
+48 x 7 saved AUC table matches recalculated pROC values.
+
+=== 8. AUC per AI model: labels and opponent strength ===
+AUC per AI model; unweighted mean over the 48 models. AUC is not accuracy.
+All data is in sample; each CV fold contains unseen sessions.
+Compare the last two rows to see what the question labels add.
+                              Method All_data Fold_1 Fold_2 Fold_3 Fold_4
+               Coin (constant score)   0.5000 0.5000 0.5000 0.5000 0.5000
+                Question labels only   0.5617 0.5374 0.5406 0.5418 0.5339
+              Opponent strength only   0.6297 0.6289 0.6313 0.6332 0.6209
+ Question labels + opponent strength   0.6450 0.6333 0.6362 0.6385 0.6262
+ Fold_5 Mean_CV
+ 0.5000  0.5000
+ 0.5398  0.5387
+ 0.6305  0.6290
+ 0.6368  0.6342
+                            comparison All_data  Mean_CV
+       Opponent only minus labels only  0.06805 0.090253
+ Labels + opponent minus opponent only  0.01523 0.005226
+Most of the improvement comes from the opponent; labels add little.
+                                             Fold_1 Fold_2 Fold_3 Fold_4 Fold_5
+amazon-nova-experimental-chat-05-14          0.6416 0.5744 0.6382 0.6347 0.6414
+amazon.nova-pro-v1:0                         0.6350 0.6302 0.6294 0.6076 0.6383
+chatgpt-4o-latest-20250326                   0.6162 0.6346 0.5979 0.5907 0.6163
+claude-3-5-haiku-20241022                    0.5830 0.6108 0.6342 0.6467 0.6192
+claude-3-5-sonnet-20241022                   0.6478 0.6237 0.6564 0.6330 0.6059
+claude-3-7-sonnet-20250219                   0.6258 0.6121 0.6203 0.5981 0.6223
+claude-3-7-sonnet-20250219-thinking-32k      0.6076 0.6348 0.6109 0.6100 0.6363
+claude-opus-4-20250514                       0.6642 0.6487 0.6621 0.6548 0.6614
+claude-opus-4-20250514-thinking-16k          0.6146 0.6691 0.6754 0.6296 0.6457
+claude-sonnet-4-20250514                     0.6558 0.6461 0.6626 0.6361 0.6259
+claude-sonnet-4-20250514-thinking-32k        0.6632 0.6471 0.6609 0.6364 0.6451
+command-a-03-2025                            0.6717 0.6345 0.6608 0.6649 0.6242
+deepseek-r1-0528                             0.6208 0.6610 0.5992 0.6156 0.6099
+deepseek-v3-0324                             0.6452 0.6594 0.6268 0.6159 0.6530
+gemini-2.0-flash-001                         0.6640 0.6602 0.6539 0.6429 0.6413
+gemini-2.5-flash                             0.6409 0.6316 0.6599 0.6497 0.6488
+gemini-2.5-flash-lite-preview-06-17-thinking 0.6289 0.6531 0.5971 0.6287 0.6228
+gemini-2.5-flash-preview-04-17               0.6222 0.6250 0.6141 0.6147 0.5982
+gemini-2.5-pro                               0.6199 0.5815 0.5984 0.6304 0.5958
+gemini-2.5-pro-preview-03-25                 0.6371 0.6477 0.6211 0.7102 0.6921
+gemini-2.5-pro-preview-05-06                 0.6294 0.6570 0.6844 0.6211 0.6325
+gemma-3-27b-it                               0.6614 0.6449 0.6728 0.6390 0.6233
+gemma-3n-e4b-it                              0.6543 0.6880 0.5961 0.6602 0.6781
+gpt-4.1-2025-04-14                           0.6195 0.6210 0.6450 0.6155 0.6303
+gpt-4.1-mini-2025-04-14                      0.6530 0.6648 0.6343 0.6480 0.6764
+grok-3-mini-beta                             0.6337 0.6665 0.6681 0.6157 0.6286
+grok-3-mini-high                             0.5838 0.6544 0.6279 0.6371 0.6371
+grok-3-preview-02-24                         0.6205 0.6213 0.6092 0.6107 0.6377
+grok-4-0709                                  0.5618 0.6029 0.6733 0.6793 0.6272
+hunyuan-turbos-20250416                      0.6616 0.6407 0.7282 0.6248 0.6411
+kimi-k2-0711-preview                         0.6213 0.5756 0.6476 0.5810 0.6031
+llama-3.3-70b-instruct                       0.6112 0.6717 0.6037 0.6089 0.6109
+llama-4-maverick-03-26-experimental          0.6287 0.6181 0.6051 0.6228 0.6049
+llama-4-maverick-17b-128e-instruct           0.6603 0.5898 0.6200 0.6327 0.6528
+llama-4-scout-17b-16e-instruct               0.6087 0.5958 0.6152 0.6128 0.6372
+magistral-medium-2506                        0.6569 0.5997 0.6626 0.5508 0.5962
+minimax-m1                                   0.6128 0.6655 0.6622 0.6532 0.6523
+mistral-medium-2505                          0.6262 0.6325 0.6588 0.6554 0.6656
+mistral-small-2506                           0.5663 0.6624 0.6700 0.6011 0.6804
+mistral-small-3.1-24b-instruct-2503          0.6477 0.6883 0.5662 0.5936 0.6506
+o3-2025-04-16                                0.6254 0.6264 0.6116 0.5940 0.6287
+o3-mini                                      0.6421 0.6423 0.6355 0.6130 0.6537
+o4-mini-2025-04-16                           0.6364 0.6334 0.6430 0.5802 0.6514
+qwen-max-2025-01-25                          0.6448 0.6669 0.6249 0.6336 0.6735
+qwen3-235b-a22b                              0.6631 0.6305 0.6189 0.6924 0.6632
+qwen3-235b-a22b-no-thinking                  0.6432 0.6746 0.6409 0.6181 0.6363
+qwen3-30b-a3b                                0.6537 0.6379 0.6798 0.5894 0.6182
+qwq-32b                                      0.6638 0.5784 0.6629 0.6203 0.6297
+                                             Mean_CV All_data
+amazon-nova-experimental-chat-05-14           0.6260   0.6392
+amazon.nova-pro-v1:0                          0.6281   0.6393
+chatgpt-4o-latest-20250326                    0.6111   0.6212
+claude-3-5-haiku-20241022                     0.6188   0.6308
+claude-3-5-sonnet-20241022                    0.6334   0.6401
+claude-3-7-sonnet-20250219                    0.6157   0.6228
+claude-3-7-sonnet-20250219-thinking-32k       0.6199   0.6274
+claude-opus-4-20250514                        0.6582   0.6630
+claude-opus-4-20250514-thinking-16k           0.6469   0.6530
+claude-sonnet-4-20250514                      0.6453   0.6513
+claude-sonnet-4-20250514-thinking-32k         0.6505   0.6574
+command-a-03-2025                             0.6512   0.6585
+deepseek-r1-0528                              0.6213   0.6297
+deepseek-v3-0324                              0.6401   0.6476
+gemini-2.0-flash-001                          0.6525   0.6599
+gemini-2.5-flash                              0.6462   0.6529
+gemini-2.5-flash-lite-preview-06-17-thinking  0.6261   0.6366
+gemini-2.5-flash-preview-04-17                0.6148   0.6254
+gemini-2.5-pro                                0.6052   0.6135
+gemini-2.5-pro-preview-03-25                  0.6616   0.6860
+gemini-2.5-pro-preview-05-06                  0.6449   0.6537
+gemma-3-27b-it                                0.6483   0.6554
+gemma-3n-e4b-it                               0.6554   0.6698
+gpt-4.1-2025-04-14                            0.6263   0.6341
+gpt-4.1-mini-2025-04-14                       0.6553   0.6610
+grok-3-mini-beta                              0.6425   0.6502
+grok-3-mini-high                              0.6281   0.6407
+grok-3-preview-02-24                          0.6199   0.6311
+grok-4-0709                                   0.6289   0.6552
+hunyuan-turbos-20250416                       0.6593   0.6803
+kimi-k2-0711-preview                          0.6057   0.6299
+llama-3.3-70b-instruct                        0.6213   0.6314
+llama-4-maverick-03-26-experimental           0.6159   0.6228
+llama-4-maverick-17b-128e-instruct            0.6311   0.6448
+llama-4-scout-17b-16e-instruct                0.6139   0.6279
+magistral-medium-2506                         0.6132   0.6439
+minimax-m1                                    0.6492   0.6583
+mistral-medium-2505                           0.6477   0.6519
+mistral-small-2506                            0.6360   0.6551
+mistral-small-3.1-24b-instruct-2503           0.6293   0.6428
+o3-2025-04-16                                 0.6172   0.6250
+o3-mini                                       0.6373   0.6460
+o4-mini-2025-04-16                            0.6289   0.6373
+qwen-max-2025-01-25                           0.6488   0.6592
+qwen3-235b-a22b                               0.6536   0.6623
+qwen3-235b-a22b-no-thinking                   0.6426   0.6476
+qwen3-30b-a3b                                 0.6358   0.6468
+qwq-32b                                       0.6310   0.6384
+
+=== 9. AUC per vote: Bradley-Terry, 0/1 versus half-point ties ===
+
+=== AUC PER VOTE (AI model A vs AI model B), 5-fold, same test votes in every column ===
+ scenario fold n_votes auc_big_01 auc_big_05 auc_48_regresiones
+      cv5    1   15569     0.6911     0.6914             0.6902
+      cv5    2   15560     0.6936     0.6935             0.6921
+      cv5    3   15475     0.6972     0.6973             0.6954
+      cv5    4   15679     0.6790     0.6788             0.6779
+      cv5    5   15560     0.6931     0.6934             0.6912
+      cv5 mean   77843     0.6908     0.6909             0.6894
+ auc_ranking_general
+              0.6844
+              0.6873
+              0.6908
+              0.6735
+              0.6857
+              0.6843
+
+=== Big regression model: 0/1 against 0.5, fold by fold ===
+ fold auc_big_01 auc_big_05 auc_difference_05_minus_01 p_delong_paired
+    1     0.6911     0.6914                      3e-04           0.553
+    2     0.6936     0.6935                     -1e-04           0.778
+    3     0.6972     0.6973                      1e-04           0.813
+    4     0.6790     0.6788                     -2e-04           0.733
+    5     0.6931     0.6934                      3e-04           0.441
+ mean     0.6908     0.6909                      1e-04              NA
+ accuracy_percent_01 accuracy_percent_05
+             64.1917             64.3458
+             64.3766             64.0746
+             64.4653             64.5945
+             63.0844             63.0142
+             64.3188             64.3059
+             64.0854             64.0648
+ scenario fold n_votes auc_big_01 auc_big_05 auc_48_regresiones
+ all_data  all   77843     0.6971     0.7002             0.7005
+ auc_ranking_general
+              0.6854
+The big regression model predicts if AI model A beats AI model B in one vote.
+Counting ties as 0.5 its AUC per vote is 0.6909. Leaving the ties out (0/1) it is 0.6908.
+On the same test votes, the 48 regression models give 0.6894 and the general ranking gives 0.6843.
+AUC per vote and AUC per AI model are different measures, so they cannot be compared with each other.
+Binomial: decisive wins/losses; half-point fit also includes ties.
+The two held-out AUCs are close; no equivalence claim is made.
+Per-vote AUCs share test votes and outcomes; per-AI-model AUC differs.
+
+=== 10. Per-vote confusion matrix: threshold 0.5 ===
+
+=== Confusion matrix per vote (threshold 0.5) ===
+- Response: y = 1 if the AI model on side A won the vote, 0 if side B won.
+- Predict 'A wins' when P(A wins) > 0.5. Decisive votes only.
+- 5-fold CV with R/resultados/auc/folds_5.csv: fit on 4 folds, test on the 5th.
+
+48 regressions - all 5 test folds together (77,843 votes):
+         Actual
+Predicted A wins B wins
+   A wins  24585  14125
+   B wins  13917  25216
+
+48 regressions + opponent strength - all 5 test folds together (77,843 votes):
+         Actual
+Predicted A wins B wins
+   A wins  24666  14092
+   B wins  13836  25249
+
+General ranking - all 5 test folds together (77,843 votes):
+         Actual
+Predicted A wins B wins
+   A wins  24650  14196
+   B wins  13852  25145
+
+Accuracy, precision and recall per fold (positive class = 'A wins'):
+
+ fold  method                             n_votes accuracy precision recall
+ 1     48 regressions                     15569   0.6423   0.6390    0.6395
+ 1     48 regressions + opponent strength 15569   0.6422   0.6389    0.6396
+ 1     General ranking                    15569   0.6388   0.6355    0.6360
+ 2     48 regressions                     15560   0.6404   0.6374    0.6371
+ 2     48 regressions + opponent strength 15560   0.6450   0.6415    0.6432
+ 2     General ranking                    15560   0.6426   0.6394    0.6398
+ 3     48 regressions                     15475   0.6446   0.6388    0.6493
+ 3     48 regressions + opponent strength 15475   0.6432   0.6376    0.6475
+ 3     General ranking                    15475   0.6437   0.6379    0.6485
+ 4     48 regressions                     15679   0.6304   0.6254    0.6293
+ 4     48 regressions + opponent strength 15679   0.6315   0.6260    0.6328
+ 4     General ranking                    15679   0.6321   0.6255    0.6371
+ 5     48 regressions                     15560   0.6412   0.6350    0.6376
+ 5     48 regressions + opponent strength 15560   0.6442   0.6382    0.6402
+ 5     General ranking                    15560   0.6413   0.6346    0.6398
+ total 48 regressions                     77843   0.6398   0.6351    0.6385
+ total 48 regressions + opponent strength 77843   0.6412   0.6364    0.6406
+ total General ranking                    77843   0.6397   0.6346    0.6402
+
+For reference, all data (in-sample):
+
+ method                             accuracy precision recall
+ 48 regressions                     0.6480   0.6430    0.6481
+ 48 regressions + opponent strength 0.6471   0.6425    0.6460
+ General ranking                    0.6401   0.6350    0.6406
+Positive class: AI model A wins; predict A when P > 0.5.
+Compare: labels only, labels + opponent strength, general ranking.
+AUC alone does not give these threshold-specific metrics.
+ owner                       file                                        status file_present
+   Eli        R/19_fuerza_rival.R         Integrated: ladder and 48 x 7, PR #68         TRUE
+  Mark R/20_regresion_grande_cv.R             Integrated: both versions, PR #67         TRUE
+ Marco    R/21_matriz_confusion.R Integrated: with and without opponent, PR #69         TRUE
+
+18/11 team pieces integrated; technical run ends here.
+Technical demo complete; Nessim can rehearse these blocks in RStudio.
+null device 
+          1 
+Pre-existing protected/result files and hashes unchanged.
+Integrated demo verified: Eli #68, Mark #67 and Marco #69.

@@ -1,4 +1,4 @@
-# Nessim, integrated demo for 18/11: Eli #68, Mark #67, Marco #65.
+# Nessim, integrated demo for 18/11: Eli #68, Mark #67, Marco #69.
 # Prepared with ChatGPT/Codex assistance. Existing interfaces unchanged.
 
 # ---- 1. Response and predictors ----
@@ -17,7 +17,7 @@ cat("Each regression model uses the same eleven question features.\n")
 cat("AUC 0.5 means chance-level discrimination, like a coin flip.\n")
 cat("AUC is not accuracy; in-sample AUC is not held-out performance.\n")
 cat("18/11: Eli's opponent ladder and Mark's Bradley-Terry comparison\n",
-    "use their published results; Marco's matrix is without opponent strength.\n")
+    "use their published results; Marco's matrix compares methods with and without opponent strength.\n")
 for (x in features) base[[x]] <- as.logical(base[[x]])
 votes <- base[!base$requiere_revision & base$es_decisivo, ]
 stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
@@ -231,13 +231,11 @@ if (interactive()) View(AUC_rival_48x7,
 
 # ---- 9. Per-vote Bradley-Terry: Mark, merged PR #67 ----
 cat("\n=== 9. AUC per vote: Bradley-Terry, 0/1 versus half-point ties ===\n")
-bradley_18nov <- local({
-  piece <- new.env(parent = globalenv())
-  old_options <- options(correr_20 = FALSE)
-  tryCatch(sys.source("R/20_regresion_grande_cv.R", envir = piece),
-           finally = options(old_options))
-  piece
-})
+# Load Mark's functions; do not regenerate his result files.
+bradley_18nov <- new.env()
+options_before_20 <- options(correr_20 = FALSE)
+sys.source("R/20_regresion_grande_cv.R", envir = bradley_18nov)
+options(options_before_20)
 AUC_big_18nov <- bradley_18nov$tabla_regresion_grande()
 # The function above prints CV; show in-sample results separately as well.
 print(AUC_big_18nov[AUC_big_18nov$scenario == "all_data", ],
@@ -247,17 +245,16 @@ cat("Binomial: decisive wins/losses; half-point fit also includes ties.\n")
 cat("The two held-out AUCs are close; no equivalence claim is made.\n")
 cat("Per-vote AUCs share test votes and outcomes; per-AI-model AUC differs.\n")
 
-# ---- 10. Per-vote confusion matrix: Marco, merged PR #65 ----
+# ---- 10. Per-vote confusion matrix: Marco, merged PR #69 ----
 cat("\n=== 10. Per-vote confusion matrix: threshold 0.5 ===\n")
-confusion_18nov <- local({
-  piece <- new.env(parent = globalenv())
-  old_options <- options(correr_21 = FALSE)
-  tryCatch(sys.source("R/21_matriz_confusion.R", envir = piece),
-           finally = options(old_options))
-  piece$matriz_confusion(umbral = 0.5)
-})
+# Load Marco's functions; calculate the matrices without writing his CSV.
+marco_18nov <- new.env()
+options_before_21 <- options(correr_21 = FALSE)
+sys.source("R/21_matriz_confusion.R", envir = marco_18nov)
+options(options_before_21)
+confusion_18nov <- marco_18nov$matriz_confusion(umbral = 0.5)
 cat("Positive class: AI model A wins; predict A when P > 0.5.\n")
-cat("Marco has not yet supplied an opponent-strength matrix variant.\n")
+cat("Compare: labels only, labels + opponent strength, general ranking.\n")
 cat("AUC alone does not give these threshold-specific metrics.\n")
 
 # File presence does not certify a merged, reviewed, compatible interface.
@@ -268,7 +265,7 @@ demo_18nov_dependencies <- data.frame(
            "R/21_matriz_confusion.R"),
   status = c("Integrated: ladder and 48 x 7, PR #68",
              "Integrated: both versions, PR #67",
-             "Integrated: labels only, PR #65"),
+             "Integrated: with and without opponent, PR #69"),
   stringsAsFactors = FALSE
 )
 demo_18nov_dependencies$file_present <- file.exists(
@@ -276,4 +273,4 @@ demo_18nov_dependencies$file_present <- file.exists(
 )
 print(demo_18nov_dependencies, row.names = FALSE)
 cat("\n18/11 team pieces integrated; technical run ends here.\n")
-cat("Personal RStudio rehearsal and Marco opponent variant remain separate.\n")
+cat("Technical demo complete; Nessim can rehearse these blocks in RStudio.\n")

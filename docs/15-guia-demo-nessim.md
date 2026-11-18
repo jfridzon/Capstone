@@ -7,10 +7,10 @@ Esta guía se lee aparte; el script solo tiene títulos cortos, código y result
 ## Demo integrada del miércoles 18/11
 
 Se integran las funciones públicas de Eli (PR #68, código de Eli validado
-por Mark), Mark (#67) y Marco (#65), ya en main. Los bloques 1–7 mantienen
+por Mark), Mark (#67) y Marco (#69), ya en main. Los bloques 1–7 mantienen
 las fórmulas GLM y pROC visibles. Los bloques 8–9 leen resultados oficiales
 publicados: no vuelven a entrenar R/19 ni R/20. El bloque 10 calcula en vivo
-la matriz de Marco con las once etiquetas, sin fuerza del rival.
+las tres matrices de Marco: etiquetas, etiquetas + rival y ranking general.
 
 Apertura:
 
@@ -41,17 +41,20 @@ and in-sample results from held-out results.”
     y recall, con A gana como clase positiva y predicción A cuando P > 0.5.
     “At threshold 0.5, accuracy is almost the same as the general ranking.
     AUC and accuracy measure different things.”
-    Falta la variante con rival de Marco; no está implementada en su R/21.
-    Se conserva su script y no se sustituye su tarea.
+    Ahora incluye la variante con rival (PR #69). Muestra las tres matrices
+    y sus métricas con el mismo umbral. Los nombres y argumentos de Marco
+    no cambian; su script se conserva.
+    La carga se lee de arriba abajo: crear entorno, desactivar escritura,
+    cargar R/21, restaurar opción y llamar a matriz_confusion(umbral = 0.5).
 
 Ensayo técnico desde la raíz:
 `Rscript --vanilla R/verificar_demo_18nov_nessim.R`.
 La nueva evidencia se guarda en
-`R/resultados/nessim_demo_integrada_2026-11-18/`; la corrida parcial anterior
+`R/resultados/nessim_demo_final_2026-11-18/`; la corrida parcial anterior
 se conserva. Verifica las tablas e interfaces y los hashes de los archivos
 previos. Después, ensaya personalmente en RStudio con los diez bloques.
 Avisar a Jaime para revisar el PR #66 y a Mark/Eli para confirmar su integración;
-a Marco por su variante pendiente con rival.
+a Marco para confirmar que su variante con rival quedó integrada.
 
 Guion y código de integración con asistencia de ChatGPT/Codex (OpenAI).
 
