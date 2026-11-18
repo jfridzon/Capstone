@@ -1,5 +1,11 @@
 # Tarea de Marco
 
+## HOY miércoles 18/11: LEE PRIMERO `docs/18-tareas-miercoles-18-nov.md`
+
+`R/21_matriz_confusion.R`: matriz de confusión, accuracy, precision y recall por voto de las 48 contra el ranking general con `folds_5.csv`; función `matriz_confusion()` para Nessim.
+Siempre se muestran las 4 filas de la escalera juntas y se dice de dónde viene el aumento. No cambies nombres ni argumentos de funciones que otros cargan con `source()`.
+
+
 ## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
 
 (1) Confirmar que `top3_en_vivo()` de `R/17_top3_en_vivo.R` corre en sesión limpia con 3 preguntas, con y sin presupuesto, y avisar a Nessim; (2) salida que diga claro qué se muestra. La app no es para hoy.

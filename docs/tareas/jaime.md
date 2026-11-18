@@ -1,5 +1,11 @@
 # Tarea de Jaime
 
+## HOY miércoles 18/11: LEE PRIMERO `docs/18-tareas-miercoles-18-nov.md`
+
+Aprobar los PR de los demás, preparar el slide de Dark Data (qué datos no tenemos) y tu update individual.
+Siempre se muestran las 4 filas de la escalera juntas y se dice de dónde viene el aumento. No cambies nombres ni argumentos de funciones que otros cargan con `source()`.
+
+
 ## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
 
 (1) Aprobar primero el PR #57 de Nessim (bloquea a todos); (2) revisar los PR que lleguen; (3) tus slides de update individual.

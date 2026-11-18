@@ -1,5 +1,11 @@
 # Tarea de Nessim
 
+## HOY miércoles 18/11: LEE PRIMERO `docs/18-tareas-miercoles-18-nov.md`
+
+Presentas. Integra en `R/14_demo_rstudio.R` la escalera de AUC (Eli), la regresión grande en 2 versiones (Mark) y la matriz de confusión (Marco). Espera a Eli para la escalera; mientras, prepara el guion y las secciones que ya existen.
+Siempre se muestran las 4 filas de la escalera juntas y se dice de dónde viene el aumento. No cambies nombres ni argumentos de funciones que otros cargan con `source()`.
+
+
 ## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
 
 Presentas la demo. Pasos: (1) PR #57 aprobado por Jaime o Mark y mergeado; (2) bloque de la tabla 48 x 7 desde `R/resultados/auc/por_modelo.csv`; (3) títulos claros en cada sección; (4) ensayo final cuando Mark, Eli y Marco confirmen sus piezas.

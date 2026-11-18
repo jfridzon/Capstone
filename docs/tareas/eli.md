@@ -1,5 +1,11 @@
 # Tarea de Eli
 
+## HOY miércoles 18/11: LEE PRIMERO `docs/18-tareas-miercoles-18-nov.md`
+
+La pieza clave: `R/19_fuerza_rival.R`. Las 48 con las 11 etiquetas + fuerza del rival (solo con folds de entrenamiento), AUC con `pROC` en 5-fold y todos los datos, en 3 variantes; función `escalera_auc()` con las 4 filas. Nessim espera por ti.
+Siempre se muestran las 4 filas de la escalera juntas y se dice de dónde viene el aumento. No cambies nombres ni argumentos de funciones que otros cargan con `source()`.
+
+
 ## HOY lunes 16/11: LEE PRIMERO `docs/17-tareas-demo-16-nov.md`
 
 (1) Confirmar que las funciones de `R/16_graficos_coeficientes.R` corren en sesión limpia y avisar a Nessim; (2) títulos y ejes claros en cada gráfico; (3) tabla de sensibilidad que se lea sola.
