@@ -983,7 +983,15 @@ Script: `R/21_matriz_confusion.R` (función `matriz_confusion(umbral = 0.5)`). R
 
 Lectura: con umbral 0.5, las 48 regresiones y el ranking general aciertan casi los mismos votos (49,801 contra 49,795). La ventaja de las regresiones se ve en el AUC (0.6894 contra 0.6843), no en la accuracy a 0.5. Con todos los datos (dentro de muestra): 0.6480 contra 0.6401.
 
-Falta la variante con la fuerza del rival: espera a `R/19_fuerza_rival.R` (Eli).
+**Variante con la fuerza del rival (añadida el 18/11, después del merge de `R/19` de Eli):** cada una de las 48 regresiones con las 11 etiquetas + `fuerza_rival` (% de victorias del rival, solo con entrenamiento), usando las funciones de `R/19`. Comprobado: con esos scores salen los mismos 288 AUC por modelo de IA de Eli (`labels_opponent`).
+
+| 5-fold (los 5 folds de prueba juntos) | Accuracy | Precision | Recall |
+|---|---:|---:|---:|
+| 48 regresiones | 0.6398 | 0.6351 | 0.6385 |
+| 48 regresiones + fuerza del rival | 0.6412 | 0.6364 | 0.6406 |
+| Ranking general | 0.6397 | 0.6346 | 0.6402 |
+
+Lectura: por voto, la fuerza del rival casi no cambia la accuracy (+0.0014; 49,915 contra 49,801 votos acertados). Por voto el rival ya estaba en la comparación A contra B; el salto grande de Eli (0.54 a 0.63) es en el AUC **por modelo**, no por voto.
 Código preparado con asistencia de Claude (Anthropic).
 
 ## Mark, regresión grande con 5-fold: 0/1 contra 0.5 (18/11/2026)
