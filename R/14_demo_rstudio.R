@@ -1,4 +1,4 @@
-# Nessim, demo preparation for 18/11; full integration pending.
+# Nessim, integrated demo for 18/11: Eli #68, Mark #67, Marco #65.
 # Prepared with ChatGPT/Codex assistance. Existing interfaces unchanged.
 
 # ---- 1. Response and predictors ----
@@ -16,8 +16,8 @@ cat("Response: an AI model wins (1) or loses (0), given a decisive vote.\n")
 cat("Each regression model uses the same eleven question features.\n")
 cat("AUC 0.5 means chance-level discrimination, like a coin flip.\n")
 cat("AUC is not accuracy; in-sample AUC is not held-out performance.\n")
-cat("18/11 preparation only: opponent and Bradley-Terry variants\n",
-    "still await Eli and Mark; Marco is available without opponent strength.\n")
+cat("18/11: Eli's opponent ladder and Mark's Bradley-Terry comparison\n",
+    "use their published results; Marco's matrix is without opponent strength.\n")
 for (x in features) base[[x]] <- as.logical(base[[x]])
 votes <- base[!base$requiere_revision & base$es_decisivo, ]
 stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
@@ -207,17 +207,45 @@ stopifnot(identical(is.na(as.matrix(AUC_48x7)), is.na(auc_recalculated)),
               na.rm = TRUE))
 cat("\n48 x 7 saved AUC table matches recalculated pROC values.\n")
 
-# ---- 8. Per-AI-model AUC ladder: awaiting Eli ----
-cat("\n=== 8. Per-AI-model AUC ladder: pending Eli integration ===\n")
-cat("Show together: coin flip, labels only, opponent only, labels + opponent.\n")
-cat("No opponent AUC is presented until all four rows are available.\n")
-cat("Report the opponent contribution and the extra gain from labels.\n")
+# ---- 8. Per-AI-model AUC ladder: Eli, merged PR #68 ----
+cat("\n=== 8. AUC per AI model: labels and opponent strength ===\n")
+eli_18nov <- new.env(parent = globalenv())
+sys.source("R/19_fuerza_rival.R", envir = eli_18nov)
+AUC_ladder_18nov <- eli_18nov$escalera_auc()
+print(AUC_ladder_18nov, row.names = FALSE, digits = 4)
+# Differences use the official, unrounded ladder; all four rows stay visible.
+AUC_gains_18nov <- data.frame(
+  comparison = c("Opponent only minus labels only",
+                 "Labels + opponent minus opponent only"),
+  All_data = c(AUC_ladder_18nov$All_data[3] - AUC_ladder_18nov$All_data[2],
+               AUC_ladder_18nov$All_data[4] - AUC_ladder_18nov$All_data[3]),
+  Mean_CV = c(AUC_ladder_18nov$Mean_CV[3] - AUC_ladder_18nov$Mean_CV[2],
+              AUC_ladder_18nov$Mean_CV[4] - AUC_ladder_18nov$Mean_CV[3])
+)
+print(AUC_gains_18nov, row.names = FALSE, digits = 4)
+cat("Most of the improvement comes from the opponent; labels add little.\n")
+AUC_rival_48x7 <- eli_18nov$tabla_auc_rival()
+print(AUC_rival_48x7, digits = 4)
+if (interactive()) View(AUC_rival_48x7,
+                        title = "AUC per AI model: labels + opponent")
 
-# ---- 9. Per-vote Bradley-Terry: awaiting Mark ----
-cat("\n=== 9. Per-vote Bradley-Terry: pending Mark integration ===\n")
-cat("Compare decisive-vote binomial with half-point quasibinomial.\n")
-cat("Evaluate A versus B on the same held-out decisive votes.\n")
-cat("Do not compare a per-AI-model AUC directly with a per-vote AUC.\n")
+# ---- 9. Per-vote Bradley-Terry: Mark, merged PR #67 ----
+cat("\n=== 9. AUC per vote: Bradley-Terry, 0/1 versus half-point ties ===\n")
+bradley_18nov <- local({
+  piece <- new.env(parent = globalenv())
+  old_options <- options(correr_20 = FALSE)
+  tryCatch(sys.source("R/20_regresion_grande_cv.R", envir = piece),
+           finally = options(old_options))
+  piece
+})
+AUC_big_18nov <- bradley_18nov$tabla_regresion_grande()
+# The function above prints CV; show in-sample results separately as well.
+print(AUC_big_18nov[AUC_big_18nov$scenario == "all_data", ],
+      row.names = FALSE)
+bradley_18nov$explicar_regresion_grande()
+cat("Binomial: decisive wins/losses; half-point fit also includes ties.\n")
+cat("The two held-out AUCs are close; no equivalence claim is made.\n")
+cat("Per-vote AUCs share test votes and outcomes; per-AI-model AUC differs.\n")
 
 # ---- 10. Per-vote confusion matrix: Marco, merged PR #65 ----
 cat("\n=== 10. Per-vote confusion matrix: threshold 0.5 ===\n")
@@ -229,7 +257,7 @@ confusion_18nov <- local({
   piece$matriz_confusion(umbral = 0.5)
 })
 cat("Positive class: AI model A wins; predict A when P > 0.5.\n")
-cat("No opponent-strength variant yet; it still awaits Eli.\n")
+cat("Marco has not yet supplied an opponent-strength matrix variant.\n")
 cat("AUC alone does not give these threshold-specific metrics.\n")
 
 # File presence does not certify a merged, reviewed, compatible interface.
@@ -238,7 +266,8 @@ demo_18nov_dependencies <- data.frame(
   owner = c("Eli", "Mark", "Marco"),
   file = c("R/19_fuerza_rival.R", "R/20_regresion_grande_cv.R",
            "R/21_matriz_confusion.R"),
-  status = c("Pending integration", "Pending integration",
+  status = c("Integrated: ladder and 48 x 7, PR #68",
+             "Integrated: both versions, PR #67",
              "Integrated: labels only, PR #65"),
   stringsAsFactors = FALSE
 )
@@ -246,4 +275,5 @@ demo_18nov_dependencies$file_present <- file.exists(
   demo_18nov_dependencies$file
 )
 print(demo_18nov_dependencies, row.names = FALSE)
-cat("\n18/11 integration and final team rehearsal: PENDING.\n")
+cat("\n18/11 team pieces integrated; technical run ends here.\n")
+cat("Personal RStudio rehearsal and Marco opponent variant remain separate.\n")

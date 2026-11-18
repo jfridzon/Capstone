@@ -4,16 +4,15 @@ Archivo: R/14_demo_rstudio.R. Actualizado el 11/11/2026 por petición de Nessim.
 Preparado con asistencia de ChatGPT/Codex (OpenAI).
 Esta guía se lee aparte; el script solo tiene títulos cortos, código y resultados.
 
-## Preparación del miércoles 18/11 (borrador)
+## Demo integrada del miércoles 18/11
 
-Esta sección actualiza el guion del 16/11 de abajo. La demo completa del
-18/11 sigue pendiente: en el commit base del PR #63 no están las nuevas
-piezas R/19 (Eli) y R/20 (Mark). Marco llegó a main durante la preparación
-(PR #65): el bloque 10 carga su función sin ejecutar la escritura de CSV y
-muestra la matriz sin rival. Los bloques 8–9 siguen pendientes.
-La presencia futura de un archivo no certifica su integración.
+Se integran las funciones públicas de Eli (PR #68, código de Eli validado
+por Mark), Mark (#67) y Marco (#65), ya en main. Los bloques 1–7 mantienen
+las fórmulas GLM y pROC visibles. Los bloques 8–9 leen resultados oficiales
+publicados: no vuelven a entrenar R/19 ni R/20. El bloque 10 calcula en vivo
+la matriz de Marco con las once etiquetas, sin fuerza del rival.
 
-Se puede ensayar ahora la apertura y los bloques existentes 1–7:
+Apertura:
 
 “We predict whether an AI model wins a decisive vote. Each regression
 model uses the same eleven question features, known before the answer.
@@ -21,37 +20,40 @@ An AUC of 0.5 means chance-level discrimination, like a coin flip.
 AUC is not accuracy. We separate per-AI-model AUC from per-vote AUC,
 and in-sample results from held-out results.”
 
-Después de que lleguen a main las entregas del equipo, en este orden:
+8. Ejecuta el bloque completo de Eli: escalera_auc() muestra siempre las
+   cuatro filas juntas. Señala All_data (dentro de muestra) y después los
+   cinco folds y Mean_CV (sesiones reservadas). AUC_gains_18nov calcula los
+   incrementos desde esa tabla, sin números escritos a mano.
+   “Knowing the opponent matters much more than the question labels.
+   The labels add only a little on top of the opponent.”
+   AUC_rival_48x7 muestra la tabla por modelo con las etiquetas y el rival.
+9. Ejecuta el bloque de Mark: tabla_regresion_grande() y
+   explicar_regresion_grande(). Se carga con correr_20 = FALSE y se restaura
+   la opción: son resultados guardados. Mostrar ambas versiones, cada fold
+   y su media; la tabla dentro de muestra se imprime por separado.
+   “This regression model compares AI model A with AI model B. Leaving
+   ties out and counting them as half a point give similar held-out AUCs.
+   We compare these per-vote AUCs on the same test votes. We cannot compare
+   them directly with the per-AI-model AUCs in the previous section.”
+   La cercanía descriptiva no demuestra equivalencia estadística. No usar
+   stepwise. La comparación no decide por sí sola un cambio de método.
+10. Ejecuta la matriz_confusion(umbral = 0.5) de Marco: accuracy, precision
+    y recall, con A gana como clase positiva y predicción A cuando P > 0.5.
+    “At threshold 0.5, accuracy is almost the same as the general ranking.
+    AUC and accuracy measure different things.”
+    Falta la variante con rival de Marco; no está implementada en su R/21.
+    Se conserva su script y no se sustituye su tarea.
 
-1. Eli: inspeccionar la interfaz real de R/19. Integrar la escalera completa
-   (moneda, etiquetas, rival, etiquetas + rival), primero todos los datos y
-   después cinco folds. Mostrar la tabla 48 × 7 con rival. Calcular desde su
-   tabla cuánto aporta el rival y cuánto añaden las etiquetas; no usar las
-   aproximaciones de Python de docs/18 como resultados oficiales.
-2. Mark: inspeccionar R/20 e integrar ambas versiones de Bradley–Terry.
-   “This regression model compares AI model A with AI model B.” Explicar
-   la diferencia entre victoria decisiva (binomial) y puntaje esperado con
-   medio punto (quasibinomial). Comparar por voto sobre los mismos casos,
-   con las 48 regresiones y la línea base. No afirmar que dan parecido
-   hasta ver los resultados oficiales de Mark. No usar stepwise hoy.
-3. Marco: ya integrado desde PR #65: matriz_confusion(umbral = 0.5).
-   Mostrar accuracy, precision y recall; la clase positiva es que gane A,
-   predicha cuando P > 0.5. Falta su variante con rival; decirlo explícitamente.
-   Se usa options(correr_21 = FALSE) y se restaura después de cargar el script.
-   Su función se ejecuta sin modificar el archivo ni los resultados de Marco.
-4. Repetir el ensayo técnico en sesión limpia con las tres piezas integradas,
-   y después ensayar personalmente en RStudio. Una corrida parcial sin
-   errores no significa que la presentación completa esté lista.
-
-No adelantar las implementaciones de R/19–21, no asumir sus argumentos y
-no renombrar funciones compartidas. Se conservan los gráficos y top 3 del
-16/11 en sus archivos originales. Avisar a Eli, Mark y Marco de las piezas
-que se esperan, y a Jaime para revisar el borrador y la integración final.
-
-Verificación de este adelanto, desde la raíz:
+Ensayo técnico desde la raíz:
 `Rscript --vanilla R/verificar_demo_18nov_nessim.R`.
-Evidencia en `R/resultados/nessim_demo_2026-11-18/`.
-Guion preparado con asistencia de ChatGPT/Codex (OpenAI).
+La nueva evidencia se guarda en
+`R/resultados/nessim_demo_integrada_2026-11-18/`; la corrida parcial anterior
+se conserva. Verifica las tablas e interfaces y los hashes de los archivos
+previos. Después, ensaya personalmente en RStudio con los diez bloques.
+Avisar a Jaime para revisar el PR #66 y a Mark/Eli para confirmar su integración;
+a Marco por su variante pendiente con rival.
+
+Guion y código de integración con asistencia de ChatGPT/Codex (OpenAI).
 
 ## Preparación (guía del 16/11)
 

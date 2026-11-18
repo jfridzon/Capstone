@@ -1,7 +1,7 @@
-# Nessim: verify the available demo, not the pending 18/11 integration.
+# Nessim: verify the integrated 18/11 demo and preserve all upstream outputs.
 # Prepared with ChatGPT/Codex assistance. Run from the repository root:
 # Rscript --vanilla R/verificar_demo_18nov_nessim.R
-out <- "R/resultados/nessim_demo_2026-11-18"
+out <- "R/resultados/nessim_demo_integrada_2026-11-18"
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 # Snapshot every pre-existing data, submission and result file, including names.
 protected_files <- function() {
@@ -35,7 +35,7 @@ stopifnot(isTRUE(all.equal(marco_live, marco_saved, check.attributes = FALSE)))
 write.csv(AUC_48x7, file.path(out, "auc_48x7.csv"))
 write.csv(demo_18nov_dependencies, file.path(out, "dependencias.csv"),
           row.names = FALSE)
-# Existing per-vote results only; this is not the pending opponent ladder.
+# Recalculated per-vote results from the visible GLM/pROC demo.
 auc_demo_18nov <- rbind(
   data.frame(evaluation = "All data (in sample)",
              votes = auc_all$votes, AUC_48 = auc_all$AUC_48,
@@ -54,11 +54,52 @@ pr_table <- c(
             row$AUC_48, row$AUC_general)
   }, character(1))
 )
-writeLines(pr_table, file.path(out, "tabla_pr.md"))
+# Check the integrated public outputs against their unchanged source tables.
+stopifnot(identical(dim(AUC_rival_48x7), c(48L, 7L)),
+          setequal(rownames(AUC_rival_48x7), rownames(AUC_48x7)),
+          all(is.finite(as.matrix(AUC_rival_48x7))),
+          all(demo_18nov_dependencies$file_present))
+eli_saved <- read.csv("R/resultados/fuerza_rival/escalera_auc.csv",
+                      check.names = FALSE)
+stopifnot(isTRUE(all.equal(AUC_ladder_18nov, eli_saved)))
+mark_saved <- read.csv(paste0("R/resultados/regresion_grande_cv_2026-11-18/",
+                             "comparacion_por_voto.csv"))
+stopifnot(isTRUE(all.equal(AUC_big_18nov, mark_saved)))
+# Mark's baseline and 48-regression columns must match the live demo by fold.
+cv_big <- AUC_big_18nov[AUC_big_18nov$scenario == "cv5", ]
+i <- match(auc_folds$fold, cv_big$fold)
+stopifnot(!anyNA(i), all(cv_big$n_votes[i] == auc_folds$votes),
+          all(cv_big$auc_48_regresiones[i] == round(auc_folds$AUC_48, 4)),
+          all(cv_big$auc_ranking_general[i] == round(auc_folds$AUC_general, 4)))
+write.csv(AUC_ladder_18nov, file.path(out, "escalera_auc.csv"), row.names = FALSE)
+write.csv(AUC_gains_18nov, file.path(out, "incrementos_auc.csv"), row.names = FALSE)
+write.csv(AUC_rival_48x7, file.path(out, "auc_rival_48x7.csv"))
+write.csv(AUC_big_18nov, file.path(out, "regresion_grande.csv"), row.names = FALSE)
+
+# Principal PR tables generated from the integrated R objects.
+ladder_table <- c(
+  "| Per-AI-model AUC | All data (in sample) | Mean CV |",
+  "|---|---:|---:|",
+  vapply(seq_len(nrow(AUC_ladder_18nov)), function(i) {
+    row <- AUC_ladder_18nov[i, ]
+    sprintf("| %s | %.4f | %.4f |", row$Method, row$All_data, row$Mean_CV)
+  }, character(1)))
+big_table <- c(
+  "| Per-vote AUC | Big 0/1 | Big 0.5 | 48 regressions | General ranking |",
+  "|---|---:|---:|---:|---:|",
+  vapply(seq_len(nrow(AUC_big_18nov)), function(i) {
+    row <- AUC_big_18nov[i, ]
+    label <- if (row$scenario == "all_data") "All data (in sample)" else
+      paste("Fold", row$fold)
+    sprintf("| %s | %.4f | %.4f | %.4f | %.4f |", label,
+            row$auc_big_01, row$auc_big_05, row$auc_48_regresiones,
+            row$auc_ranking_general)
+  }, character(1)))
+writeLines(c(ladder_table, "", big_table), file.path(out, "tabla_pr.md"))
 writeLines(c(capture.output(sessionInfo()),
              "Pre-existing protected/result files and hashes unchanged.",
-             "Available sections verified; 18/11 integration still pending.",
+             "Integrated demo verified: Eli #68, Mark #67 and Marco #65.",
              "This does not replace Nessim's personal RStudio rehearsal."),
            file.path(out, "validacion.txt"))
 cat("Pre-existing protected/result files and hashes unchanged.\n")
-cat("Available sections verified; 18/11 integration still pending.\n")
+cat("Integrated demo verified: Eli #68, Mark #67 and Marco #65.\n")

@@ -986,6 +986,94 @@ Lectura: con umbral 0.5, las 48 regresiones y el ranking general aciertan casi l
 Falta la variante con la fuerza del rival: espera a `R/19_fuerza_rival.R` (Eli).
 Código preparado con asistencia de Claude (Anthropic).
 
+## Mark, regresión grande con 5-fold: 0/1 contra 0.5 (18/11/2026)
+
+`R/20_regresion_grande_cv.R` responde lo que pidió el profesor el 16/11 (`docs/18`). Es la misma regresión grande
+(Bradley-Terry con covariables) de `R/07`, con el mismo ridge (lambda elegido dentro de los folds de entrenamiento) y
+los mismos 5 folds de `folds_5.csv`, en dos versiones. **0/1** (`binomial`): se entrena solo con los votos que tienen
+ganador. **0.5** (`quasibinomial`): también entran los empates y both_bad, como 0.5. Con respuesta solo 0 y 1,
+`binomial` y `quasibinomial` son el mismo ajuste: la diferencia real es si los empates entran al entrenamiento.
+Las dos versiones se **prueban en los mismos votos**: los votos con ganador del fold que quedó fuera. La versión 0.5
+reproduce exactamente `R/resultados/bradley_terry/por_voto.csv` (7 de 7 filas, mismo AUC y mismo lambda).
+
+AUC por voto (A contra B), 5-fold. Las columnas de las 48 regresiones y del ranking general se leen de
+`R/resultados/auc/por_voto.csv` (`R/11`); no se recalculan.
+
+| fold | grande 0/1 | grande 0.5 | 48 regresiones | ranking general |
+|---|---:|---:|---:|---:|
+| 1 | 0.6911 | 0.6914 | 0.6902 | 0.6844 |
+| 2 | 0.6936 | 0.6935 | 0.6921 | 0.6873 |
+| 3 | 0.6972 | 0.6973 | 0.6954 | 0.6908 |
+| 4 | 0.6790 | 0.6788 | 0.6779 | 0.6735 |
+| 5 | 0.6931 | 0.6934 | 0.6912 | 0.6857 |
+| **promedio** | **0.6908** | **0.6909** | **0.6894** | **0.6843** |
+
+- **0/1 contra 0.5 dan parecido.** La diferencia por fold es de 0.0003 o menos, la prueba de DeLong pareada da p entre
+  0.441 y 0.813 y la correlación entre sus predictores lineales es de 0.9936 o más. Con la regla del profesor
+  (si dan parecido, `binomial`), la versión principal es **0/1**. El log-loss del promedio es 0.636 (0/1) y 0.639 (0.5).
+- **Contra las 48 y el ranking general:** la regresión grande 0/1 queda por encima de las 48 regresiones y del ranking en
+  los 5 folds, por poco (0.0009 a 0.0019 sobre las 48 en cada fold). No se hizo prueba pareada contra las 48 porque
+  `R/11` no guarda sus predicciones por voto.
+- **Con todos los datos (dentro de muestra):** 0/1 da 0.6971 y 0.5 da 0.7002 (las 48: 0.7005; ranking: 0.6854). Aquí sí
+  se separan un poco, porque elige otro lambda (0.001 contra 0.0001) y la versión 0.5 usa 28,759 votos más. Fuera de muestra
+  no se nota.
+- **¿Son comparables?** Los tres AUC por voto (grande, 48, ranking) sí se comparan entre sí: se miden en los mismos
+  votos de prueba, con los mismos folds y la misma respuesta (si A ganó). **No** son comparables con el AUC **por modelo**
+  de las 48 (promedio 0.5387): ese AUC usa las filas de un solo modelo y su propia regresión, y el AUC por voto usa el
+  puntaje de los dos modelos del voto (`score_A - score_B`, `R/11`). Son medidas distintas.
+
+Salida en `R/resultados/regresion_grande_cv_2026-11-18/` (`por_voto_01_vs_05.csv`, `comparacion_por_voto.csv`,
+`versiones.txt`). Corrida con R 4.3.3, glmnet 4.1.8 y pROC 1.18.5, unos 30 segundos. Para la demo:
+`options(correr_20 = FALSE); source("R/20_regresion_grande_cv.R"); tabla_regresion_grande(); explicar_regresion_grande()`
+(solo lee lo guardado, es instantáneo).
+Código y documentación preparados con asistencia de Claude (Anthropic).
+
+## Eli, fuerza del rival: escalera de AUC por modelo (18/11/2026)
+
+**Qué es.** La escalera pedida en `docs/18`: el AUC **por modelo de IA** (promedio simple de los 48) con cuatro
+filas juntas. Respuesta: `won` (1/0), solo votos decisivos sin revisión (77,843 votos). Predictores: las mismas 11
+etiquetas de la pregunta; la fuerza del rival (su porcentaje de victorias) se calcula **solo con las filas de
+entrenamiento** de cada corrida, así que el fold de prueba nunca la ve. Cada modelo tiene su propia `glm` binomial.
+Los folds son los de `R/resultados/auc/folds_5.csv` (por sesión, sin traslape: 0 votos y 0 sesiones compartidos).
+
+| Método | Todos los datos (dentro de muestra) | Promedio de los 5 folds |
+|---|---|---|
+| Moneda (puntaje constante) | 0.5000 | 0.5000 |
+| Solo etiquetas de la pregunta | 0.5617 | 0.5387 |
+| Solo fuerza del rival | 0.6297 | 0.6290 |
+| Etiquetas + fuerza del rival | 0.6450 | 0.6342 |
+
+AUC por fold (1 a 5): solo etiquetas 0.5374, 0.5406, 0.5418, 0.5339, 0.5398; solo rival 0.6289, 0.6313, 0.6332,
+0.6209, 0.6305; etiquetas + rival 0.6333, 0.6362, 0.6385, 0.6262, 0.6368.
+
+- **La fila "solo etiquetas" es la de `R/11`.** Reproduce los 288 AUC por modelo de `R/resultados/auc/por_modelo.csv`
+  (48 modelos x 6 corridas) con diferencia 0 después de redondear a 4 decimales; el promedio de 0.5387 es el mismo
+  de la sección de AUC.
+- **Coincide con el chequeo rápido de `docs/18`** (aprox. 0.54, 0.63 y 0.63). Los números oficiales son los de esta tabla.
+- **Lectura (descriptiva, sin prueba de significancia):** la fuerza del rival sola da +0.0903 de AUC sobre las
+  etiquetas solas (promedio de folds); agregar las etiquetas a la fuerza del rival da solo +0.0052 más
+  (con todos los datos: +0.0680 y +0.0152). En estos datos, saber quién es el rival predice mucho más que las
+  etiquetas, y las etiquetas aportan poco encima del rival.
+- **Todos los datos es dentro de muestra**, no validación externa; la comparación válida es la de los 5 folds.
+- **No se tomó la decisión abierta #5** de `docs/18` (si el modelo principal debe controlar por la fuerza del rival):
+  aquí solo se mide qué pasa con y sin ella.
+- **Tabla de 48 filas x 7 columnas** (`All_data`, `Fold_1` a `Fold_5`, `Mean_CV`) con la variante etiquetas + rival:
+  `R/resultados/fuerza_rival/auc_rival_48x7.csv`. Las tablas de las otras dos variantes están en
+  `auc_48x7_labels_only.csv` y `auc_48x7_opponent_only.csv`. Ningún AUC quedó vacío (0 faltantes).
+- **Ojo:** este AUC es **por modelo**, no por voto; no se compara directo con el AUC por voto (por ejemplo, el 0.6908
+  de la regresión grande de arriba). Son medidas distintas.
+
+Salida en `R/resultados/fuerza_rival/` (`escalera_auc.csv`, `incrementos_auc.csv`, `auc_rival_48x7.csv`,
+`auc_por_modelo_fold.csv`, `coeficientes.csv`, `fuerzas_entrenamiento.csv`, `controles_folds.csv`,
+`comparacion_labels_mark.csv`, `verificacion.txt`). Para la demo, sin volver a correr nada:
+`source("R/19_fuerza_rival.R"); escalera_auc(); tabla_auc_rival()`. Para regenerar (unos 30 segundos, desde la
+raíz): `Rscript --vanilla R/19_fuerza_rival.R`, y luego `Rscript --vanilla R/validar_fuerza_rival.R`. Corrida con
+R 4.3.3 y pROC 1.18.5.
+
+Código de `R/19_fuerza_rival.R` y `R/validar_fuerza_rival.R` escrito por Eli (con asistencia de ChatGPT/Codex, OpenAI).
+Mark lo corrió en una sesión limpia, lo validó y le corrigió una línea al validador (el tipo entero/decimal en la
+prueba de "cambiar las respuestas de prueba"; no era fuga). Revisión y documentación con asistencia de Claude (Anthropic).
+
 
 ## Nessim: preparación parcial de la demo del 18/11/2026
 
@@ -1012,3 +1100,38 @@ R/resultados/ permanecieron iguales. La integración de Eli y Mark y
 el ensayo final completo siguen pendientes; esta corrida parcial no los
 sustituye. Avisar a Eli y Mark por las entregas, a Marco para confirmar
 la integración sin rival y a Jaime por la revisión. Código y documentación con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Nessim: demo integrada después de los PR #67 y #68 (18/11/2026)
+
+Esta actualización completa los bloques pendientes descritos en la corrida
+parcial anterior. R/14 llama a escalera_auc() y tabla_auc_rival() del código
+de Eli (PR #68, validado por Mark) y a tabla_regresion_grande() y
+explicar_regresion_grande() de Mark (PR #67). Conserva la matriz sin rival
+de Marco (PR #65). No modifica scripts ni interfaces de otros.
+
+R/19 y R/20 se cargan para leer sus resultados oficiales publicados, sin
+regenerarlos. Los incrementos de la escalera se calculan desde la tabla de
+Eli, sin copiar aproximaciones de Python. La tabla de Mark separa el AUC
+por voto del AUC por modelo de IA, e incluye ambas políticas de empates.
+Los bloques previos de las 48 regresiones y la matriz de Marco se calculan
+en vivo. No se toma ninguna decisión metodológica nueva.
+
+Comando: `Rscript --vanilla R/verificar_demo_18nov_nessim.R`. Terminó con
+código 0, sin errores. Único aviso: pROC fue compilado con R 4.5.2.
+Evidencia nueva en `R/resultados/nessim_demo_integrada_2026-11-18/`: consola
+y stderr literales, escalera, incrementos, tabla con rival, Bradley–Terry,
+matriz, tablas de la demo, dependencias y versiones. Se conserva la carpeta
+de la ejecución parcial.
+
+El comprobador verifica los valores devueltos por las funciones públicas,
+la tabla con rival 48 × 7, la matriz contra el CSV de Marco y las columnas
+de las 48/base de Mark contra la CV recalculada en la demo. Todos los
+archivos previos de data/, entregas/ y R/resultados/ conservan listado y
+hashes, incluidos los resultados originales de Eli, Mark y Marco.
+
+La integración y el ensayo técnico en R están hechos. Quedan el ensayo
+personal de Nessim en RStudio y la variante con rival de la matriz de Marco,
+que su script todavía no incluye. Avisar a Jaime para revisar PR #66, a
+Mark/Eli para confirmar la integración y a Marco por esa variante.
+Integración y documentación con asistencia de ChatGPT/Codex (OpenAI).

@@ -1,0 +1,5 @@
+R version 4.3.3 (2024-02-29)
+glmnet 4.1.8
+pROC 1.18.5
+Matrix 1.6.5
+big regression = Bradley-Terry of R/07, ridge (alpha = 0) chosen inside the training folds; folds from folds_5.csv
