@@ -967,3 +967,21 @@ Consola y primer error del comprobador, corregido antes de la ejecución final:
 Guía y límites: `docs/16-graficos-eli-demo.md`.
 No equivale al ensayo personal completo de Nessim en RStudio.
 Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+## Marco, matriz de confusión por voto con umbral 0.5 (18/11/2026)
+
+Script: `R/21_matriz_confusion.R` (función `matriz_confusion(umbral = 0.5)`). Resultado: `R/resultados/matriz_confusion/matriz_confusion_por_voto.csv`.
+
+- Respuesta: y = 1 si ganó el modelo de IA del lado A, 0 si ganó el del lado B. Solo votos con ganador (77,843).
+- Mismas probabilidades por voto que `R/11` (48 regresiones y ranking general), mismos folds (`folds_5.csv`). Se predice "gana A" si P > 0.5.
+- Comprobado: los aciertos coinciden con `correct_regression` y `correct_baseline` de `R/resultados/auc/por_voto.csv` en las 6 corridas.
+
+| 5-fold (los 5 folds de prueba juntos) | Accuracy | Precision | Recall |
+|---|---:|---:|---:|
+| 48 regresiones | 0.6398 | 0.6351 | 0.6385 |
+| Ranking general | 0.6397 | 0.6346 | 0.6402 |
+
+Lectura: con umbral 0.5, las 48 regresiones y el ranking general aciertan casi los mismos votos (49,801 contra 49,795). La ventaja de las regresiones se ve en el AUC (0.6894 contra 0.6843), no en la accuracy a 0.5. Con todos los datos (dentro de muestra): 0.6480 contra 0.6401.
+
+Falta la variante con la fuerza del rival: espera a `R/19_fuerza_rival.R` (Eli).
+Código preparado con asistencia de Claude (Anthropic).
