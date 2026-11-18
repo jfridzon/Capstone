@@ -967,3 +967,46 @@ Consola y primer error del comprobador, corregido antes de la ejecución final:
 Guía y límites: `docs/16-graficos-eli-demo.md`.
 No equivale al ensayo personal completo de Nessim en RStudio.
 Código y documentación preparados con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Mark, regresión grande con 5-fold: 0/1 contra 0.5 (18/11/2026)
+
+`R/20_regresion_grande_cv.R` responde lo que pidió el profesor el 16/11 (`docs/18`). Es la misma regresión grande
+(Bradley-Terry con covariables) de `R/07`, con el mismo ridge (lambda elegido dentro de los folds de entrenamiento) y
+los mismos 5 folds de `folds_5.csv`, en dos versiones. **0/1** (`binomial`): se entrena solo con los votos que tienen
+ganador. **0.5** (`quasibinomial`): también entran los empates y both_bad, como 0.5. Con respuesta solo 0 y 1,
+`binomial` y `quasibinomial` son el mismo ajuste: la diferencia real es si los empates entran al entrenamiento.
+Las dos versiones se **prueban en los mismos votos**: los votos con ganador del fold que quedó fuera. La versión 0.5
+reproduce exactamente `R/resultados/bradley_terry/por_voto.csv` (7 de 7 filas, mismo AUC y mismo lambda).
+
+AUC por voto (A contra B), 5-fold. Las columnas de las 48 regresiones y del ranking general se leen de
+`R/resultados/auc/por_voto.csv` (`R/11`); no se recalculan.
+
+| fold | grande 0/1 | grande 0.5 | 48 regresiones | ranking general |
+|---|---:|---:|---:|---:|
+| 1 | 0.6911 | 0.6914 | 0.6902 | 0.6844 |
+| 2 | 0.6936 | 0.6935 | 0.6921 | 0.6873 |
+| 3 | 0.6972 | 0.6973 | 0.6954 | 0.6908 |
+| 4 | 0.6790 | 0.6788 | 0.6779 | 0.6735 |
+| 5 | 0.6931 | 0.6934 | 0.6912 | 0.6857 |
+| **promedio** | **0.6908** | **0.6909** | **0.6894** | **0.6843** |
+
+- **0/1 contra 0.5 dan parecido.** La diferencia por fold es de 0.0003 o menos, la prueba de DeLong pareada da p entre
+  0.441 y 0.813 y la correlación entre sus predictores lineales es de 0.9936 o más. Con la regla del profesor
+  (si dan parecido, `binomial`), la versión principal es **0/1**. El log-loss del promedio es 0.636 (0/1) y 0.639 (0.5).
+- **Contra las 48 y el ranking general:** la regresión grande 0/1 queda por encima de las 48 regresiones y del ranking en
+  los 5 folds, por poco (0.0009 a 0.0019 sobre las 48 en cada fold). No se hizo prueba pareada contra las 48 porque
+  `R/11` no guarda sus predicciones por voto.
+- **Con todos los datos (dentro de muestra):** 0/1 da 0.6971 y 0.5 da 0.7002 (las 48: 0.7005; ranking: 0.6854). Aquí sí
+  se separan un poco, porque elige otro lambda (0.001 contra 0.0001) y la versión 0.5 usa 28,759 votos más. Fuera de muestra
+  no se nota.
+- **¿Son comparables?** Los tres AUC por voto (grande, 48, ranking) sí se comparan entre sí: se miden en los mismos
+  votos de prueba, con los mismos folds y la misma respuesta (si A ganó). **No** son comparables con el AUC **por modelo**
+  de las 48 (promedio 0.5387): ese AUC usa las filas de un solo modelo y su propia regresión, y el AUC por voto usa el
+  puntaje de los dos modelos del voto (`score_A - score_B`, `R/11`). Son medidas distintas.
+
+Salida en `R/resultados/regresion_grande_cv_2026-11-18/` (`por_voto_01_vs_05.csv`, `comparacion_por_voto.csv`,
+`versiones.txt`). Corrida con R 4.3.3, glmnet 4.1.8 y pROC 1.18.5, unos 30 segundos. Para la demo:
+`options(correr_20 = FALSE); source("R/20_regresion_grande_cv.R"); tabla_regresion_grande(); explicar_regresion_grande()`
+(solo lee lo guardado, es instantáneo).
+Código y documentación preparados con asistencia de Claude (Anthropic).
