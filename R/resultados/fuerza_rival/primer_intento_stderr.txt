@@ -1,0 +1,4 @@
+Error in .eli19_correr() : 
+  max(abs(round(labels$auc[ok], 4) - saved$auc[idx][ok])) < 1e-09 is not TRUE
+Calls: .eli19_correr -> stopifnot
+Execution halted

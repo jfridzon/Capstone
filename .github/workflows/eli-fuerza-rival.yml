@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p R/resultados/fuerza_rival
-          trap 'cat R/resultados/fuerza_rival/stderr.txt R/resultados/fuerza_rival/validacion_stderr.txt 2>/dev/null >&2 || true' ERR
+          trap 'for f in R/resultados/fuerza_rival/{consola,stderr,validacion,validacion_stderr}.txt; do if test -f "$f"; then cat "$f" >&2; fi; done' ERR
           Rscript --vanilla R/19_fuerza_rival.R > R/resultados/fuerza_rival/consola.txt 2> R/resultados/fuerza_rival/stderr.txt
           cat R/resultados/fuerza_rival/consola.txt
           Rscript --vanilla R/validar_fuerza_rival.R > R/resultados/fuerza_rival/validacion.txt 2> R/resultados/fuerza_rival/validacion_stderr.txt

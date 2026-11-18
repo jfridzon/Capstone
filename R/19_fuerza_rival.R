@@ -180,6 +180,14 @@ tabla_auc_rival <- function() {
   stopifnot(nrow(saved) == 288L, !anyNA(idx),
             identical(is.na(labels$auc), is.na(saved$auc[idx])))
   ok <- !is.na(labels$auc)
+  comparison <- data.frame(labels[c("scenario", "fold", "model")],
+    recomputed = labels$auc, published = saved$auc[idx],
+    difference_rounded = round(labels$auc, 4) - saved$auc[idx])
+  write.csv(comparison, file.path(.eli19_dir, "comparacion_labels_mark.csv"), row.names = FALSE)
+  if (any(abs(comparison$difference_rounded[ok]) >= 1e-9)) {
+    print(comparison[abs(comparison$difference_rounded) >= 1e-9, ], row.names = FALSE)
+    print(sessionInfo())
+  }
   stopifnot(max(abs(round(labels$auc[ok], 4) - saved$auc[idx][ok])) < 1e-9)
   # No na.rm: un AUC ausente mantiene NA y su conteo queda visible.
   table_for <- function(variant) {
