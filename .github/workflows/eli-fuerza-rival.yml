@@ -1,0 +1,56 @@
+name: Eli - opponent strength in clean R
+on:
+  push:
+    branches: ["eli/fuerza-rival-18-nov"]
+    paths:
+      - "R/19_fuerza_rival.R"
+      - "R/validar_fuerza_rival.R"
+      - ".github/workflows/eli-fuerza-rival.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  analizar:
+    if: github.ref == 'refs/heads/eli/fuerza-rival-18-nov'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      OPENBLAS_NUM_THREADS: 1
+      OMP_NUM_THREADS: 1
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
+        with:
+          r-version: "4.4.1"
+          use-public-rspm: false
+      - name: Install pROC
+        run: Rscript --vanilla -e 'install.packages("pROC", repos = "https://cloud.r-project.org")'
+      - name: Run entire analysis and integration checks in fresh R processes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p R/resultados/fuerza_rival
+          trap 'cat R/resultados/fuerza_rival/stderr.txt R/resultados/fuerza_rival/validacion_stderr.txt 2>/dev/null >&2 || true' ERR
+          Rscript --vanilla R/19_fuerza_rival.R > R/resultados/fuerza_rival/consola.txt 2> R/resultados/fuerza_rival/stderr.txt
+          cat R/resultados/fuerza_rival/consola.txt
+          Rscript --vanilla R/validar_fuerza_rival.R > R/resultados/fuerza_rival/validacion.txt 2> R/resultados/fuerza_rival/validacion_stderr.txt
+          cat R/resultados/fuerza_rival/validacion.txt
+          git diff --exit-code -- data entregas R/resultados/auc
+      - name: Preserve outputs including errors
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eli-fuerza-rival
+          path: R/resultados/fuerza_rival/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save verified R outputs on Eli branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/eli/fuerza-rival-18-nov"
+          git add -- R/resultados/fuerza_rival
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Save verified R opponent-strength results for Eli'
+            git push origin HEAD:refs/heads/eli/fuerza-rival-18-nov
+          fi
