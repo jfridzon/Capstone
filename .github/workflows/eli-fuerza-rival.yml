@@ -24,7 +24,7 @@ jobs:
           r-version: "4.3.3"
           use-public-rspm: false
       - name: Install pROC
-        run: Rscript --vanilla -e 'install.packages("Rcpp", repos = "https://cloud.r-project.org"); install.packages("https://cran.r-project.org/src/contrib/Archive/pROC/pROC_1.18.5.tar.gz", repos = NULL, type = "source"); stopifnot(as.character(packageVersion("pROC")) == "1.18.5")'
+        run: Rscript --vanilla -e 'install.packages(c("Rcpp", "plyr"), repos = "https://cloud.r-project.org"); install.packages("https://cran.r-project.org/src/contrib/Archive/pROC/pROC_1.18.5.tar.gz", repos = NULL, type = "source"); stopifnot(as.character(packageVersion("pROC")) == "1.18.5")'
       - name: Run entire analysis and integration checks in fresh R processes
         shell: bash
         run: |

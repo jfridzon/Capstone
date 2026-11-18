@@ -1,0 +1,8 @@
+ERROR: dependency ‘plyr’ is not available for package ‘pROC’
+* removing ‘/home/runner/work/_temp/Library/pROC’
+Warning message:
+In install.packages("https://cran.r-project.org/src/contrib/Archive/pROC/pROC_1.18.5.tar.gz",  :
+  installation of package ‘/tmp/RtmpWVKX42/downloaded_packages/pROC_1.18.5.tar.gz’ had non-zero exit status
+Error in packageVersion("pROC") : there is no package called ‘pROC’
+Calls: stopifnot -> packageVersion
+Execution halted
