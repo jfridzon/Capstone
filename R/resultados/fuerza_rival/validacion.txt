@@ -1,0 +1,10 @@
+PASS: source has no file, option or device effects; public functions take no arguments.
+PASS: changing held-out outcomes cannot change training strengths.
+PASS: missing training opponents and invalid scores fail; one-class test gives NA.
+PASS: numerical near-tie bounds exclude identical profiles and separated scores.
+PASS: fold 1 scores match all 48 original R/02 opponent-control fits.
+AUC per AI model; unweighted mean over the 48 models. AUC is not accuracy.
+All data is in sample; each CV fold contains unseen sessions.
+Compare the last two rows to see what the question labels add.
+PASS: complete ladder, 48 x 7 table, session isolation and paired CV exports.
+ALL OPPONENT-STRENGTH VALIDATIONS PASSED.

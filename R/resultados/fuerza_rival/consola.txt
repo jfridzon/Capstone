@@ -1,0 +1,32 @@
+Response: won (1 = win, 0 = loss), decisive votes only.
+AI models: 48 | decisive votes: 77843 
+All 11 question labels retained. Opponent strength is a training-only win rate.
+Completed: all_data all | training votes: 77843 | evaluation votes: 77843 
+Completed: cv5 1 | training votes: 62274 | evaluation votes: 15569 
+Completed: cv5 2 | training votes: 62283 | evaluation votes: 15560 
+Completed: cv5 3 | training votes: 62368 | evaluation votes: 15475 
+Completed: cv5 4 | training votes: 62164 | evaluation votes: 15679 
+Completed: cv5 5 | training votes: 62283 | evaluation votes: 15560 
+Historical AUC cells differing after rounding: 0 
+Maximum historical AUC difference after rounding: 0 
+All historical AUCs within near-tie + CSV rounding bounds: TRUE 
+
+AUC PER AI MODEL: COMPLETE BASELINE LADDER
+AUC per AI model; unweighted mean over the 48 models. AUC is not accuracy.
+All data is in sample; each CV fold contains unseen sessions.
+Compare the last two rows to see what the question labels add.
+                              Method  All_data    Fold_1    Fold_2    Fold_3    Fold_4    Fold_5   Mean_CV
+               Coin (constant score) 0.5000000 0.5000000 0.5000000 0.5000000 0.5000000 0.5000000 0.5000000
+                Question labels only 0.5616993 0.5374431 0.5405638 0.5417804 0.5338683 0.5398366 0.5386984
+              Opponent strength only 0.6297444 0.6288592 0.6312970 0.6331817 0.6209209 0.6304997 0.6289517
+ Question labels + opponent strength 0.6449711 0.6332752 0.6361925 0.6384991 0.6261567 0.6367644 0.6341776
+
+Incremental AUC (descriptive; no equivalence claim)
+               Comparison   All_data    Mean_CV
+       Opponent vs labels 0.06804503 0.09025327
+ Labels added to opponent 0.01522674 0.00522589
+
+AI model/fold AUCs missing: 0 
+All 864 fits converged; all 288 label fits match R/02 coefficients and scores.
+Protected file hashes and inventory unchanged: 192 
+PASS: completed Eli's opponent-strength analysis.
