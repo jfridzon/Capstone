@@ -12,7 +12,7 @@ permissions:
 jobs:
   analizar:
     if: github.ref == 'refs/heads/eli/fuerza-rival-18-nov'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     env:
       OPENBLAS_NUM_THREADS: 1
@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
         with:
-          r-version: "4.4.1"
+          r-version: "4.3.3"
           use-public-rspm: false
       - name: Install pROC
-        run: Rscript --vanilla -e 'install.packages("pROC", repos = "https://cloud.r-project.org")'
+        run: Rscript --vanilla -e 'install.packages("Rcpp", repos = "https://cloud.r-project.org"); install.packages("https://cran.r-project.org/src/contrib/Archive/pROC/pROC_1.18.5.tar.gz", repos = NULL, type = "source"); stopifnot(as.character(packageVersion("pROC")) == "1.18.5")'
       - name: Run entire analysis and integration checks in fresh R processes
         shell: bash
         run: |

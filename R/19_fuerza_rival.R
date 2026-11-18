@@ -178,6 +178,8 @@ tabla_auc_rival <- function() {
   key <- function(x) paste(x$scenario, x$fold, x$model)
   idx <- match(key(labels), key(saved))
   stopifnot(nrow(saved) == 288L, !anyNA(idx),
+            all(labels$n_test == saved$n_rows[idx]),
+            all(labels$n_wins == saved$n_wins[idx]),
             identical(is.na(labels$auc), is.na(saved$auc[idx])))
   ok <- !is.na(labels$auc)
   comparison <- data.frame(labels[c("scenario", "fold", "model")],
@@ -186,6 +188,11 @@ tabla_auc_rival <- function() {
   write.csv(comparison, file.path(.eli19_dir, "comparacion_labels_mark.csv"), row.names = FALSE)
   if (any(abs(comparison$difference_rounded[ok]) >= 1e-9)) {
     print(comparison[abs(comparison$difference_rounded) >= 1e-9, ], row.names = FALSE)
+    fitted <- do.call(rbind, fit_rows)
+    fitted <- fitted[fitted$scenario == "all_data" & fitted$variant == "labels_only", ]
+    original <- read.csv("R/resultados/coeficientes_por_modelo.csv", stringsAsFactors = FALSE)
+    j <- match(paste(fitted$model, fitted$term), paste(original$modelo, original$termino))
+    cat("Maximum original coefficient difference:", max(abs(fitted$estimate - original$estimado[j])), "\n")
     print(sessionInfo())
   }
   stopifnot(max(abs(round(labels$auc[ok], 4) - saved$auc[idx][ok])) < 1e-9)
