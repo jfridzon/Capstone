@@ -1081,3 +1081,100 @@ R 4.3.3 y pROC 1.18.5.
 Código de `R/19_fuerza_rival.R` y `R/validar_fuerza_rival.R` escrito por Eli (con asistencia de ChatGPT/Codex, OpenAI).
 Mark lo corrió en una sesión limpia, lo validó y le corrigió una línea al validador (el tipo entero/decimal en la
 prueba de "cambiar las respuestas de prueba"; no era fuga). Revisión y documentación con asistencia de Claude (Anthropic).
+
+
+## Nessim: preparación parcial de la demo del 18/11/2026
+
+R/14 conserva las fórmulas e interfaces existentes y añade la apertura y
+los títulos para las tres piezas del 18/11. R/19 de Eli, R/20 de Mark y
+R/21 de Marco no estaban en el commit base 64c135d de main. Durante la
+preparación se integró PR #65: se incorpora matriz_confusion(umbral = 0.5)
+sin ejecutar el bloque que escribe CSV, conservando su interfaz y sus archivos.
+Eli y Mark siguen pendientes. El guion propio se actualiza en docs/15.
+
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R` terminó con código 0.
+Se verificaron las secciones disponibles, incluida la tabla 48 × 7 contra
+pROC; los resultados por voto reproducen los publicados, sin evaluación
+estadística nueva. Consola, stderr, tablas y versiones están en
+`R/resultados/nessim_demo_2026-11-18/`. No hubo errores; el aviso literal fue:
+
+```text
+Warning message:
+package ‘pROC’ was built under R version 4.5.2
+```
+
+Los nombres y hashes de todos los archivos previos de data/, entregas/ y
+R/resultados/ permanecieron iguales. La integración de Eli y Mark y
+el ensayo final completo siguen pendientes; esta corrida parcial no los
+sustituye. Avisar a Eli y Mark por las entregas, a Marco para confirmar
+la integración sin rival y a Jaime por la revisión. Código y documentación con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Nessim: demo integrada después de los PR #67 y #68 (18/11/2026)
+
+Esta actualización completa los bloques pendientes descritos en la corrida
+parcial anterior. R/14 llama a escalera_auc() y tabla_auc_rival() del código
+de Eli (PR #68, validado por Mark) y a tabla_regresion_grande() y
+explicar_regresion_grande() de Mark (PR #67). Conserva la matriz sin rival
+de Marco (PR #65). No modifica scripts ni interfaces de otros.
+
+R/19 y R/20 se cargan para leer sus resultados oficiales publicados, sin
+regenerarlos. Los incrementos de la escalera se calculan desde la tabla de
+Eli, sin copiar aproximaciones de Python. La tabla de Mark separa el AUC
+por voto del AUC por modelo de IA, e incluye ambas políticas de empates.
+Los bloques previos de las 48 regresiones y la matriz de Marco se calculan
+en vivo. No se toma ninguna decisión metodológica nueva.
+
+Comando: `Rscript --vanilla R/verificar_demo_18nov_nessim.R`. Terminó con
+código 0, sin errores. Único aviso: pROC fue compilado con R 4.5.2.
+Evidencia nueva en `R/resultados/nessim_demo_integrada_2026-11-18/`: consola
+y stderr literales, escalera, incrementos, tabla con rival, Bradley–Terry,
+matriz, tablas de la demo, dependencias y versiones. Se conserva la carpeta
+de la ejecución parcial.
+
+El comprobador verifica los valores devueltos por las funciones públicas,
+la tabla con rival 48 × 7, la matriz contra el CSV de Marco y las columnas
+de las 48/base de Mark contra la CV recalculada en la demo. Todos los
+archivos previos de data/, entregas/ y R/resultados/ conservan listado y
+hashes, incluidos los resultados originales de Eli, Mark y Marco.
+
+La integración y el ensayo técnico en R están hechos. Quedan el ensayo
+personal de Nessim en RStudio y la variante con rival de la matriz de Marco,
+que su script todavía no incluye. Avisar a Jaime para revisar PR #66, a
+Mark/Eli para confirmar la integración y a Marco por esa variante.
+Integración y documentación con asistencia de ChatGPT/Codex (OpenAI).
+
+
+## Nessim: demo final con las tres matrices de Marco (PR #69, 18/11/2026)
+
+Esta sección actualiza el estado de la corrida anterior: la variante con
+fuerza del rival ya está en main y queda integrada en R/14 mediante la
+misma llamada matriz_confusion(umbral = 0.5), sin cambiar R/21 ni su interfaz.
+Ahora se muestran las matrices de las 48 regresiones, las 48 con rival y
+el ranking general; los avisos de variante pendiente se retiran de la demo.
+
+La carga de Mark y Marco se simplifica a pasos visibles: crear un entorno,
+desactivar el bloque que escribe resultados, cargar el script, restaurar
+la opción y llamar a la función publicada. Los cálculos GLM y pROC de
+los bloques 1–7 se mantienen a la vista; Eli y Mark leen sus resultados
+publicados y Marco calcula las tres matrices en vivo. Guion en docs/15.
+
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R` terminó con código 0,
+sin errores. Único aviso literal:
+
+```text
+Warning message:
+package ‘pROC’ was built under R version 4.5.2
+```
+
+La evidencia se conserva en `R/resultados/nessim_demo_final_2026-11-18/`: consola
+y stderr literales, las tablas, dependencias y versiones. Se verificaron las
+tres matrices, las 21 filas contra el CSV de Marco al redondeo publicado y
+los controles previos de las tablas de Eli/Mark y de los AUC recalculados.
+Todos los archivos previos de data/, entregas/ y R/resultados/ conservaron
+listado y hashes. Las carpetas de las corridas anteriores se conservan.
+
+La integración y la corrida técnica completa están terminadas. Avisar a
+Jaime para revisar PR #66 y al equipo para confirmar la integración. El
+ensayo personal de Nessim en RStudio sigue siendo una actividad aparte.
+Integración y documentación con asistencia de ChatGPT/Codex (OpenAI).

@@ -4,7 +4,61 @@ Archivo: R/14_demo_rstudio.R. Actualizado el 11/11/2026 por petición de Nessim.
 Preparado con asistencia de ChatGPT/Codex (OpenAI).
 Esta guía se lee aparte; el script solo tiene títulos cortos, código y resultados.
 
-## Preparación
+## Demo integrada del miércoles 18/11
+
+Se integran las funciones públicas de Eli (PR #68, código de Eli validado
+por Mark), Mark (#67) y Marco (#69), ya en main. Los bloques 1–7 mantienen
+las fórmulas GLM y pROC visibles. Los bloques 8–9 leen resultados oficiales
+publicados: no vuelven a entrenar R/19 ni R/20. El bloque 10 calcula en vivo
+las tres matrices de Marco: etiquetas, etiquetas + rival y ranking general.
+
+Apertura:
+
+“We predict whether an AI model wins a decisive vote. Each regression
+model uses the same eleven question features, known before the answer.
+An AUC of 0.5 means chance-level discrimination, like a coin flip.
+AUC is not accuracy. We separate per-AI-model AUC from per-vote AUC,
+and in-sample results from held-out results.”
+
+8. Ejecuta el bloque completo de Eli: escalera_auc() muestra siempre las
+   cuatro filas juntas. Señala All_data (dentro de muestra) y después los
+   cinco folds y Mean_CV (sesiones reservadas). AUC_gains_18nov calcula los
+   incrementos desde esa tabla, sin números escritos a mano.
+   “Knowing the opponent matters much more than the question labels.
+   The labels add only a little on top of the opponent.”
+   AUC_rival_48x7 muestra la tabla por modelo con las etiquetas y el rival.
+9. Ejecuta el bloque de Mark: tabla_regresion_grande() y
+   explicar_regresion_grande(). Se carga con correr_20 = FALSE y se restaura
+   la opción: son resultados guardados. Mostrar ambas versiones, cada fold
+   y su media; la tabla dentro de muestra se imprime por separado.
+   “This regression model compares AI model A with AI model B. Leaving
+   ties out and counting them as half a point give similar held-out AUCs.
+   We compare these per-vote AUCs on the same test votes. We cannot compare
+   them directly with the per-AI-model AUCs in the previous section.”
+   La cercanía descriptiva no demuestra equivalencia estadística. No usar
+   stepwise. La comparación no decide por sí sola un cambio de método.
+10. Ejecuta la matriz_confusion(umbral = 0.5) de Marco: accuracy, precision
+    y recall, con A gana como clase positiva y predicción A cuando P > 0.5.
+    “At threshold 0.5, accuracy is almost the same as the general ranking.
+    AUC and accuracy measure different things.”
+    Ahora incluye la variante con rival (PR #69). Muestra las tres matrices
+    y sus métricas con el mismo umbral. Los nombres y argumentos de Marco
+    no cambian; su script se conserva.
+    La carga se lee de arriba abajo: crear entorno, desactivar escritura,
+    cargar R/21, restaurar opción y llamar a matriz_confusion(umbral = 0.5).
+
+Ensayo técnico desde la raíz:
+`Rscript --vanilla R/verificar_demo_18nov_nessim.R`.
+La nueva evidencia se guarda en
+`R/resultados/nessim_demo_final_2026-11-18/`; la corrida parcial anterior
+se conserva. Verifica las tablas e interfaces y los hashes de los archivos
+previos. Después, ensaya personalmente en RStudio con los diez bloques.
+Avisar a Jaime para revisar el PR #66 y a Mark/Eli para confirmar su integración;
+a Marco para confirmar que su variante con rival quedó integrada.
+
+Guion y código de integración con asistencia de ChatGPT/Codex (OpenAI).
+
+## Preparación (guía del 16/11)
 
 Abre Capstone.Rproj dentro de capstone-repo. Comprueba la raíz del proyecto:
 
