@@ -31,6 +31,10 @@ stopifnot(fails(.eli19_con_rival(bad, rates)),
           .eli19_auc(c(0, 1), c(0.5, 0.5)) == 0.5,
           fails(.eli19_auc(c(0, 1), c(NA, 0))))
 cat("PASS: missing training opponents and invalid scores fail; one-class test gives NA.\n")
+stopifnot(.eli19_cota_empates(c(0, 1), c(0.5, 0.5), data.frame(x = c(FALSE, FALSE))) == 0,
+          .eli19_cota_empates(c(0, 1), c(0.5, 0.5), data.frame(x = c(FALSE, TRUE))) == 1,
+          .eli19_cota_empates(c(0, 1), c(0, 1), data.frame(x = c(FALSE, TRUE))) == 0)
+cat("PASS: numerical near-tie bounds exclude identical profiles and separated scores.\n")
 
 # Comprobacion independiente con la interfaz ya existente de R/02.
 env02 <- new.env()

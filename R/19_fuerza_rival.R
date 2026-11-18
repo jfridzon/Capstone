@@ -36,7 +36,7 @@
             all(a$won + b$won == 1), all(a$fold == b$fold),
             identical(unname(as.matrix(a[e$predictores])),
                       unname(as.matrix(b[e$predictores]))))
-  list(d = d, features = e$predictores)
+  list(d = d, features = e$predictores, fit_reference = e$ajustar_modelos)
 }
 
 # Funcion pura: solo recibe entrenamiento, nunca el fold de prueba.
@@ -68,6 +68,26 @@
   ranks <- (sum(rank(score)[y == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0)
   stopifnot(abs(auc - ranks) < 1e-10)
   auc
+}
+
+# Cota calculada, no una tolerancia arbitraria de AUC: pares ganador/perdedor
+# de perfiles DIFERENTES cuyos logits distan <= 1e-10. Cambiar su orden puede
+# alterar AUC entre plataformas BLAS. Perfiles identicos son empates reales y
+# no se cuentan. Cada par aporta como maximo 1/(n_ganados*n_perdidos).
+.eli19_cota_empates <- function(y, score, features) {
+  if (length(unique(y)) < 2L) return(NA_real_)
+  groups <- split(seq_along(y), do.call(paste, c(features, sep = "|")))
+  stopifnot(all(vapply(groups, function(i)
+    max(abs(score[i] - score[i[1]])) < 1e-12, logical(1))))
+  values <- vapply(groups, function(i) score[i[1]], numeric(1))
+  wins <- vapply(groups, function(i) sum(y[i]), numeric(1))
+  losses <- lengths(groups) - wins
+  count <- 0
+  if (length(groups) > 1L) for (i in seq_len(length(groups) - 1L)) {
+    j <- which(seq_along(groups) > i & abs(values - values[i]) <= 1e-10)
+    count <- count + sum(wins[i] * losses[j] + losses[i] * wins[j])
+  }
+  count / (sum(y == 1) * sum(y == 0))
 }
 
 .eli19_tabla <- function(name) {
@@ -120,6 +140,7 @@ tabla_auc_rival <- function() {
                    labels_opponent = reformulate(c(features, "fuerza_rival"), "won"))
   auc_rows <- list(); fit_rows <- list(); rate_rows <- list(); control_rows <- list()
   predictions <- list()
+  reference_checks <- list()
   cat("Response: won (1 = win, 0 = loss), decisive votes only.\n")
   cat("AI models:", length(models), "| decisive votes:", length(unique(d$id)), "\n")
   cat("All 11 question labels retained. Opponent strength is a training-only win rate.\n")
@@ -141,6 +162,9 @@ tabla_auc_rival <- function() {
       overlap_votes, overlap_sessions)
     train <- .eli19_con_rival(train, rates)
     test <- .eli19_con_rival(test, rates)
+    # Misma interfaz original de R/02: comprobar TODOS los ajustes sin rival,
+    # sin depender de que el AUC historico conserve el orden de casi empates.
+    reference <- input$fit_reference(train, rival = FALSE)
     for (model in models) {
       tr <- train[train$model == model, ]
       te <- test[test$model == model, ]
@@ -150,9 +174,21 @@ tabla_auc_rival <- function() {
         stopifnot(fit$converged, all(is.finite(coef(fit))))
         score <- as.numeric(predict(fit, newdata = te, type = "link"))
         auc <- .eli19_auc(te$won, score)
+        tie_bound <- NA_real_
+        if (variant == "labels_only") {
+          ref_score <- as.numeric(predict(reference[[model]], te, type = "link"))
+          coef_diff <- max(abs(coef(fit) - coef(reference[[model]])))
+          score_diff <- max(abs(score - ref_score))
+          stopifnot(reference[[model]]$converged, coef_diff < 1e-10, score_diff < 1e-10)
+          reference_checks[[length(reference_checks) + 1L]] <- data.frame(
+            scenario, fold = label, model, max_coef_difference = coef_diff,
+            max_score_difference = score_diff)
+          tie_bound <- .eli19_cota_empates(te$won, score, te[features])
+        }
         auc_rows[[length(auc_rows) + 1L]] <- data.frame(scenario, fold = label,
           variant, model, n_train = nrow(tr), n_test = nrow(te),
-          n_wins = sum(te$won), auc, status = if (is.na(auc)) "one_class" else "ok")
+          n_wins = sum(te$won), auc, tie_bound,
+          status = if (is.na(auc)) "one_class" else "ok")
         fit_rows[[length(fit_rows) + 1L]] <- data.frame(scenario, fold = label,
           variant, model, term = names(coef(fit)), estimate = unname(coef(fit)),
           converged = fit$converged)
@@ -171,7 +207,7 @@ tabla_auc_rival <- function() {
   fits <- do.call(rbind, fit_rows)
   controls <- do.call(rbind, control_rows)
   stopifnot(nrow(aucs) == 48L * 3L * 6L)
-  # Reproduce el redondeo de los 288 AUC originales de Mark, sin modificarlos.
+  # Audita los 288 AUC historicos SIN sustituir los calculados ni modificar Mark.
   saved <- read.csv("R/resultados/auc/por_modelo.csv", stringsAsFactors = FALSE)
   saved <- saved[saved$fold %in% c("all", as.character(1:5)), ]
   labels <- aucs[aucs$variant == "labels_only", ]
@@ -184,18 +220,19 @@ tabla_auc_rival <- function() {
   ok <- !is.na(labels$auc)
   comparison <- data.frame(labels[c("scenario", "fold", "model")],
     recomputed = labels$auc, published = saved$auc[idx],
-    difference_rounded = round(labels$auc, 4) - saved$auc[idx])
+    difference_rounded = round(labels$auc, 4) - saved$auc[idx],
+    near_tie_bound = labels$tie_bound,
+    within_bound = abs(labels$auc - saved$auc[idx]) <= labels$tie_bound + 0.00005 + 1e-10)
   write.csv(comparison, file.path(.eli19_dir, "comparacion_labels_mark.csv"), row.names = FALSE)
-  if (any(abs(comparison$difference_rounded[ok]) >= 1e-9)) {
-    print(comparison[abs(comparison$difference_rounded) >= 1e-9, ], row.names = FALSE)
-    fitted <- do.call(rbind, fit_rows)
-    fitted <- fitted[fitted$scenario == "all_data" & fitted$variant == "labels_only", ]
-    original <- read.csv("R/resultados/coeficientes_por_modelo.csv", stringsAsFactors = FALSE)
-    j <- match(paste(fitted$model, fitted$term), paste(original$modelo, original$termino))
-    cat("Maximum original coefficient difference:", max(abs(fitted$estimate - original$estimado[j])), "\n")
-    print(sessionInfo())
-  }
-  stopifnot(max(abs(round(labels$auc[ok], 4) - saved$auc[idx][ok])) < 1e-9)
+  cat("Historical AUC cells differing after rounding:",
+      sum(abs(comparison$difference_rounded[ok]) >= 1e-9), "\n")
+  cat("Maximum historical AUC difference after rounding:",
+      max(abs(comparison$difference_rounded[ok])), "\n")
+  cat("All historical AUCs within near-tie + CSV rounding bounds:",
+      all(comparison$within_bound[ok]), "\n")
+  if (!all(comparison$within_bound[ok]))
+    print(comparison[!is.na(comparison$within_bound) & !comparison$within_bound, ], row.names = FALSE)
+  stopifnot(all(comparison$within_bound[ok]))
   # No na.rm: un AUC ausente mantiene NA y su conteo queda visible.
   table_for <- function(variant) {
     x <- aucs[aucs$variant == variant, ]
@@ -234,6 +271,7 @@ tabla_auc_rival <- function() {
   save_csv(fits, "coeficientes.csv")
   save_csv(do.call(rbind, rate_rows), "fuerzas_entrenamiento.csv")
   save_csv(controls, "controles_folds.csv")
+  save_csv(do.call(rbind, reference_checks), "comparacion_ajustes_R02.csv")
   save_csv(ladder, "escalera_auc.csv")
   save_csv(delta, "incrementos_auc.csv")
   for (i in seq_along(tables)) save_csv(tables[[i]], paste0("auc_48x7_", .eli19_variantes[i], ".csv"))
@@ -247,7 +285,7 @@ tabla_auc_rival <- function() {
   cat("\nIncremental AUC (descriptive; no equivalence claim)\n")
   print(delta, row.names = FALSE, digits = 7)
   cat("\nAI model/fold AUCs missing:", sum(is.na(aucs$auc)), "\n")
-  cat("All", nrow(aucs), "fits converged. Original label-only AUCs reproduced.\n")
+  cat("All", nrow(aucs), "fits converged; all 288 label fits match R/02 coefficients and scores.\n")
   stopifnot(identical(protected, protected_files()),
             identical(hashes, tools::md5sum(protected)))
   cat("Protected file hashes and inventory unchanged:", length(protected), "\n")
