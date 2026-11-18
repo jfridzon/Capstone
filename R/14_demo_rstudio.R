@@ -16,8 +16,8 @@ cat("Response: an AI model wins (1) or loses (0), given a decisive vote.\n")
 cat("Each regression model uses the same eleven question features.\n")
 cat("AUC 0.5 means chance-level discrimination, like a coin flip.\n")
 cat("AUC is not accuracy; in-sample AUC is not held-out performance.\n")
-cat("18/11 preparation only: opponent, Bradley-Terry variants and\n",
-    "confusion-matrix integration still await the team deliveries.\n")
+cat("18/11 preparation only: opponent and Bradley-Terry variants\n",
+    "still await Eli and Mark; Marco is available without opponent strength.\n")
 for (x in features) base[[x]] <- as.logical(base[[x]])
 votes <- base[!base$requiere_revision & base$es_decisivo, ]
 stopifnot(!anyNA(votes[c("won", features)]), all(votes$won %in% c(0, 1)))
@@ -219,9 +219,17 @@ cat("Compare decisive-vote binomial with half-point quasibinomial.\n")
 cat("Evaluate A versus B on the same held-out decisive votes.\n")
 cat("Do not compare a per-AI-model AUC directly with a per-vote AUC.\n")
 
-# ---- 10. Per-vote confusion matrix: awaiting Marco ----
-cat("\n=== 10. Per-vote confusion matrix: pending Marco integration ===\n")
-cat("At threshold 0.5: compare accuracy, precision and recall with baseline.\n")
+# ---- 10. Per-vote confusion matrix: Marco, merged PR #65 ----
+cat("\n=== 10. Per-vote confusion matrix: threshold 0.5 ===\n")
+confusion_18nov <- local({
+  piece <- new.env(parent = globalenv())
+  old_options <- options(correr_21 = FALSE)
+  tryCatch(sys.source("R/21_matriz_confusion.R", envir = piece),
+           finally = options(old_options))
+  piece$matriz_confusion(umbral = 0.5)
+})
+cat("Positive class: AI model A wins; predict A when P > 0.5.\n")
+cat("No opponent-strength variant yet; it still awaits Eli.\n")
 cat("AUC alone does not give these threshold-specific metrics.\n")
 
 # File presence does not certify a merged, reviewed, compatible interface.
@@ -230,7 +238,8 @@ demo_18nov_dependencies <- data.frame(
   owner = c("Eli", "Mark", "Marco"),
   file = c("R/19_fuerza_rival.R", "R/20_regresion_grande_cv.R",
            "R/21_matriz_confusion.R"),
-  status = "Pending integration",
+  status = c("Pending integration", "Pending integration",
+             "Integrated: labels only, PR #65"),
   stringsAsFactors = FALSE
 )
 demo_18nov_dependencies$file_present <- file.exists(

@@ -8,8 +8,9 @@ Esta guía se lee aparte; el script solo tiene títulos cortos, código y result
 
 Esta sección actualiza el guion del 16/11 de abajo. La demo completa del
 18/11 sigue pendiente: en el commit base del PR #63 no están las nuevas
-piezas R/19 (Eli), R/20 (Mark) y R/21 (Marco). Los bloques 8–10 solo
-explican qué se mostrará; no cargan funciones ni publican resultados nuevos.
+piezas R/19 (Eli) y R/20 (Mark). Marco llegó a main durante la preparación
+(PR #65): el bloque 10 carga su función sin ejecutar la escritura de CSV y
+muestra la matriz sin rival. Los bloques 8–9 siguen pendientes.
 La presencia futura de un archivo no certifica su integración.
 
 Se puede ensayar ahora la apertura y los bloques existentes 1–7:
@@ -33,10 +34,11 @@ Después de que lleguen a main las entregas del equipo, en este orden:
    medio punto (quasibinomial). Comparar por voto sobre los mismos casos,
    con las 48 regresiones y la línea base. No afirmar que dan parecido
    hasta ver los resultados oficiales de Mark. No usar stepwise hoy.
-3. Marco: inspeccionar R/21 y llamar a su matriz_confusion() con su interfaz
-   publicada, sin modificarla. Mostrar accuracy, precision y recall con
-   umbral 0.5; indicar qué variante incluye. Si falta la variante con rival,
-   decirlo explícitamente.
+3. Marco: ya integrado desde PR #65: matriz_confusion(umbral = 0.5).
+   Mostrar accuracy, precision y recall; la clase positiva es que gane A,
+   predicha cuando P > 0.5. Falta su variante con rival; decirlo explícitamente.
+   Se usa options(correr_21 = FALSE) y se restaura después de cargar el script.
+   Su función se ejecuta sin modificar el archivo ni los resultados de Marco.
 4. Repetir el ensayo técnico en sesión limpia con las tres piezas integradas,
    y después ensayar personalmente en RStudio. Una corrida parcial sin
    errores no significa que la presentación completa esté lista.

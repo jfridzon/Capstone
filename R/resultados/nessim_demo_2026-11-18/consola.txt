@@ -8,8 +8,8 @@ Response: an AI model wins (1) or loses (0), given a decisive vote.
 Each regression model uses the same eleven question features.
 AUC 0.5 means chance-level discrimination, like a coin flip.
 AUC is not accuracy; in-sample AUC is not held-out performance.
-18/11 preparation only: opponent, Bradley-Terry variants and
- confusion-matrix integration still await the team deliveries.
+18/11 preparation only: opponent and Bradley-Terry variants
+ still await Eli and Mark; Marco is available without opponent strength.
   votes models
 1 77843     48
 
@@ -293,13 +293,53 @@ Compare decisive-vote binomial with half-point quasibinomial.
 Evaluate A versus B on the same held-out decisive votes.
 Do not compare a per-AI-model AUC directly with a per-vote AUC.
 
-=== 10. Per-vote confusion matrix: pending Marco integration ===
-At threshold 0.5: compare accuracy, precision and recall with baseline.
+=== 10. Per-vote confusion matrix: threshold 0.5 ===
+
+=== Confusion matrix per vote (threshold 0.5) ===
+- Response: y = 1 if the AI model on side A won the vote, 0 if side B won.
+- Predict 'A wins' when P(A wins) > 0.5. Decisive votes only.
+- 5-fold CV with R/resultados/auc/folds_5.csv: fit on 4 folds, test on the 5th.
+
+48 regressions - all 5 test folds together (77,843 votes):
+         Actual
+Predicted A wins B wins
+   A wins  24585  14125
+   B wins  13917  25216
+
+General ranking - all 5 test folds together (77,843 votes):
+         Actual
+Predicted A wins B wins
+   A wins  24650  14196
+   B wins  13852  25145
+
+Accuracy, precision and recall per fold (positive class = 'A wins'):
+
+ fold  method          n_votes accuracy precision recall
+ 1     48 regressions  15569   0.6423   0.6390    0.6395
+ 1     General ranking 15569   0.6388   0.6355    0.6360
+ 2     48 regressions  15560   0.6404   0.6374    0.6371
+ 2     General ranking 15560   0.6426   0.6394    0.6398
+ 3     48 regressions  15475   0.6446   0.6388    0.6493
+ 3     General ranking 15475   0.6437   0.6379    0.6485
+ 4     48 regressions  15679   0.6304   0.6254    0.6293
+ 4     General ranking 15679   0.6321   0.6255    0.6371
+ 5     48 regressions  15560   0.6412   0.6350    0.6376
+ 5     General ranking 15560   0.6413   0.6346    0.6398
+ total 48 regressions  77843   0.6398   0.6351    0.6385
+ total General ranking 77843   0.6397   0.6346    0.6402
+
+For reference, all data (in-sample):
+
+ method          accuracy precision recall
+ 48 regressions  0.6480   0.643     0.6481
+ General ranking 0.6401   0.635     0.6406
+Positive class: AI model A wins; predict A when P > 0.5.
+No opponent-strength variant yet; it still awaits Eli.
 AUC alone does not give these threshold-specific metrics.
- owner                       file              status file_present
-   Eli        R/19_fuerza_rival.R Pending integration        FALSE
-  Mark R/20_regresion_grande_cv.R Pending integration        FALSE
- Marco    R/21_matriz_confusion.R Pending integration        FALSE
+ owner                       file                          status file_present
+   Eli        R/19_fuerza_rival.R             Pending integration        FALSE
+  Mark R/20_regresion_grande_cv.R             Pending integration        FALSE
+ Marco    R/21_matriz_confusion.R Integrated: labels only, PR #65         TRUE
 
 18/11 integration and final team rehearsal: PENDING.
 null device 

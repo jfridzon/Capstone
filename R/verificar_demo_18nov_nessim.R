@@ -20,6 +20,18 @@ after_files <- protected_files()
 after_files <- after_files[!startsWith(after_files, paste0(out, "/"))]
 stopifnot(identical(files, after_files),
           identical(before, tools::md5sum(after_files)))
+write.csv(confusion_18nov$tabla, file.path(out, "matriz_confusion.csv"),
+          row.names = FALSE)
+# Verify Marco's unchanged published table at its stored rounding.
+marco_saved <- read.csv(
+  "R/resultados/matriz_confusion/matriz_confusion_por_voto.csv",
+  stringsAsFactors = FALSE
+)
+marco_live <- confusion_18nov$tabla
+for (metric in c("accuracy", "precision", "recall")) {
+  marco_live[[metric]] <- round(marco_live[[metric]], 4)
+}
+stopifnot(isTRUE(all.equal(marco_live, marco_saved, check.attributes = FALSE)))
 write.csv(AUC_48x7, file.path(out, "auc_48x7.csv"))
 write.csv(demo_18nov_dependencies, file.path(out, "dependencias.csv"),
           row.names = FALSE)
