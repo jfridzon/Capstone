@@ -5,6 +5,7 @@
 # 18/11 a 30/11, docs/07): botones de ejemplo y un gráfico de barras del top 3.
 # No se guardan los ajustes: ajustar las 48 regresiones tarda unos 4 segundos.
 #
+# Revisión final de la app con asistencia de OpenAI Codex.
 # Qué hace:
 #   1. Al abrir, ajusta las 48 regresiones de R/02 con sus valores por defecto
 #      (binomial, votos con ganador de abril a julio, sin los 28 de revisión, sin ridge).
@@ -41,9 +42,7 @@ archivo_meses   <- file.path(raiz, "R/resultados/decisiones_2026-11-02/votos_por
 # ---- Datos (se calculan 1 vez al abrir la app) ----------------------------------
 
 message("Ajustando las 48 regresiones...")
-base    <- cargar_base()
-datos   <- preparar_respuesta(base)          # binomial: votos con ganador
-ajustes <- ajustar_modelos(datos)
+ajustes <- ajustar_modelos(preparar_respuesta(cargar_base()))
 preguntas_reales <- attr(ajustes, "preguntas")
 precios <- read.csv(archivo_precios, stringsAsFactors = FALSE, encoding = "UTF-8")
 message("Listo: ", length(ajustes), " regresiones.")
@@ -82,17 +81,17 @@ ejemplos <- list(
 
 # Gráfico de barras del top 3. `top` es la salida de top3() y `info` la tabla de precios.
 # Todo R base. La línea punteada marca 50%: ahí el modelo gana tanto como pierde.
-colores_razona <- c(yes = "#0072B2", no = "#E69F00")   # distinguibles sin ver colores
-dibujar_barras <- function(top, info) {
-  i      <- match(top$modelo, info$modelo)
-  razona <- ifelse(info$razona[i] == "si", "yes", "no")
+modo_razona <- function(x) {
+  ifelse(x %in% "si", "Yes", ifelse(x %in% "no", "No", "Unknown"))
+}
+dibujar_barras <- function(top) {
   prob   <- 100 * top$prob_ganar
   # Orden inverso: barplot horizontal dibuja de abajo hacia arriba y el #1 va arriba.
   orden  <- rev(seq_along(prob))
   # El nombre va encima de cada barra (hay nombres muy largos, no caben a la izquierda).
   op <- par(mar = c(4, 1, 1, 1)); on.exit(par(op))
   x <- barplot(prob[orden], horiz = TRUE, space = 0.9, axes = FALSE,
-               col = colores_razona[razona[orden]], border = NA,
+               col = "#176486", border = NA,
                xlim = c(0, 100), ylim = c(0, length(prob) * 1.9 + 1.1),
                xlab = "Win probability (%)")
   axis(1, at = seq(0, 100, 25), labels = paste0(seq(0, 100, 25), "%"))
@@ -101,14 +100,14 @@ dibujar_barras <- function(top, info) {
        adj = c(0, 0), xpd = TRUE, cex = 0.95)
   text(prob[orden], x, sprintf("%.1f%%", prob[orden]), pos = 4, xpd = TRUE, col = "white",
        font = 2, offset = -3.2)
-  legend("bottomright", bty = "n", fill = colores_razona, border = NA,
-         title = "Reasons?", legend = c("yes", "no"), horiz = TRUE)
+
 }
 
 # ---- Interfaz ----------------------------------------------------------------------
 
 ui <- fluidPage(
   titlePanel("Which AI model should I use?"),
+  tags$style(HTML(".table-wrap {overflow-x:auto} .shiny-plot-output {max-width:100%}")),
   sidebarLayout(
     sidebarPanel(
       strong("Quick examples"),
@@ -126,16 +125,17 @@ ui <- fluidPage(
     mainPanel(
       h3("Top 3 models"),
       plotOutput("grafico", height = "230px"),
-      tableOutput("top"),
+      div(class = "table-wrap", tableOutput("top")),
       textOutput("resumen"),
       tags$hr(),
       helpText(
-        "Win probability: chance that the model wins a vote against a random rival,",
+        "Estimated win probability against the historical mix of opponents,",
         "averaged over real LMArena questions with the characteristics you picked",
         "(votes with a winner, April to July 2025).",
-        "Prices: official list prices, July 2025. Models without an official price",
+        "Prices are historical USD list prices per million tokens. Each row shows its price date.",
+        "Models without an official output price",
         "or with fewer than 100 votes in July are not shown.",
-        "Models that reason use more output tokens, so their real cost per answer is higher."
+        "The budget caps the output rate. Actual cost depends on input and output token counts."
       )
     )
   )
@@ -149,7 +149,7 @@ server <- function(input, output, session) {
   n_preguntas <- reactive({
     car <- input$caracteristicas
     if (length(car) == 0) return(nrow(preguntas_reales))
-    sum(apply(preguntas_reales[car], 1, all))
+    sum(Reduce(`&`, preguntas_reales[car]))
   })
 
   # Ejemplos rápidos: rellenan las casillas y el presupuesto.
@@ -165,11 +165,11 @@ server <- function(input, output, session) {
     car <- if (is.null(input$caracteristicas)) character(0) else input$caracteristicas
     validate(need(n_preguntas() > 0,
                   "No real questions have all these characteristics. Uncheck one."))
+    req(input$presupuesto, input$presupuesto %in% names(presupuestos))
     lim <- presupuestos[[input$presupuesto]]
-    # "No limit" usa un tope enorme en vez de NULL para que, igual que en R/12,
-    # solo entren modelos con precio oficial (top3() deja fuera los precios vacíos).
+    # Sin límite: incluye todos los modelos con tarifa de salida registrada.
     top <- top3(car, ajustes,
-                precio_max = if (is.finite(lim)) lim else 1e9,
+                precio_max = if (is.finite(lim)) lim else max(precios$precio_salida_usd_por_millon, na.rm = TRUE),
                 archivo_meses = archivo_meses,
                 archivo_precios = archivo_precios)
     validate(need(nrow(top) > 0, "No model fits this budget."))
@@ -186,12 +186,13 @@ server <- function(input, output, session) {
       `Win probability`           = sprintf("%.1f%%", 100 * top$prob_ganar),
       `Output price ($ per 1M)`   = sprintf("$%g", precios$precio_salida_usd_por_millon[i]),
       `Input price ($ per 1M)`    = sprintf("$%g", precios$precio_entrada_usd_por_millon[i]),
-      Reasons                     = ifelse(precios$razona[i] == "si", "yes", "no"),
+      `Price date`                = precios$fecha_del_precio[i],
+      `Reasoning model`           = modo_razona(precios$razona[i]),
       check.names = FALSE
     )
   })
 
-  output$grafico <- renderPlot(dibujar_barras(top_modelos(), precios))
+  output$grafico <- renderPlot(dibujar_barras(top_modelos()))
 
   output$top <- renderTable(resultado(), align = "l")
 
