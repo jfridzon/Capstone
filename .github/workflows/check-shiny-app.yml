@@ -15,9 +15,11 @@ jobs:
       - name: Install R and Shiny
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends r-base-core r-cran-shiny
+          sudo apt-get install -y --no-install-recommends r-base-core r-cran-shiny r-cran-jsonlite
       - name: Verify recommendations and rendered outputs
         run: Rscript --vanilla R/verificar_app_final.R
+      - name: Verify portable MVP in Chrome against R
+        run: Rscript --vanilla app/mvp/tests/check.R
       - name: Verify the normal Shiny launch
         run: |
           Rscript -e 'shiny::runApp("app", port = 3838, launch.browser = FALSE)' > /tmp/shiny.log 2>&1 &
