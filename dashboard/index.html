@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing an AI model · IDS 3000</title>
+<style>
+:root{color-scheme:light;--ink:#19272c;--muted:#445961;--paper:#f3f5f0;--accent:#176958;--line:#cedad2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}
+header{background:#142f2c;color:#fff;padding:3.4rem max(5vw,1.25rem)}
+header p{max-width:62ch;margin-bottom:0;color:#e0ede6}
+h1,h2{font-family:Georgia,serif;font-weight:normal;line-height:1.08;margin:.4em 0}
+h1{font-size:clamp(2.6rem,7vw,5.5rem);letter-spacing:-.045em}
+h2{font-size:clamp(2rem,4vw,3rem);letter-spacing:-.03em}
+h3{margin:0;font-size:1.25rem}
+main,footer{max-width:1180px;margin:auto;padding:0 1.25rem}
+.strip,.cards,.controls{display:grid;gap:1rem}
+.strip{grid-template-columns:repeat(3,1fr);margin:1.3rem 0 2.5rem}
+.strip div,section section,.table-shell{background:white;border:1px solid var(--line);border-radius:14px;padding:1.2rem}
+.strip strong{font-size:clamp(1.5rem,4vw,2.3rem);display:block;color:var(--accent)}
+.cards,.controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+.controls{max-width:36rem;margin:1.15rem 0}
+label{font-weight:650;display:block}
+select{display:block;margin:.35rem 0 1rem;min-height:44px;max-width:100%;border:1px solid #708981;background:#fff;color:var(--ink);border-radius:8px;padding:.35rem .65rem;font:inherit}
+.controls select{width:100%;margin-bottom:0}
+.metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .7rem;margin:.95rem 0}
+.metric strong{font-variant-numeric:tabular-nums}
+.track{height:.45rem;background:#e4ece5;grid-column:1/-1;border-radius:10px;overflow:hidden}
+.track span{display:block;height:100%;background:var(--accent)}
+.note,section p,footer{color:var(--muted)}
+main>section{margin:0 0 2.6rem}
+.table-shell{overflow-x:auto}
+table{border-collapse:collapse;width:100%;text-align:left}
+th,td{padding:.75rem .65rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+td:nth-child(n+3),thead th:nth-child(n+3){text-align:right}
+footer{padding-bottom:2rem}
+[hidden]{display:none!important}
+@media(max-width:640px){.cards{grid-template-columns:1fr}.strip{gap:.45rem}.strip div{padding:.55rem}.strip span{font-size:.8rem}th,td{padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+<header>
+<div>IDS 3000 · Business Intelligence Capstone · Eli Wulfsohn</div>
+<h1>Choosing an AI model</h1>
+<p>We predict which AI model wins a head-to-head vote using question features such as coding, math and creative writing. In a separate set of regressions, we also use the opponent’s win rate from training votes.</p>
+</header>
+<main>
+<div class="strip">
+<div><strong>77,843</strong><span>Decisive votes evaluated</span></div>
+<div><strong>48</strong><span>AI models evaluated</span></div>
+<div><strong>+0.0052</strong><span>AUC added by labels beyond opponent strength · per model</span></div>
+</div>
+<section aria-labelledby="validation-title">
+<h2 id="validation-title">How well do the predictions rank wins?</h2>
+<p class="note">AUC measures ranking performance. A constant score gives 0.50 and perfect ranking gives 1.00. Each test fold holds out entire voting sessions.</p>
+<label for="fold">Evaluation</label><select id="fold"><option>5-fold average</option><option>Fold 1</option><option>Fold 2</option><option>Fold 3</option><option>Fold 4</option><option>Fold 5</option></select>
+<div id="charts" aria-live="polite"><div class='evidence' data-view='1'><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6843</strong><span class='track' aria-hidden='true'><span style='width:68.43%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6894</strong><span class='track' aria-hidden='true'><span style='width:68.94%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6908</strong><span class='track' aria-hidden='true'><span style='width:69.08%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6909</strong><span class='track' aria-hidden='true'><span style='width:69.09%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5387</strong><span class='track' aria-hidden='true'><span style='width:53.8698427155682%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6290</strong><span class='track' aria-hidden='true'><span style='width:62.8951695984046%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6342</strong><span class='track' aria-hidden='true'><span style='width:63.4177585919401%'></span></span></div></section></div>
+<div class='evidence' data-view='2' hidden><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6844</strong><span class='track' aria-hidden='true'><span style='width:68.44%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6902</strong><span class='track' aria-hidden='true'><span style='width:69.02%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6911</strong><span class='track' aria-hidden='true'><span style='width:69.11%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6914</strong><span class='track' aria-hidden='true'><span style='width:69.14%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5374</strong><span class='track' aria-hidden='true'><span style='width:53.744312170981%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6289</strong><span class='track' aria-hidden='true'><span style='width:62.8859160209962%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6333</strong><span class='track' aria-hidden='true'><span style='width:63.3275230469353%'></span></span></div></section></div>
+<div class='evidence' data-view='3' hidden><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6873</strong><span class='track' aria-hidden='true'><span style='width:68.73%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6921</strong><span class='track' aria-hidden='true'><span style='width:69.21%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6936</strong><span class='track' aria-hidden='true'><span style='width:69.36%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6935</strong><span class='track' aria-hidden='true'><span style='width:69.35%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5406</strong><span class='track' aria-hidden='true'><span style='width:54.0563791336908%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6313</strong><span class='track' aria-hidden='true'><span style='width:63.1296995765741%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6362</strong><span class='track' aria-hidden='true'><span style='width:63.6192490055556%'></span></span></div></section></div>
+<div class='evidence' data-view='4' hidden><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6908</strong><span class='track' aria-hidden='true'><span style='width:69.08%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6954</strong><span class='track' aria-hidden='true'><span style='width:69.54%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6972</strong><span class='track' aria-hidden='true'><span style='width:69.72%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6973</strong><span class='track' aria-hidden='true'><span style='width:69.73%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5418</strong><span class='track' aria-hidden='true'><span style='width:54.1780388453967%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6332</strong><span class='track' aria-hidden='true'><span style='width:63.3181728013739%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6385</strong><span class='track' aria-hidden='true'><span style='width:63.8499124288045%'></span></span></div></section></div>
+<div class='evidence' data-view='5' hidden><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6735</strong><span class='track' aria-hidden='true'><span style='width:67.35%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6779</strong><span class='track' aria-hidden='true'><span style='width:67.79%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6790</strong><span class='track' aria-hidden='true'><span style='width:67.9%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6788</strong><span class='track' aria-hidden='true'><span style='width:67.88%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5339</strong><span class='track' aria-hidden='true'><span style='width:53.3868252906831%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6209</strong><span class='track' aria-hidden='true'><span style='width:62.0920860084932%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6262</strong><span class='track' aria-hidden='true'><span style='width:62.6156698491564%'></span></span></div></section></div>
+<div class='evidence' data-view='6' hidden><div class='cards'><section><h3>Per vote</h3><p>Can the score rank votes where model A won above votes where model B won?</p><div class='metric'><span>General win-rate ranking</span><strong>0.6857</strong><span class='track' aria-hidden='true'><span style='width:68.57%'></span></span></div>
+<div class='metric'><span>48 logistic regressions</span><strong>0.6912</strong><span class='track' aria-hidden='true'><span style='width:69.12%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · decisive votes</span><strong>0.6931</strong><span class='track' aria-hidden='true'><span style='width:69.31%'></span></span></div>
+<div class='metric'><span>Bradley–Terry · ties as half points</span><strong>0.6934</strong><span class='track' aria-hidden='true'><span style='width:69.34%'></span></span></div></section><section><h3>Per AI model</h3><p>Can each model’s score separate its own wins from losses? These are averages across all AI models.</p><div class='metric'><span>Coin (constant score)</span><strong>0.5000</strong><span class='track' aria-hidden='true'><span style='width:50%'></span></span></div>
+<div class='metric'><span>Question labels only</span><strong>0.5398</strong><span class='track' aria-hidden='true'><span style='width:53.9836581370891%'></span></span></div>
+<div class='metric'><span>Opponent strength only</span><strong>0.6305</strong><span class='track' aria-hidden='true'><span style='width:63.0499735845854%'></span></span></div>
+<div class='metric'><span>Question labels + opponent strength</span><strong>0.6368</strong><span class='track' aria-hidden='true'><span style='width:63.6764386292489%'></span></span></div></section></div></div>
+</section>
+<section aria-labelledby="ranking-title">
+<h2 id="ranking-title">Which models fit the task and budget?</h2>
+<p>Explore the saved top three for each task. Estimated win probabilities come from the question-feature regressions. The budget caps the historical listed price per million output tokens.</p>
+<div class="controls">
+<label for="task">Task<select id="task"><option>All questions</option><option>Coding</option><option>Math</option><option>Creative writing</option></select></label>
+<label for="budget">Budget per million output tokens<select id="budget"><option>No cap</option><option>$0.50</option><option>$2</option><option>$10</option></select></label>
+</div>
+<div class="table-shell"><table>
+<caption id="selection">Top three for all questions · No cap</caption>
+<thead><tr><th scope="col">Rank</th><th scope="col">AI model</th><th scope="col">Estimated win probability</th><th scope="col">Historical output price</th></tr></thead>
+<tbody data-task='1' data-budget='1'><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>74.2%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>grok-4-0709</th><td>68.8%</td><td>$15.00</td></tr><tr><td>3</td><th scope='row'>o3-2025-04-16</th><td>65.8%</td><td>$8.00</td></tr></tbody>
+<tbody data-task='1' data-budget='2' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>54.9%</td><td>$0.40</td></tr><tr><td>2</td><th scope='row'>grok-3-mini-beta</th><td>50.9%</td><td>$0.50</td></tr><tr><td>3</td><th scope='row'>grok-3-mini-high</th><td>50.7%</td><td>$0.50</td></tr></tbody>
+<tbody data-task='1' data-budget='3' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-preview-04-17</th><td>57.7%</td><td>$0.60</td></tr><tr><td>2</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>54.9%</td><td>$0.40</td></tr><tr><td>3</td><th scope='row'>deepseek-v3-0324</th><td>54.6%</td><td>$1.10</td></tr></tbody>
+<tbody data-task='1' data-budget='4' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>74.2%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>o3-2025-04-16</th><td>65.8%</td><td>$8.00</td></tr><tr><td>3</td><th scope='row'>deepseek-r1-0528</th><td>64.4%</td><td>$2.19</td></tr></tbody>
+<tbody data-task='2' data-budget='1' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>72.2%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>grok-4-0709</th><td>65.1%</td><td>$15.00</td></tr><tr><td>3</td><th scope='row'>o3-2025-04-16</th><td>65.0%</td><td>$8.00</td></tr></tbody>
+<tbody data-task='2' data-budget='2' hidden><tr><td>1</td><th scope='row'>grok-3-mini-high</th><td>51.9%</td><td>$0.50</td></tr><tr><td>2</td><th scope='row'>grok-3-mini-beta</th><td>51.2%</td><td>$0.50</td></tr><tr><td>3</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>50.3%</td><td>$0.40</td></tr></tbody>
+<tbody data-task='2' data-budget='3' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-preview-04-17</th><td>54.5%</td><td>$0.60</td></tr><tr><td>2</td><th scope='row'>deepseek-v3-0324</th><td>52.5%</td><td>$1.10</td></tr><tr><td>3</td><th scope='row'>grok-3-mini-high</th><td>51.9%</td><td>$0.50</td></tr></tbody>
+<tbody data-task='2' data-budget='4' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>72.2%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>o3-2025-04-16</th><td>65.0%</td><td>$8.00</td></tr><tr><td>3</td><th scope='row'>deepseek-r1-0528</th><td>63.7%</td><td>$2.19</td></tr></tbody>
+<tbody data-task='3' data-budget='1' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>76.9%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>grok-4-0709</th><td>73.5%</td><td>$15.00</td></tr><tr><td>3</td><th scope='row'>gemini-2.5-flash</th><td>67.5%</td><td>$2.50</td></tr></tbody>
+<tbody data-task='3' data-budget='2' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>55.6%</td><td>$0.40</td></tr><tr><td>2</td><th scope='row'>grok-3-mini-high</th><td>51.6%</td><td>$0.50</td></tr><tr><td>3</td><th scope='row'>grok-3-mini-beta</th><td>48.6%</td><td>$0.50</td></tr></tbody>
+<tbody data-task='3' data-budget='3' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-preview-04-17</th><td>60.5%</td><td>$0.60</td></tr><tr><td>2</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>55.6%</td><td>$0.40</td></tr><tr><td>3</td><th scope='row'>grok-3-mini-high</th><td>51.6%</td><td>$0.50</td></tr></tbody>
+<tbody data-task='3' data-budget='4' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>76.9%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>gemini-2.5-flash</th><td>67.5%</td><td>$2.50</td></tr><tr><td>3</td><th scope='row'>o3-2025-04-16</th><td>62.6%</td><td>$8.00</td></tr></tbody>
+<tbody data-task='4' data-budget='1' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>75.7%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>grok-3-preview-02-24</th><td>66.3%</td><td>$15.00</td></tr><tr><td>3</td><th scope='row'>grok-4-0709</th><td>63.9%</td><td>$15.00</td></tr></tbody>
+<tbody data-task='4' data-budget='2' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>58.7%</td><td>$0.40</td></tr><tr><td>2</td><th scope='row'>gemini-2.0-flash-001</th><td>51.8%</td><td>$0.40</td></tr><tr><td>3</td><th scope='row'>grok-3-mini-high</th><td>47.7%</td><td>$0.50</td></tr></tbody>
+<tbody data-task='4' data-budget='3' hidden><tr><td>1</td><th scope='row'>gemini-2.5-flash-preview-04-17</th><td>59.9%</td><td>$0.60</td></tr><tr><td>2</td><th scope='row'>gemini-2.5-flash-lite-preview-06-17-thinking</th><td>58.7%</td><td>$0.40</td></tr><tr><td>3</td><th scope='row'>deepseek-v3-0324</th><td>57.5%</td><td>$1.10</td></tr></tbody>
+<tbody data-task='4' data-budget='4' hidden><tr><td>1</td><th scope='row'>gemini-2.5-pro</th><td>75.7%</td><td>$10.00</td></tr><tr><td>2</td><th scope='row'>deepseek-r1-0528</th><td>62.9%</td><td>$2.19</td></tr><tr><td>3</td><th scope='row'>gemini-2.5-flash</th><td>62.1%</td><td>$2.50</td></tr></tbody>
+</table></div>
+</section>
+</main>
+<footer>
+<p>Sources: Capstone’s published LMArena results under <code>R/resultados/</code>. Rankings reflect the study dataset and historical prices. Dashboard prepared with assistance from ChatGPT (OpenAI).</p>
+</footer>
+<script>
+const fold = document.getElementById("fold");
+const task = document.getElementById("task");
+const budget = document.getElementById("budget");
+function showEvidence() {
+  document.querySelectorAll("[data-view]").forEach(panel => {
+    panel.hidden = Number(panel.dataset.view) !== fold.selectedIndex + 1;
+  });
+}
+function showRanking() {
+  document.querySelectorAll("[data-task]").forEach(group => {
+    group.hidden = Number(group.dataset.task) !== task.selectedIndex + 1 ||
+      Number(group.dataset.budget) !== budget.selectedIndex + 1;
+  });
+  document.getElementById("selection").textContent =
+    "Top three · " + task.value + " · " + budget.value;
+}
+fold.addEventListener("change", showEvidence);
+task.addEventListener("change", showRanking);
+budget.addEventListener("change", showRanking);
+showEvidence();
+showRanking();
+</script>
+</body>
+</html>

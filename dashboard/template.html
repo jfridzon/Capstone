@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing an AI model · IDS 3000</title>
+<style>
+:root{color-scheme:light;--ink:#19272c;--muted:#445961;--paper:#f3f5f0;--accent:#176958;--line:#cedad2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}
+header{background:#142f2c;color:#fff;padding:3.4rem max(5vw,1.25rem)}
+header p{max-width:62ch;margin-bottom:0;color:#e0ede6}
+h1,h2{font-family:Georgia,serif;font-weight:normal;line-height:1.08;margin:.4em 0}
+h1{font-size:clamp(2.6rem,7vw,5.5rem);letter-spacing:-.045em}
+h2{font-size:clamp(2rem,4vw,3rem);letter-spacing:-.03em}
+h3{margin:0;font-size:1.25rem}
+main,footer{max-width:1180px;margin:auto;padding:0 1.25rem}
+.strip,.cards,.controls{display:grid;gap:1rem}
+.strip{grid-template-columns:repeat(3,1fr);margin:1.3rem 0 2.5rem}
+.strip div,section section,.table-shell{background:white;border:1px solid var(--line);border-radius:14px;padding:1.2rem}
+.strip strong{font-size:clamp(1.5rem,4vw,2.3rem);display:block;color:var(--accent)}
+.cards,.controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+.controls{max-width:36rem;margin:1.15rem 0}
+label{font-weight:650;display:block}
+select{display:block;margin:.35rem 0 1rem;min-height:44px;max-width:100%;border:1px solid #708981;background:#fff;color:var(--ink);border-radius:8px;padding:.35rem .65rem;font:inherit}
+.controls select{width:100%;margin-bottom:0}
+.metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .7rem;margin:.95rem 0}
+.metric strong{font-variant-numeric:tabular-nums}
+.track{height:.45rem;background:#e4ece5;grid-column:1/-1;border-radius:10px;overflow:hidden}
+.track span{display:block;height:100%;background:var(--accent)}
+.note,section p,footer{color:var(--muted)}
+main>section{margin:0 0 2.6rem}
+.table-shell{overflow-x:auto}
+table{border-collapse:collapse;width:100%;text-align:left}
+th,td{padding:.75rem .65rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+td:nth-child(n+3),thead th:nth-child(n+3){text-align:right}
+footer{padding-bottom:2rem}
+[hidden]{display:none!important}
+@media(max-width:640px){.cards{grid-template-columns:1fr}.strip{gap:.45rem}.strip div{padding:.55rem}.strip span{font-size:.8rem}th,td{padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+<header>
+<div>IDS 3000 · Business Intelligence Capstone · Eli Wulfsohn</div>
+<h1>Choosing an AI model</h1>
+<p>We predict which AI model wins a head-to-head vote using question features such as coding, math and creative writing. In a separate set of regressions, we also use the opponent’s win rate from training votes.</p>
+</header>
+<main>
+<div class="strip">
+<div><strong>@@VOTES@@</strong><span>Decisive votes evaluated</span></div>
+<div><strong>@@MODELS@@</strong><span>AI models evaluated</span></div>
+<div><strong>+@@GAIN@@</strong><span>AUC added by labels beyond opponent strength · per model</span></div>
+</div>
+<section aria-labelledby="validation-title">
+<h2 id="validation-title">How well do the predictions rank wins?</h2>
+<p class="note">AUC measures ranking performance. A constant score gives 0.50 and perfect ranking gives 1.00. Each test fold holds out entire voting sessions.</p>
+<label for="fold">Evaluation</label><select id="fold">@@FOLDS@@</select>
+<div id="charts" aria-live="polite">@@EVIDENCE@@</div>
+</section>
+<section aria-labelledby="ranking-title">
+<h2 id="ranking-title">Which models fit the task and budget?</h2>
+<p>Explore the saved top three for each task. Estimated win probabilities come from the question-feature regressions. The budget caps the historical listed price per million output tokens.</p>
+<div class="controls">
+<label for="task">Task<select id="task">@@TASKS@@</select></label>
+<label for="budget">Budget per million output tokens<select id="budget">@@BUDGETS@@</select></label>
+</div>
+<div class="table-shell"><table>
+<caption id="selection">Top three for all questions · No cap</caption>
+<thead><tr><th scope="col">Rank</th><th scope="col">AI model</th><th scope="col">Estimated win probability</th><th scope="col">Historical output price</th></tr></thead>
+@@ROWS@@
+</table></div>
+</section>
+</main>
+<footer>
+<p>Sources: Capstone’s published LMArena results under <code>R/resultados/</code>. Rankings reflect the study dataset and historical prices. Dashboard prepared with assistance from ChatGPT (OpenAI).</p>
+</footer>
+<script>
+const fold = document.getElementById("fold");
+const task = document.getElementById("task");
+const budget = document.getElementById("budget");
+function showEvidence() {
+  document.querySelectorAll("[data-view]").forEach(panel => {
+    panel.hidden = Number(panel.dataset.view) !== fold.selectedIndex + 1;
+  });
+}
+function showRanking() {
+  document.querySelectorAll("[data-task]").forEach(group => {
+    group.hidden = Number(group.dataset.task) !== task.selectedIndex + 1 ||
+      Number(group.dataset.budget) !== budget.selectedIndex + 1;
+  });
+  document.getElementById("selection").textContent =
+    "Top three · " + task.value + " · " + budget.value;
+}
+fold.addEventListener("change", showEvidence);
+task.addEventListener("change", showRanking);
+budget.addEventListener("change", showRanking);
+showEvidence();
+showRanking();
+</script>
+</body>
+</html>
