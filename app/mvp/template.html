@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arena Guide · AI model selection</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7f3;color:#182d29;font:16px/1.5 system-ui,-apple-system,sans-serif}header{background:#163b32;color:white}header>div,main,footer{max-width:1160px;margin:auto;padding:0 32px}header>div{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:20px;font-weight:750;letter-spacing:-.7px}.mark{display:inline-block;color:#c8ef92;font-size:25px;vertical-align:-1px;margin-right:9px}nav{display:flex;gap:5px}button,select{font:inherit}button{cursor:pointer}nav button{background:transparent;color:#d9e7dd;border:0;padding:8px 14px;border-radius:8px}nav button[aria-pressed=true]{background:#36574c;color:white}main{padding-top:38px}h1{font-size:clamp(34px,5vw,58px);line-height:1.06;letter-spacing:-.055em;margin:8px 0 12px}h2{font-size:25px;letter-spacing:-.04em;margin:4px 0 12px}p{margin:5px 0 16px}.sub,small,footer{color:#52655e}.layout{display:grid;grid-template-columns:minmax(230px,310px) 1fr;gap:24px;margin-top:26px}.panel,article{background:white;border:1px solid #d8e0d8;border-radius:16px;padding:21px}.panel{align-self:start}label,legend{font-weight:650}select{width:100%;margin:5px 0 16px;padding:10px;border:1px solid #aebeb4;border-radius:7px;background:white;color:inherit}fieldset{border:0;padding:0;margin:4px 0}.checks{display:grid;gap:4px}.checks label{font-size:14px;font-weight:450;display:flex;align-items:center;gap:8px;padding:3px 0}.checks input{accent-color:#286447;width:16px;height:16px}.clear{border:0;background:none;text-decoration:underline;color:#285d42;padding:6px 0}.card{margin:0 0 12px}.card:first-child{background:#e8f2de;border-color:#b5ce9f}.cardtop,.metrics{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.rank{border-radius:50%;background:#234d40;color:white;width:34px;height:34px;display:grid;place-items:center;font-weight:bold}.model{font-size:clamp(16px,2vw,22px);font-weight:700;overflow-wrap:anywhere}.cardtop small{margin-left:auto}.metrics{margin:13px 0 4px;gap:26px}.metrics strong{display:block;font-size:20px}.metrics small{display:block}.source{color:#315c45;font-size:13px}.resulthead{margin-bottom:12px}.summary{font-size:14px;color:#445b50}details{margin-top:15px}summary{cursor:pointer;font-weight:650}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}.kpis strong{display:block;font-size:32px}.tablebox{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}th,td{padding:10px;border-bottom:1px solid #dbe1db}.bar{display:inline-block;vertical-align:middle;background:#4e8059;height:9px;border-radius:6px}footer{font-size:13px;padding-top:28px;padding-bottom:24px}a{color:#255f43}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #a76d14;outline-offset:2px}[hidden]{display:none!important}@media(max-width:720px){main,header>div,footer{padding-left:16px;padding-right:16px}.layout,.kpis{grid-template-columns:1fr}.kpis{gap:6px}.kpis article{padding:12px}.checks{grid-template-columns:1fr 1fr}.metrics{gap:12px}.panel,article{padding:16px}nav button{padding:7px}.brand{font-size:17px}}
+.comparisons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:30px}.chartrow{margin:12px 0}.chartrow strong{float:right}.track{height:7px;background:#e7ebe4;margin-top:4px;border-radius:4px}.track i{display:block;height:100%;background:#4e8059;border-radius:4px}</style>
+<header><div><span class="brand"><span class="mark" aria-hidden="true">◒</span>Arena Guide</span><nav aria-label="Views"><button id="choose" aria-pressed="true">Model finder</button><button id="validate" aria-pressed="false">Dashboard</button></nav></div></header>
+<main><section id="finder"><h1>Find a model for your task.</h1><p class="sub">Compare human preference and historical API prices across AI models.</p>
+<div class="layout"><aside class="panel"><label for="preset">Task preset</label><select id="preset"><option value="is_code">Coding</option><option value="math">Math</option><option value="creative_writing">Creative writing</option><option value="">All questions</option><option value="custom" disabled>Custom selection</option></select>
+<label for="budget">Maximum output rate</label><select id="budget"><option value="2">Up to $2 / million tokens</option><option value="0.5">Up to $0.50 / million tokens</option><option value="10">Up to $10 / million tokens</option><option value="Infinity">Any recorded rate</option></select>
+<fieldset><legend>Question features</legend><div class="checks" id="labels"></div></fieldset><button class="clear" id="clear">Clear features</button></aside>
+<div><div class="resulthead"><h2>Recommended models</h2><div class="summary" id="summary" role="status"></div></div><div id="cards"></div>
+<details><summary>How these rankings work</summary><p>Each score averages one model’s estimated chance of winning over historical questions with every selected feature. Clearing the features includes all eligible questions. The 48 regressions use decisive human votes from April–July 2025. The shortlist requires a recorded official output rate and at least 100 July appearances.</p><p>Rates are USD per million tokens and carry their own dates. Your bill depends on both input and output usage.</p></details></div></div></section>
+<section id="dashboard" hidden><h1>How well does it predict?</h1><p class="sub">Five-fold validation on voting sessions held out from training. Each vote compares two AI models.</p><div class="kpis" id="kpis"></div><article style="margin-bottom:16px"><label for="period">Validation view</label><select id="period" style="max-width:230px;display:block"><option value="mean">Five-fold average</option></select><div class="comparisons"><div><h2>Per vote</h2><p class="sub">Predicting which of two models wins.</p><div id="votechart"></div></div><div><h2>Per AI model</h2><p class="sub">Separating each model’s wins from its losses.</p><div id="modelchart"></div></div></div></article><article><h2>Results by fold</h2><p>Higher AUC means better separation of wins and losses. A score of 0.5 corresponds to chance.</p><div class="tablebox"><table><thead><tr><th>Fold</th><th>Votes</th><th>Task-aware AUC</th><th>General ranking AUC</th></tr></thead><tbody id="folds"></tbody></table></div></article><details open><summary>What the comparison tells us</summary><p>The task-aware regressions improve slightly over the fixed ranking. AUC measures how well scores order outcomes. The model finder uses fitted preference scores to shortlist models within your price limit.</p></details></section></main>
+<footer>Yeshiva University · Business Intelligence Capstone · <a href="https://github.com/jfridzon/Capstone">Project and data sources</a></footer>
+<!-- MODEL DATA -->
+<script>
+"use strict";
+const data=JSON.parse(document.getElementById("dataset").textContent);
+const el=id=>document.getElementById(id);
+const titles={is_code:"Code",math:"Math",creative_writing:"Creative writing",instruction_following:"Specific instructions",complexity:"Complex question",creativity:"Creativity",domain_knowledge:"Domain expertise",problem_solving:"Problem solving",real_world:"Real-world task",specificity:"Specific question",technical_accuracy:"Technical accuracy"};
+const eligible=data.models.filter(m=>m.official && Number.isFinite(m.output) && m.july>=100);
+function recommend(mask,limit){
+  const profiles=data.profiles.filter(p=>(p.mask & mask)===mask);
+  const n=profiles.reduce((total,p)=>total+p.count,0);
+  if(!n)return {n,models:[]};
+  const models=eligible.filter(m=>m.output<=limit).map(m=>{
+    let total=0;
+    for(const p of profiles){
+      let logit=m.beta[0];
+      for(let i=0;i<data.features.length;i++)if(p.mask & (1<<i))logit+=m.beta[i+1];
+      total+=p.count/(1+Math.exp(-logit));
+    }
+    return {...m,score:total/n};
+  }).sort((a,b)=>b.score-a.score || a.id.localeCompare(b.id));
+  return {n,models:models.slice(0,3)};
+}
+function node(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e}
+const inputs=data.features.map((key,i)=>{
+  const label=node("label",""), input=document.createElement("input");
+  input.type="checkbox";input.checked=key==="is_code";
+  label.append(input,document.createTextNode(titles[key]));el("labels").append(label);
+  input.onchange=()=>{const active=inputs.flatMap((c,j)=>c.checked?[data.features[j]]:[]);
+    el("preset").value=active.length===0?"":active.length===1 && ["math","is_code","creative_writing"].includes(active[0])?active[0]:"custom";render()};
+  return input;
+});
+function preset(key){inputs.forEach((c,j)=>c.checked=data.features[j]===key);el("preset").value=key;render()}
+el("preset").onchange=e=>preset(e.target.value);el("clear").onclick=()=>preset("");el("budget").onchange=render;
+function metric(value,label){const e=node("div","");e.append(node("strong",value),node("small",label));return e}
+function render(){
+  const mask=inputs.reduce((m,c,i)=>c.checked?m|(1<<i):m,0);
+  const {n,models}=recommend(mask,Number(el("budget").value));
+  el("summary").textContent=n.toLocaleString("en-US")+" matching historical questions · "+models.length+" recommendations";
+  el("cards").replaceChildren();
+  if(!models.length)el("cards").append(node("article",n?"Raise the output rate to see eligible models.":"No historical questions match. Remove a feature to broaden the search."));
+  models.forEach((m,i)=>{
+    const card=node("article","","card"),head=node("div","","cardtop"),metrics=node("div","","metrics");
+    head.append(node("span",i+1,"rank"),node("span",m.id,"model"),node("small",m.company));
+    metrics.append(metric((m.score*100).toFixed(1)+"%","Estimated win rate"),metric("$"+m.output,"Output / 1M tokens"),metric(m.input==null?"Unknown":"$"+m.input,"Input / 1M tokens"));
+    const foot=node("small","Recorded price · "+m.date+" ","source");
+    if(/^https?:\/\/[^\s]+$/.test(m.source)){const a=node("a","Pricing source");a.href=m.source;foot.append(a)}
+    card.append(head,metrics,foot);el("cards").append(card);
+  });
+}
+const mean=data.auc.find(r=>r.fold==="mean");
+for(const [val,label] of [[mean.n_votes.toLocaleString("en-US"),"Held-out votes"],[mean.auc_regression.toFixed(4),"Task-aware mean AUC"],[mean.auc_baseline.toFixed(4),"General ranking mean AUC"]]){
+  const a=node("article","");a.append(node("strong",val),node("small",label));el("kpis").append(a);
+}
+for(const r of data.auc.filter(r=>r.fold!=="mean")){
+  const tr=node("tr","");for(const v of [r.fold,r.n_votes.toLocaleString("en-US"),r.auc_regression.toFixed(4),r.auc_baseline.toFixed(4)])tr.append(node("td",v));el("folds").append(tr);
+}
+for(const row of data.comparison.filter(r=>r.fold!=="mean")){
+  const option=node("option","Fold "+row.fold);option.value=row.fold;el("period").append(option);
+}
+function chart(id,rows){const root=el(id);root.replaceChildren();for(const [label,value] of rows){
+  const box=node("div","","chartrow"),track=node("div","","track"),bar=node("i","");
+  bar.style.width=(value*100)+"%";track.append(bar);box.append(node("span",label),node("strong",value.toFixed(4)),track);root.append(box);
+}}
+function evidence(){const fold=el("period").value,r=data.comparison.find(row=>row.fold===fold);
+  chart("votechart",[["General ranking",r.auc_ranking_general],["48 regressions",r.auc_48_regresiones],["Bradley–Terry · decisive votes",r.auc_big_01],["Bradley–Terry · half-point ties",r.auc_big_05]]);
+  chart("modelchart",data.ladder.map(row=>[row.Method,row[fold==="mean"?"Mean_CV":"Fold_"+fold]]));
+}
+el("period").onchange=evidence;evidence();
+function view(dash){el("finder").hidden=dash;el("dashboard").hidden=!dash;el("choose").setAttribute("aria-pressed",String(!dash));el("validate").setAttribute("aria-pressed",String(dash))}
+el("choose").onclick=()=>view(false);el("validate").onclick=()=>view(true);render();
+</script></html>
