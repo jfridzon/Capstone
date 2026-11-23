@@ -1,5 +1,11 @@
 # Model recommender
 
+Download [ArenaGuide.html](mvp/ArenaGuide.html) and open the downloaded file in a browser. It runs offline and includes both the model finder and validation dashboard. Use the task preset or select any combination of the eleven features. The dashboard compares the general ranking, the 48 regressions and Bradley–Terry on the same held-out folds. The separate per-model chart reproduces the four comparisons developed by Eli and validated by Mark.
+
+To rebuild the portable file from project inputs, run `Rscript R/generar_mvp.R` with the jsonlite package installed. It exports the fitted coefficients, exact frequencies of observed question profiles, recorded prices and published validation results. The browser weights each observed profile by its real frequency. Run `Rscript app/mvp/tests/check.R` with Chrome installed to verify the interface against R and the published output.
+
+### Shiny version
+
 Open `Capstone.Rproj` from a complete checkout. In the RStudio console, install Shiny once with `install.packages("shiny")`, then run:
 
 ```r
