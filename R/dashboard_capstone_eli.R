@@ -62,31 +62,33 @@ features <- c(is_code = "Coding", math = "Math", creative_writing = "Creative wr
 stopifnot(setequal(names(features), project$predictores),
           length(fits) == 48L, all(vapply(fits, function(f)
             f$converged && f$family$family == "binomial", logical(1))))
-operation_data <- lapply(seq_along(features), function(i) {
-  feature <- names(features)[i]
-  ranked <- project$ranking_real(feature, fits, questions)
-  n <- length(unique(questions$id[questions[[feature]]]))
-  stopifnot(n > 0, nrow(ranked) == length(fits), all(is.finite(ranked$prob_ganar)))
-  list(ranked = ranked, matching_votes = n)
-})
-operations <- vapply(seq_along(features), function(i) {
-  ranked <- operation_data[[i]]$ranked
-  n <- operation_data[[i]]$matching_votes
-  leaders <- ranked[ranked$prob_ganar == ranked$prob_ganar[1], , drop = FALSE]
-  paste0("<div data-operation='", i, "'", if (i > 1) " hidden", ">",
-         "<section><h3>", if (nrow(leaders) > 1) "Joint leaders: " else "Top-ranked model: ",
-         paste(escape(leaders$modelo), collapse = ", "), "</h3><p>",
-         sprintf("%.1f%% estimated win probability across %s matching votes.",
-                 100 * leaders$prob_ganar[1], format(n, big.mark = ",")), "</p></section>",
-         "<div class='table-shell'><table><caption>Top ", max(3, nrow(leaders)),
-         " for ", escape(features[i]), "</caption>",
-         "<thead><tr><th scope='col'>Rank</th><th scope='col'>AI model</th>",
-         "<th scope='col'>Estimated win probability</th></tr></thead><tbody>",
-         paste0("<tr><td>", seq_len(max(3, nrow(leaders))), "</td><th scope='row'>",
-                escape(head(ranked$modelo, max(3, nrow(leaders)))), "</th><td>",
-                sprintf("%.1f%%", 100 * head(ranked$prob_ganar, max(3, nrow(leaders)))),
-                "</td></tr>", collapse = ""), "</tbody></table></div></div>")
-}, character(1))
+# Cada combinación se evalúa como un perfil: etiquetas marcadas TRUE.
+profiles <- expand.grid(rep(list(c(FALSE, TRUE)), length(features)))
+names(profiles) <- names(features)
+weights <- 2^(seq_along(features) - 1L)
+unique_questions <- questions[!duplicated(questions$id), names(features)]
+observed <- tabulate(as.integer(as.matrix(unique_questions) %*% weights) + 1L,
+                     nbins = nrow(profiles))
+models <- sort(names(fits))
+scores <- vapply(models, function(model) {
+  as.numeric(predict(fits[[model]], newdata = profiles, type = "response"))
+}, numeric(nrow(profiles)))
+stopifnot(all(is.finite(scores)), sum(observed) == length(unique(questions$id)))
+prices <- read.csv("data/derivados/precios_modelos_2026-11-02_v4.csv",
+                   stringsAsFactors = FALSE)
+stopifnot(!anyDuplicated(prices$modelo), all(grepl("^[[:alnum:].:_/-]+$", models)))
+price <- prices$precio_salida_usd_por_millon[match(models, prices$modelo)]
+feature_checks <- paste0("<label><input type='checkbox' name='operation-feature' value='",
+                         weights, "'> ", escape(features), "</label>")
+# Exporta los coeficientes para evaluar perfiles sin servidor.
+terms <- c("(Intercept)", paste0(names(features), "TRUE"))
+betas <- vapply(models, function(m) unname(coef(fits[[m]])[terms]), numeric(length(terms)))
+stopifnot(all(is.finite(betas)),
+          max(abs(scores - plogis(cbind(1, as.matrix(profiles)) %*% betas))) < 1e-12)
+profile_data <- paste(observed, collapse = ",")
+model_data <- paste0('["', models, '",', ifelse(is.finite(price), price, "null"), ',',
+                     apply(betas, 2, function(x) paste(sprintf("%.16g", x), collapse = ",")),
+                     ']', collapse = ",")
 template <- paste(readLines("dashboard/template.html", warn = FALSE), collapse = "\n")
 replace_token <- function(html, key, value) {
   parts <- strsplit(html, key, fixed = TRUE)[[1]]
@@ -102,17 +104,17 @@ values <- list(
   "@@TASKS@@" = options_html(tasks),
   "@@BUDGETS@@" = options_html(budgets),
   "@@ROWS@@" = rows,
-  "@@FEATURES@@" = options_html(features),
-  "@@OPERATIONS@@" = operations
+  "@@FEATURES@@" = feature_checks,
+  "@@PROFILES@@" = profile_data,
+  "@@MODELS_DATA@@" = model_data
 )
 for (key in names(values)) template <- replace_token(template, key, values[[key]])
 stopifnot(!grepl("@@", template, fixed = TRUE))
 writeLines(enc2utf8(template), "dashboard/index.html", useBytes = TRUE)
-export <- do.call(rbind, lapply(seq_along(features), function(i) {
-  data.frame(feature = names(features)[i],
-             matching_votes = operation_data[[i]]$matching_votes,
-             operation_data[[i]]$ranked)
-}))
+best <- max.col(scores, ties.method = "first")
+export <- data.frame(profile = seq_len(nrow(profiles)) - 1L, matching_votes = observed,
+                     modelo = models[best],
+                     prob_ganar = scores[cbind(seq_len(nrow(profiles)), best)])
 write.csv(export, "R/resultados/dashboard_ranking_por_variable.csv", row.names = FALSE)
 print(vote[c("fold", vote_columns)], row.names = FALSE)
 print(model[c("Method", "Mean_CV")], row.names = FALSE)
