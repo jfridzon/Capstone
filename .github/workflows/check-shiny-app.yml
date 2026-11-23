@@ -1,0 +1,27 @@
+name: Check Shiny recommender
+on:
+  push:
+    branches: [nessim/finalizar-app]
+    paths: ['app/**', 'R/verificar_app_final.R', '.github/workflows/check-shiny-app.yml']
+  pull_request:
+    paths: ['app/**', 'R/verificar_app_final.R', 'R/02_regresiones_por_modelo.R']
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install R and Shiny
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends r-base-core r-cran-shiny
+      - name: Verify recommendations and rendered outputs
+        run: Rscript --vanilla R/verificar_app_final.R
+      - name: Verify the normal Shiny launch
+        run: |
+          Rscript -e 'shiny::runApp("app", port = 3838, launch.browser = FALSE)' > /tmp/shiny.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" || true; cat /tmp/shiny.log' EXIT
+          curl --retry 30 --retry-connrefused --retry-delay 1 -fsS http://localhost:3838/ -o /tmp/app.html
+          grep -Fq 'Which AI model should I use?' /tmp/app.html
