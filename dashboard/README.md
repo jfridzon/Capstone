@@ -12,6 +12,12 @@ con `Rscript --vanilla R/dashboard_capstone_eli.R` (R base).
   publicadas en `top3_por_precio.csv`. Son estimaciones sobre las preguntas
   del estudio con precios históricos por millón de tokens de salida.
 
+- **Operación:** elige una de las once características del modelo. El script
+  reutiliza `ranking_real()` de R/02 para promediar la probabilidad estimada de
+  cada IA en preguntas reales con esa característica. La sección muestra el
+  primer lugar, el tamaño de la muestra y el ranking de los tres primeros.
+  El ranking de operaciones incluye los modelos ajustados sin filtro de precio.
+
 Prototipo para la etapa de dashboards del 2 y 7 de diciembre indicada en
 `docs/07-pendientes-y-roles.md`. El dashboard reutiliza las evaluaciones
 publicadas. La app Shiny del grupo sigue su propio flujo.

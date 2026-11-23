@@ -70,6 +70,13 @@ footer{padding-bottom:2rem}
 @@ROWS@@
 </table></div>
 </section>
+<section aria-labelledby="operation-title">
+<h2 id="operation-title">Which AI model leads for this operation?</h2>
+<p>Select any question feature. The ranking averages each model’s estimated chance of winning across study votes with that feature, including questions with other features.</p>
+<label for="operation">Question feature</label>
+<select id="operation">@@FEATURES@@</select>
+<div id="operation-results" aria-live="polite">@@OPERATIONS@@</div>
+</section>
 </main>
 <footer>
 <p>Sources: Capstone’s published LMArena results under <code>R/resultados/</code>. Rankings reflect the study dataset and historical prices. Dashboard prepared with assistance from ChatGPT (OpenAI).</p>
@@ -94,6 +101,14 @@ function showRanking() {
 fold.addEventListener("change", showEvidence);
 task.addEventListener("change", showRanking);
 budget.addEventListener("change", showRanking);
+const operation = document.getElementById("operation");
+function showOperation() {
+  document.querySelectorAll("[data-operation]").forEach(panel => {
+    panel.hidden = Number(panel.dataset.operation) !== operation.selectedIndex + 1;
+  });
+}
+operation.addEventListener("change", showOperation);
+showOperation();
 showEvidence();
 showRanking();
 </script>
